@@ -4,6 +4,6 @@
     "enabled": false
   },
   "files": {
-    "ignore": [".react-router"]
+    "ignore": [".react-router", "build"]
   }
 }
