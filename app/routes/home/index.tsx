@@ -1,5 +1,5 @@
-import { Welcome } from "../../welcome/welcome";
 import type { Route } from "./+types";
+import { TodoApp } from "./_components/todo-app";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -13,5 +13,5 @@ export function loader({ context }: Route.LoaderArgs) {
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  return <Welcome message={loaderData.message} />;
+  return <TodoApp />;
 }
