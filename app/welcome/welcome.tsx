@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { Button } from "~/components/ui/button";
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
+import { useState } from "react";
+import { Button } from "~/components/ui/button";
 
 export function Welcome({ message }: { message: string }) {
   const [count, setCount] = useState(0);
