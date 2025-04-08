@@ -3,6 +3,9 @@
   "formatter": {
     "enabled": false
   },
+  "organizeImports": {
+    "enabled": false
+  },
   "files": {
     "ignore": [".react-router", "build"]
   }
