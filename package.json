@@ -10,6 +10,7 @@
     "format": "npx biome check --write . && npx prettier --write ."
   },
   "dependencies": {
+    "@radix-ui/react-label": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.2",
     "@react-router/node": "^7.1.5",
     "class-variance-authority": "^0.7.1",
