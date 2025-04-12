@@ -6,6 +6,7 @@ import {
   type SetStateAction,
 } from "react";
 import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
@@ -34,15 +35,14 @@ function TodoItem({
 }) {
   return (
     <div className="flex items-center justify-between border-b border-gray-200 p-3">
-      <div className="flex items-center space-x-2">
-        <Input
-          type="checkbox"
+      <Label>
+        <Checkbox
+          className="flex items-center space-x-2"
           checked={todo.completed}
-          onChange={() => onToggle(todo.id)}
-          id={todo.id}
+          onCheckedChange={() => onToggle(todo.id)}
         />
-        <Label htmlFor={todo.id}>{todo.text}</Label>
-      </div>
+        {todo.text}
+      </Label>
       <Button onClick={() => onDelete(todo.id)} variant="destructive">
         削除
       </Button>
