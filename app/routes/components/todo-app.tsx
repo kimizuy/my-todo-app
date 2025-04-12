@@ -37,7 +37,6 @@ function TodoItem({
     <div className="flex items-center justify-between border-b border-gray-200 p-3">
       <Label>
         <Checkbox
-          className="flex items-center space-x-2"
           checked={todo.completed}
           onCheckedChange={() => onToggle(todo.id)}
         />
