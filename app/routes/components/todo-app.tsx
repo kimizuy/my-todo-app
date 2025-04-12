@@ -78,18 +78,24 @@ function TodoForm({ onAdd }: { onAdd: (text: string) => void }) {
 
 function TodoFilter({
   selectedFilter,
-  setFilter,
+  onFilterChange,
 }: {
   selectedFilter: Filter;
-  setFilter: Dispatch<SetStateAction<Filter>>;
+  onFilterChange: (filter: Filter) => void;
 }) {
+  const handleClick = (filter: Filter) => {
+    if (filter !== selectedFilter) {
+      onFilterChange(filter);
+    }
+  };
+
   return (
     <div className="flex justify-center space-x-4">
       {FILTERS.map((filter) => (
         <Button
           key={filter.value}
           variant="outline"
-          onClick={() => setFilter(filter.value)}
+          onClick={() => handleClick(filter.value)}
           disabled={filter.value === selectedFilter}
         >
           {filter.label}
@@ -166,7 +172,7 @@ export function TodoApp() {
       <h1 className="text-center text-2xl font-bold">TODOアプリ</h1>
       <div className="mt-6 grid gap-6">
         <TodoForm onAdd={addTodo} />
-        <TodoFilter selectedFilter={filter} setFilter={setFilter} />
+        <TodoFilter selectedFilter={filter} onFilterChange={setFilter} />
 
         <div className="flex items-center justify-between text-sm text-gray-500">
           <span>
