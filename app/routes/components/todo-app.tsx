@@ -28,7 +28,7 @@ function TodoItem({
   onDelete: (id: string) => void;
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-gray-200 p-3">
+    <div className="flex items-center justify-between border-b p-3">
       <Label>
         <Checkbox
           checked={todo.completed}
@@ -161,7 +161,7 @@ export function TodoApp() {
   };
 
   return (
-    <div className="mx-auto mt-10 max-w-md rounded-lg bg-white p-6 shadow-md">
+    <div className="mx-auto mt-10 max-w-md rounded-lg border-2 p-6">
       <h1 className="text-center text-2xl font-bold">TODOアプリ</h1>
       <div className="mt-6 grid gap-6">
         <TodoForm onAdd={addTodo} />
