@@ -135,19 +135,19 @@ export function TodoApp() {
       text,
       completed: false,
     };
-    setTodos([...todos, newTodo]);
+    setTodos((prevTodos) => [...prevTodos, newTodo]);
   };
 
   const toggleTodo = (id: string) => {
-    setTodos(
-      todos.map((todo) =>
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
         todo.id === id ? { ...todo, completed: !todo.completed } : todo,
       ),
     );
   };
 
   const deleteTodo = (id: string) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
   };
 
   const filteredTodos = todos.filter((todo) => {
@@ -157,7 +157,7 @@ export function TodoApp() {
   });
 
   const clearCompleted = () => {
-    setTodos(todos.filter((todo) => !todo.completed));
+    setTodos((prevTodos) => prevTodos.filter((todo) => !todo.completed));
   };
 
   return (
