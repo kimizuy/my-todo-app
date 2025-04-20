@@ -1,200 +1,346 @@
-import { useState, useEffect, type FormEvent } from "react";
-import { Button } from "~/components/ui/button";
-import { Checkbox } from "~/components/ui/checkbox";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  DragOverlay,
+  useDroppable,
+  type DragStartEvent,
+  type DragOverEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useEffect, useState } from "react";
 
-const FILTERS = [
-  { label: "すべて", value: "all" },
-  { label: "未完了", value: "active" },
-  { label: "完了済み", value: "completed" },
-] as const;
-
-type Filter = (typeof FILTERS)[number]["value"];
-
-interface Todo {
+interface Task {
   id: string;
-  text: string;
-  completed: boolean;
+  content: string;
+  column: "todo" | "done";
 }
 
-function TodoItem({
-  todo,
-  onToggle,
-  onDelete,
-}: {
-  todo: Todo;
-  onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between border-b p-3">
-      <Label>
-        <Checkbox
-          checked={todo.completed}
-          onCheckedChange={() => onToggle(todo.id)}
-        />
-        {todo.text}
-      </Label>
-      <Button onClick={() => onDelete(todo.id)} variant="destructive">
-        削除
-      </Button>
-    </div>
-  );
-}
+function loadFromLocalStorage(): { todoTasks: Task[]; doneTasks: Task[] } {
+  try {
+    const storedTodoTasks = localStorage.getItem("todoTasks");
+    const storedDoneTasks = localStorage.getItem("doneTasks");
 
-function TodoForm({ onAdd }: { onAdd: (text: string) => void }) {
-  const [text, setText] = useState<string>("");
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (text.trim()) {
-      onAdd(text);
-      setText("");
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <div className="flex items-center space-x-2">
-        <Input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="新しいタスクを入力..."
-        />
-        <Button type="submit">追加</Button>
-      </div>
-    </form>
-  );
-}
-
-function TodoFilter({
-  selectedFilter,
-  onFilterChange,
-}: {
-  selectedFilter: Filter;
-  onFilterChange: (filter: Filter) => void;
-}) {
-  const handleClick = (filter: Filter) => {
-    if (filter !== selectedFilter) {
-      onFilterChange(filter);
-    }
-  };
-
-  return (
-    <div className="flex justify-center space-x-4">
-      {FILTERS.map((filter) => (
-        <Button
-          key={filter.value}
-          variant="outline"
-          onClick={() => handleClick(filter.value)}
-          disabled={filter.value === selectedFilter}
-        >
-          {filter.label}
-        </Button>
-      ))}
-    </div>
-  );
+    return {
+      todoTasks: storedTodoTasks
+        ? JSON.parse(storedTodoTasks)
+        : [
+            { id: "1", content: "タスク1", column: "todo" },
+            { id: "2", content: "タスク2", column: "todo" },
+          ],
+      doneTasks: storedDoneTasks
+        ? JSON.parse(storedDoneTasks)
+        : [
+            { id: "3", content: "タスク3", column: "done" },
+            { id: "4", content: "タスク4", column: "done" },
+          ],
+    };
+  } catch (error) {
+    console.error("Failed to load from localStorage:", error);
+    return {
+      todoTasks: [
+        { id: "1", content: "タスク1", column: "todo" },
+        { id: "2", content: "タスク2", column: "todo" },
+      ],
+      doneTasks: [
+        { id: "3", content: "タスク3", column: "done" },
+        { id: "4", content: "タスク4", column: "done" },
+      ],
+    };
+  }
 }
 
 export function TodoApp() {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [filter, setFilter] = useState<Filter>("all");
+  // ローカルストレージからデータを読み込んで初期化
+  const { todoTasks: initialTodoTasks, doneTasks: initialDoneTasks } =
+    loadFromLocalStorage();
 
-  useEffect(function initializeTodos() {
-    const loadTodos = (): Todo[] => {
-      try {
-        const savedTodos = localStorage.getItem("todos");
-        if (savedTodos) {
-          return JSON.parse(savedTodos);
-        }
-      } catch (error) {
-        console.error("Failed to load todos from localStorage:", error);
-      }
-      return [];
-    };
+  const [todoTasks, setTodoTasks] = useState<Task[]>(initialTodoTasks);
+  const [doneTasks, setDoneTasks] = useState<Task[]>(initialDoneTasks);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
-    setTodos(loadTodos());
-  }, []);
-
+  // タスクの状態が変わったらローカルストレージに保存
   useEffect(
-    function saveTodos() {
-      try {
-        localStorage.setItem("todos", JSON.stringify(todos));
-      } catch (error) {
-        console.error("Failed to save todos to localStorage:", error);
-      }
+    function saveTasksToLocalStorage() {
+      localStorage.setItem("todoTasks", JSON.stringify(todoTasks));
+      localStorage.setItem("doneTasks", JSON.stringify(doneTasks));
     },
-    [todos],
+    [todoTasks, doneTasks],
   );
 
-  const addTodo = (text: string) => {
-    const newTodo: Todo = {
-      id: Date.now().toString(),
-      text,
-      completed: false,
-    };
-    setTodos((prevTodos) => [...prevTodos, newTodo]);
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const id = active.id as string;
+
+    const task = [...todoTasks, ...doneTasks].find((task) => task.id === id);
+    if (task) {
+      setActiveTask(task);
+    }
   };
 
-  const toggleTodo = (id: string) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo,
-      ),
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // タスクからコンテナへのドラッグの場合
+    if (overId === "todo" || overId === "done") {
+      const activeTask = [...todoTasks, ...doneTasks].find(
+        (task) => task.id === activeId,
+      );
+
+      if (!activeTask) return;
+
+      // コンテナが変わる場合のみ処理する
+      if (activeTask.column !== overId) {
+        if (overId === "todo") {
+          setTodoTasks((prev) => [...prev, { ...activeTask, column: "todo" }]);
+          setDoneTasks((prev) => prev.filter((task) => task.id !== activeId));
+        } else {
+          setDoneTasks((prev) => [...prev, { ...activeTask, column: "done" }]);
+          setTodoTasks((prev) => prev.filter((task) => task.id !== activeId));
+        }
+      }
+      return;
+    }
+
+    // タスク間のドラッグ
+    const activeTask = [...todoTasks, ...doneTasks].find(
+      (task) => task.id === activeId,
     );
+    const overTask = [...todoTasks, ...doneTasks].find(
+      (task) => task.id === overId,
+    );
+
+    if (!activeTask || !overTask) return;
+
+    // 異なる列への移動
+    if (activeTask.column !== overTask.column) {
+      const isMovingToTodo = overTask.column === "todo";
+
+      if (isMovingToTodo) {
+        setTodoTasks((prev) => [...prev, { ...activeTask, column: "todo" }]);
+        setDoneTasks((prev) => prev.filter((task) => task.id !== activeId));
+      } else {
+        setDoneTasks((prev) => [...prev, { ...activeTask, column: "done" }]);
+        setTodoTasks((prev) => prev.filter((task) => task.id !== activeId));
+      }
+    }
   };
 
-  const deleteTodo = (id: string) => {
-    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) {
+      setActiveTask(null);
+      return;
+    }
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    if (activeId === overId) {
+      setActiveTask(null);
+      return;
+    }
+
+    const activeTask = [...todoTasks, ...doneTasks].find(
+      (task) => task.id === activeId,
+    );
+
+    if (!activeTask) {
+      setActiveTask(null);
+      return;
+    }
+
+    if (activeTask.column === "todo") {
+      setTodoTasks((prev) => {
+        const oldIndex = prev.findIndex((task) => task.id === activeId);
+        const newIndex = prev.findIndex((task) => task.id === overId);
+
+        if (oldIndex !== -1 && newIndex !== -1) {
+          return arrayMove(prev, oldIndex, newIndex);
+        }
+
+        return prev;
+      });
+    } else {
+      setDoneTasks((prev) => {
+        const oldIndex = prev.findIndex((task) => task.id === activeId);
+        const newIndex = prev.findIndex((task) => task.id === overId);
+
+        if (oldIndex !== -1 && newIndex !== -1) {
+          return arrayMove(prev, oldIndex, newIndex);
+        }
+
+        return prev;
+      });
+    }
+
+    setActiveTask(null);
   };
 
-  const filteredTodos = todos.filter((todo) => {
-    if (filter === "active") return !todo.completed;
-    if (filter === "completed") return todo.completed;
-    return true;
-  });
+  // タスクを追加する関数
+  const addNewTask = (column: "todo" | "done") => {
+    const newTask: Task = {
+      id: `task-${Date.now()}`,
+      content: `新しいタスク ${Math.floor(Math.random() * 1000)}`,
+      column,
+    };
 
-  const clearCompleted = () => {
-    setTodos((prevTodos) => prevTodos.filter((todo) => !todo.completed));
+    if (column === "todo") {
+      setTodoTasks((prev) => [...prev, newTask]);
+    } else {
+      setDoneTasks((prev) => [...prev, newTask]);
+    }
   };
 
   return (
-    <div className="mx-auto mt-10 max-w-md rounded-lg border-2 p-6">
-      <h1 className="text-center text-2xl font-bold">TODOアプリ</h1>
-      <div className="mt-6 grid gap-6">
-        <TodoForm onAdd={addTodo} />
-        <TodoFilter selectedFilter={filter} onFilterChange={setFilter} />
+    <div>
+      <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+        <button
+          type="button"
+          onClick={() => addNewTask("todo")}
+          style={{ padding: "8px 16px" }}
+        >
+          「今日やる」にタスクを追加
+        </button>
+        <button
+          type="button"
+          onClick={() => addNewTask("done")}
+          style={{ padding: "8px 16px" }}
+        >
+          「今日やらない」にタスクを追加
+        </button>
+      </div>
 
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <span>
-            {todos.filter((todo) => !todo.completed).length} 個の未完了タスク
-          </span>
-          <Button
-            onClick={clearCompleted}
-            variant="destructive"
-            disabled={!todos.some((todo) => todo.completed)}
-          >
-            完了済みをクリア
-          </Button>
-        </div>
+      <div style={{ display: "flex", gap: "20px" }}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <Column id="todo" title="今日やる" tasks={todoTasks} />
+          <Column id="done" title="今日やらない" tasks={doneTasks} />
+          <DragOverlay>
+            {activeTask ? (
+              <div
+                style={{
+                  padding: "10px",
+                  backgroundColor: "#f0f0f0",
+                  borderRadius: "4px",
+                }}
+              >
+                {activeTask.content}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </div>
+    </div>
+  );
+}
 
-        <div>
-          {filteredTodos.length > 0 ? (
-            filteredTodos.map((todo) => (
-              <TodoItem
-                key={todo.id}
-                todo={todo}
-                onToggle={toggleTodo}
-                onDelete={deleteTodo}
-              />
-            ))
-          ) : (
-            <p className="text-center text-gray-500">タスクがありません</p>
+interface ColumnProps {
+  id: string;
+  title: string;
+  tasks: Task[];
+}
+
+function Column({ id, title, tasks }: ColumnProps) {
+  const { setNodeRef } = useDroppable({
+    id,
+  });
+
+  const columnTasks = tasks.filter((task) => task.column === id);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        width: "250px",
+        padding: "10px",
+        backgroundColor: "#f5f5f5",
+        borderRadius: "5px",
+        minHeight: "300px", // 最小の高さを設定
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <h2>{title}</h2>
+      <SortableContext
+        items={columnTasks.map((task) => task.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <div style={{ flexGrow: 1 }}>
+          {columnTasks.map((task) => (
+            <SortableItem key={task.id} task={task} />
+          ))}
+          {columnTasks.length === 0 && (
+            <div
+              style={{
+                padding: "10px",
+                margin: "5px 0",
+                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                border: "1px dashed #ccc",
+                borderRadius: "4px",
+                minHeight: "40px",
+              }}
+            >
+              ここにタスクをドロップ
+            </div>
           )}
         </div>
-      </div>
+      </SortableContext>
+    </div>
+  );
+}
+
+interface SortableItemProps {
+  task: Task;
+}
+
+function SortableItem({ task }: SortableItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    padding: "10px",
+    margin: "5px 0",
+    backgroundColor: "white",
+    border: "1px solid #ddd",
+    borderRadius: "4px",
+    cursor: "grab",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {task.content}
     </div>
   );
 }
