@@ -34,30 +34,14 @@ function loadFromLocalStorage(): { todoTasks: Task[]; doneTasks: Task[] } {
     const storedDoneTasks = localStorage.getItem("doneTasks");
 
     return {
-      todoTasks: storedTodoTasks
-        ? JSON.parse(storedTodoTasks)
-        : [
-            { id: "1", content: "タスク1", column: "todo" },
-            { id: "2", content: "タスク2", column: "todo" },
-          ],
-      doneTasks: storedDoneTasks
-        ? JSON.parse(storedDoneTasks)
-        : [
-            { id: "3", content: "タスク3", column: "done" },
-            { id: "4", content: "タスク4", column: "done" },
-          ],
+      todoTasks: storedTodoTasks ? JSON.parse(storedTodoTasks) : [],
+      doneTasks: storedDoneTasks ? JSON.parse(storedDoneTasks) : [],
     };
   } catch (error) {
     console.error("Failed to load from localStorage:", error);
     return {
-      todoTasks: [
-        { id: "1", content: "タスク1", column: "todo" },
-        { id: "2", content: "タスク2", column: "todo" },
-      ],
-      doneTasks: [
-        { id: "3", content: "タスク3", column: "done" },
-        { id: "4", content: "タスク4", column: "done" },
-      ],
+      todoTasks: [],
+      doneTasks: [],
     };
   }
 }
