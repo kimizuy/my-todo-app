@@ -21,6 +21,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 
 interface Task {
   id: string;
@@ -224,7 +225,7 @@ export function TodoApp() {
           <Column id="done" title="今日やらない" tasks={doneTasks} />
           <DragOverlay>
             {activeTask ? (
-              <div className="rounded bg-gray-100 p-3 shadow">
+              <div className="rounded border border-blue-300 bg-blue-100 p-3 shadow-lg">
                 {activeTask.content}
               </div>
             ) : null}
@@ -242,7 +243,7 @@ interface ColumnProps {
 }
 
 function Column({ id, title, tasks }: ColumnProps) {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id,
   });
 
@@ -251,9 +252,12 @@ function Column({ id, title, tasks }: ColumnProps) {
   return (
     <div
       ref={setNodeRef}
-      className="flex min-h-[300px] w-64 flex-col rounded bg-gray-100 p-3"
+      className={cn(
+        "flex min-h-[300px] w-64 flex-col rounded p-3",
+        isOver && "border-2 border-blue-300 bg-blue-50",
+      )}
     >
-      <h2 className="mb-2">{title}</h2>
+      <h2 className="mb-2 text-lg font-medium">{title}</h2>
       <SortableContext
         items={columnTasks.map((task) => task.id)}
         strategy={verticalListSortingStrategy}
@@ -263,7 +267,7 @@ function Column({ id, title, tasks }: ColumnProps) {
             <SortableItem key={task.id} task={task} />
           ))}
           {columnTasks.length === 0 && (
-            <div className="my-1 flex min-h-[40px] items-center justify-center rounded border border-dashed p-3">
+            <div className="my-1 flex min-h-[40px] items-center justify-center rounded border border-dashed border-gray-300 p-3">
               ここにタスクをドロップ
             </div>
           )}
@@ -278,8 +282,14 @@ interface SortableItemProps {
 }
 
 function SortableItem({ task }: SortableItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: task.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -290,7 +300,10 @@ function SortableItem({ task }: SortableItemProps) {
     <div
       ref={setNodeRef}
       style={style}
-      className="my-1 cursor-grab rounded border p-3"
+      className={cn(
+        "my-1 cursor-grab rounded border p-3",
+        isDragging && "border-blue-200 bg-blue-50 opacity-50",
+      )}
       {...attributes}
       {...listeners}
     >
