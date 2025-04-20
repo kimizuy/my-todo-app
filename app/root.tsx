@@ -1,5 +1,6 @@
 import type { Route } from "./+types/root";
 import "./app.css";
+import { ThemeProvider } from "./components/theme-provider";
 import {
   Links,
   Meta,
@@ -32,7 +33,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <ThemeProvider attribute="data-theme">{children}</ThemeProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

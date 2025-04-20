@@ -1,5 +1,6 @@
 import type { Route } from "./+types/_index";
 import { TodoApp } from "./components/todo-app";
+import { ThemeSwitch } from "~/components/theme-switch";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -13,5 +14,10 @@ export function loader({ context }: Route.LoaderArgs) {
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  return <TodoApp />;
+  return (
+    <div>
+      <ThemeSwitch />
+      <TodoApp />
+    </div>
+  );
 }
