@@ -20,6 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useState } from "react";
+import { Button } from "~/components/ui/button";
 
 interface Task {
   id: string;
@@ -218,24 +219,16 @@ export function TodoApp() {
 
   return (
     <div>
-      <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
-        <button
-          type="button"
-          onClick={() => addNewTask("todo")}
-          style={{ padding: "8px 16px" }}
-        >
+      <div className="mb-5 flex gap-5">
+        <Button onClick={() => addNewTask("todo")}>
           「今日やる」にタスクを追加
-        </button>
-        <button
-          type="button"
-          onClick={() => addNewTask("done")}
-          style={{ padding: "8px 16px" }}
-        >
+        </Button>
+        <Button onClick={() => addNewTask("done")}>
           「今日やらない」にタスクを追加
-        </button>
+        </Button>
       </div>
 
-      <div style={{ display: "flex", gap: "20px" }}>
+      <div className="flex gap-5">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -247,13 +240,7 @@ export function TodoApp() {
           <Column id="done" title="今日やらない" tasks={doneTasks} />
           <DragOverlay>
             {activeTask ? (
-              <div
-                style={{
-                  padding: "10px",
-                  backgroundColor: "#f0f0f0",
-                  borderRadius: "4px",
-                }}
-              >
+              <div className="rounded bg-gray-100 p-3 shadow">
                 {activeTask.content}
               </div>
             ) : null}
@@ -280,36 +267,19 @@ function Column({ id, title, tasks }: ColumnProps) {
   return (
     <div
       ref={setNodeRef}
-      style={{
-        width: "250px",
-        padding: "10px",
-        backgroundColor: "#f5f5f5",
-        borderRadius: "5px",
-        minHeight: "300px", // 最小の高さを設定
-        display: "flex",
-        flexDirection: "column",
-      }}
+      className="flex min-h-[300px] w-64 flex-col rounded bg-gray-100 p-3"
     >
-      <h2>{title}</h2>
+      <h2 className="mb-2">{title}</h2>
       <SortableContext
         items={columnTasks.map((task) => task.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div style={{ flexGrow: 1 }}>
+        <div className="flex-grow">
           {columnTasks.map((task) => (
             <SortableItem key={task.id} task={task} />
           ))}
           {columnTasks.length === 0 && (
-            <div
-              style={{
-                padding: "10px",
-                margin: "5px 0",
-                backgroundColor: "rgba(255, 255, 255, 0.2)",
-                border: "1px dashed #ccc",
-                borderRadius: "4px",
-                minHeight: "40px",
-              }}
-            >
+            <div className="my-1 flex min-h-[40px] items-center justify-center rounded border border-dashed p-3">
               ここにタスクをドロップ
             </div>
           )}
@@ -330,16 +300,16 @@ function SortableItem({ task }: SortableItemProps) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    padding: "10px",
-    margin: "5px 0",
-    backgroundColor: "white",
-    border: "1px solid #ddd",
-    borderRadius: "4px",
-    cursor: "grab",
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="my-1 cursor-grab rounded border p-3"
+      {...attributes}
+      {...listeners}
+    >
       {task.content}
     </div>
   );
