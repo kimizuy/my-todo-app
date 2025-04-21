@@ -228,7 +228,7 @@ export function TodoApp() {
           <Column id="done" title="今日やらない" tasks={doneTasks} />
           <DragOverlay>
             {activeTask ? (
-              <div className="cursor-grabbing rounded border border-blue-300 bg-blue-100 p-3 shadow-lg">
+              <div className="cursor-grabbing rounded border border-blue-500 p-3 shadow-lg">
                 {activeTask.content}
               </div>
             ) : null}
@@ -257,7 +257,7 @@ function Column({ id, title, tasks }: ColumnProps) {
       ref={setNodeRef}
       className={cn(
         "flex min-h-[300px] w-64 flex-col rounded p-3",
-        isOver && "border-2 border-blue-300 bg-blue-50",
+        isOver && "border-2 border-blue-500",
       )}
     >
       <h2 className="mb-2 text-lg font-medium">{title}</h2>
@@ -270,7 +270,7 @@ function Column({ id, title, tasks }: ColumnProps) {
             <SortableItem key={task.id} task={task} />
           ))}
           {columnTasks.length === 0 && (
-            <div className="my-1 flex min-h-[40px] items-center justify-center rounded border border-dashed border-gray-300 p-3">
+            <div className="border-secondary my-1 flex min-h-[40px] items-center justify-center rounded border border-dashed p-3">
               ここにタスクをドロップ
             </div>
           )}
