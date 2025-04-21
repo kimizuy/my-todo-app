@@ -228,7 +228,7 @@ export function TodoApp() {
           <Column id="done" title="今日やらない" tasks={doneTasks} />
           <DragOverlay>
             {activeTask ? (
-              <div className="rounded border border-blue-300 bg-blue-100 p-3 shadow-lg">
+              <div className="cursor-grabbing rounded border border-blue-300 bg-blue-100 p-3 shadow-lg">
                 {activeTask.content}
               </div>
             ) : null}
@@ -305,7 +305,7 @@ function SortableItem({ task }: SortableItemProps) {
       style={style}
       className={cn(
         "my-1 cursor-grab rounded border p-3",
-        isDragging && "border-blue-200 bg-blue-50 opacity-50",
+        isDragging && "opacity-50",
       )}
       {...attributes}
       {...listeners}
