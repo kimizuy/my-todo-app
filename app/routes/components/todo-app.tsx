@@ -31,6 +31,9 @@ interface Task {
 
 function loadFromLocalStorage(): { todoTasks: Task[]; doneTasks: Task[] } {
   try {
+    if (typeof window === "undefined") {
+      return { todoTasks: [], doneTasks: [] };
+    }
     const storedTodoTasks = localStorage.getItem("todoTasks");
     const storedDoneTasks = localStorage.getItem("doneTasks");
 
