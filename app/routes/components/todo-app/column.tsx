@@ -23,27 +23,32 @@ export function Column({ id, title, tasks, onDeleteTask }: ColumnProps) {
   const columnTasks = tasks.filter((task) => task.columnId === id);
 
   return (
-    <div
-      ref={setNodeRef}
-      className={cn("rounded p-3", isOver && "border-2 border-blue-500")}
-    >
-      <h2 className="mb-2 text-lg font-medium">{title}</h2>
-      <SortableContext
-        items={columnTasks.map((task) => task.id)}
-        strategy={verticalListSortingStrategy}
+    <div>
+      <h2>{title}</h2>
+      <div
+        ref={setNodeRef}
+        className={cn(
+          "mt-4 rounded border p-3",
+          isOver && "border-2 border-blue-500",
+        )}
       >
-        <div className="flex-grow">
-          {columnTasks.map((task) => (
-            <SortableItem key={task.id} task={task} onDelete={onDeleteTask} />
-          ))}
-          {columnTasks.length === 0 && (
-            <div className="text-muted-foreground flex gap-2">
-              <PartyPopper />
-              <span>タスクはありません</span>
-            </div>
-          )}
-        </div>
-      </SortableContext>
+        <SortableContext
+          items={columnTasks.map((task) => task.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="grid gap-2">
+            {columnTasks.map((task) => (
+              <SortableItem key={task.id} task={task} onDelete={onDeleteTask} />
+            ))}
+            {columnTasks.length === 0 && (
+              <div className="text-muted-foreground flex min-h-[58px] items-center gap-2">
+                <PartyPopper />
+                <span>タスクはありません</span>
+              </div>
+            )}
+          </div>
+        </SortableContext>
+      </div>
     </div>
   );
 }

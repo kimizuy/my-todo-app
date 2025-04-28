@@ -27,7 +27,7 @@ export function SortableItem({ task, onDelete }: SortableItemProps) {
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onDelete?.(task.id);
+    onDelete(task.id);
   };
 
   return (
@@ -35,7 +35,7 @@ export function SortableItem({ task, onDelete }: SortableItemProps) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "my-1 flex cursor-grab items-center justify-between rounded border p-3",
+        "flex cursor-grab items-center justify-between rounded border p-3",
         isDragging && "opacity-50",
       )}
       {...attributes}
