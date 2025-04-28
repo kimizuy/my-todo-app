@@ -1,7 +1,12 @@
 import type { Route } from "./+types/root";
 import "./app.css";
+import { Header } from "./components/layout/header";
+import { Main } from "./components/layout/main";
+import { TopNav } from "./components/layout/top-nav";
 import { ThemeProvider } from "./components/theme-provider";
+import { ThemeSwitch } from "./components/theme-switch";
 import {
+  Link,
   Links,
   Meta,
   Outlet,
@@ -33,7 +38,35 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <ThemeProvider attribute="data-theme">{children}</ThemeProvider>
+        <ThemeProvider attribute="data-theme">
+          <div className="grid min-h-screen grid-cols-[100%] grid-rows-[auto_1fr_auto]">
+            <Header>
+              <TopNav
+                links={[
+                  {
+                    title: "Home",
+                    href: "/",
+                  },
+                  {
+                    title: "About",
+                    href: "/about",
+                  },
+                ]}
+              />
+              <div className="ml-auto flex items-center space-x-4">
+                <ThemeSwitch />
+              </div>
+            </Header>
+            <Main>{children}</Main>
+            <footer>
+              <div className="container mx-auto p-4 text-center">
+                <p>
+                  <Link to="https://github.com/kimizuy">@kimizuy</Link>
+                </p>
+              </div>
+            </footer>
+          </div>
+        </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
