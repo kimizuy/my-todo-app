@@ -174,28 +174,26 @@ export function TodoApp() {
   };
 
   return (
-    <div>
-      <div className="mb-5 flex gap-5">
-        <form className="flex flex-1 gap-2" onSubmit={handleAddTodoTask}>
-          <Input
-            type="text"
-            placeholder="今日やるタスクを入力"
-            value={todoInput}
-            onChange={(e) => setTodoInput(e.target.value)}
-            className="flex-1"
-          />
-          <Button type="submit">追加</Button>
-        </form>
-      </div>
+    <div className="grid gap-8">
+      <form className="flex gap-2" onSubmit={handleAddTodoTask}>
+        <Input
+          type="text"
+          placeholder="今日やるタスクを入力"
+          value={todoInput}
+          onChange={(e) => setTodoInput(e.target.value)}
+          className="flex-1"
+        />
+        <Button type="submit">追加</Button>
+      </form>
 
-      <div className="flex gap-5">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
           {COLUMNS.map((column) => (
             <Column
               key={column.id}
@@ -204,15 +202,15 @@ export function TodoApp() {
               tasks={getTasksByColumn(column.id)}
             />
           ))}
-          <DragOverlay>
-            {activeTask ? (
-              <div className="cursor-grabbing rounded border border-blue-500 p-3 shadow-lg">
-                {activeTask.content}
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-      </div>
+        </div>
+        <DragOverlay>
+          {activeTask ? (
+            <div className="cursor-grabbing rounded border border-blue-500 p-3 shadow-lg">
+              {activeTask.content}
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 }

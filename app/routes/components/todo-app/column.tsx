@@ -5,6 +5,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { PartyPopper } from "lucide-react";
 import { cn } from "~/lib/utils";
 
 interface ColumnProps {
@@ -23,10 +24,7 @@ export function Column({ id, title, tasks }: ColumnProps) {
   return (
     <div
       ref={setNodeRef}
-      className={cn(
-        "flex min-h-[300px] w-64 flex-col rounded p-3",
-        isOver && "border-2 border-blue-500",
-      )}
+      className={cn("rounded p-3", isOver && "border-2 border-blue-500")}
     >
       <h2 className="mb-2 text-lg font-medium">{title}</h2>
       <SortableContext
@@ -38,8 +36,9 @@ export function Column({ id, title, tasks }: ColumnProps) {
             <SortableItem key={task.id} task={task} />
           ))}
           {columnTasks.length === 0 && (
-            <div className="border-secondary my-1 flex min-h-[40px] items-center justify-center rounded border border-dashed p-3">
-              ここにタスクをドロップ
+            <div className="text-muted-foreground flex gap-2">
+              <PartyPopper />
+              <span>タスクはありません</span>
             </div>
           )}
         </div>
