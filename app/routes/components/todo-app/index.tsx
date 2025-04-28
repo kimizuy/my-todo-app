@@ -17,8 +17,10 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
 const COLUMNS = [
-  { id: "todo", title: "今日やる" },
-  { id: "done", title: "今日やらない" },
+  { id: "uncategorized", title: "未分類" },
+  { id: "do-today", title: "今日やる" },
+  { id: "do-not-today", title: "今日やらない" },
+  { id: "done", title: "完了" },
 ] as const;
 
 export type ColumnId = (typeof COLUMNS)[number]["id"];
@@ -71,11 +73,11 @@ export function TodoApp() {
 
     if (!over) return;
 
-    const activeId = active.id as string;
-    const overId = over.id as string;
+    const activeId = active.id;
+    const overId = over.id;
 
     // タスクからコンテナへのドラッグの場合
-    if (overId === "todo" || overId === "done") {
+    if (isColumnId(overId)) {
       const activeTask = tasks.find((task) => task.id === activeId);
 
       if (!activeTask) return;
@@ -117,8 +119,8 @@ export function TodoApp() {
       return;
     }
 
-    const activeId = active.id as string;
-    const overId = over.id as string;
+    const activeId = active.id;
+    const overId = over.id;
 
     if (activeId === overId) {
       setActiveTask(null);
@@ -160,7 +162,7 @@ export function TodoApp() {
     const newTask: Task = {
       id: `task-${Date.now()}`,
       content: todoInput,
-      columnId: "todo",
+      columnId: "uncategorized",
     };
 
     setTasks((prev) => [...prev, newTask]);
@@ -212,5 +214,11 @@ export function TodoApp() {
         </DndContext>
       </div>
     </div>
+  );
+}
+
+function isColumnId(value: unknown): value is ColumnId {
+  return (
+    typeof value === "string" && COLUMNS.some((column) => column.id === value)
   );
 }
