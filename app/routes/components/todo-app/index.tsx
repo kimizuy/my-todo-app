@@ -229,7 +229,7 @@ export function TodoApp() {
         </div>
         <DragOverlay>
           {activeTask ? (
-            <div className="cursor-grabbing rounded border border-blue-500 p-3 shadow-lg">
+            <div className="min-h-[58px] cursor-grabbing rounded border border-blue-500 p-3">
               {activeTask.content}
             </div>
           ) : null}
