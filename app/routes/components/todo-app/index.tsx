@@ -169,12 +169,27 @@ export function TodoApp() {
     setTodoInput("");
   };
 
+  const handleResetDailyTasks = () => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) => {
+        if (task.columnId === "do-today" || task.columnId === "do-not-today") {
+          return { ...task, columnId: "uncategorized" };
+        }
+        return task;
+      }),
+    );
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+  };
+
   const getTasksByColumn = (columnId: ColumnId) => {
     return tasks.filter((task) => task.columnId === columnId);
   };
 
   return (
-    <div className="grid gap-8">
+    <div className="flex flex-col gap-8">
       <form className="flex gap-2" onSubmit={handleAddTodoTask}>
         <Input
           type="text"
@@ -185,6 +200,14 @@ export function TodoApp() {
         />
         <Button type="submit">追加</Button>
       </form>
+
+      <Button
+        variant="outline"
+        onClick={handleResetDailyTasks}
+        className="self-end text-sm"
+      >
+        今日のタスクをリセット
+      </Button>
 
       <DndContext
         sensors={sensors}
@@ -200,6 +223,7 @@ export function TodoApp() {
               id={column.id}
               title={column.title}
               tasks={getTasksByColumn(column.id)}
+              onDeleteTask={handleDeleteTask}
             />
           ))}
         </div>
