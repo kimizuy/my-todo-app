@@ -12,8 +12,9 @@ import {
   type DragOverEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useEffect, useState } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 
 const COLUMNS = [
   { id: "todo", title: "今日やる" },
@@ -30,6 +31,7 @@ export function TodoApp() {
   const [todoTasks, setTodoTasks] = useState<Task[]>([]);
   const [doneTasks, setDoneTasks] = useState<Task[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [todoInput, setTodoInput] = useState<string>("");
 
   useEffect(function loadTasksFromLocalStorage() {
     const storedTodoTasks = localStorage.getItem("todoTasks");
@@ -180,30 +182,34 @@ export function TodoApp() {
     setActiveTask(null);
   };
 
-  // タスクを追加する関数
-  const addNewTask = (column: "todo" | "done") => {
+  const handleAddTodoTask = (event: FormEvent) => {
+    event.preventDefault();
+
+    if (!todoInput.trim()) return;
+
     const newTask: Task = {
       id: `task-${Date.now()}`,
-      content: `新しいタスク ${Math.floor(Math.random() * 1000)}`,
-      columnId: column,
+      content: todoInput,
+      columnId: "todo",
     };
 
-    if (column === "todo") {
-      setTodoTasks((prev) => [...prev, newTask]);
-    } else {
-      setDoneTasks((prev) => [...prev, newTask]);
-    }
+    setTodoTasks((prev) => [newTask, ...prev]);
+    setTodoInput("");
   };
 
   return (
     <div>
       <div className="mb-5 flex gap-5">
-        <Button onClick={() => addNewTask("todo")}>
-          「今日やる」にタスクを追加
-        </Button>
-        <Button onClick={() => addNewTask("done")}>
-          「今日やらない」にタスクを追加
-        </Button>
+        <form className="flex flex-1 gap-2" onSubmit={handleAddTodoTask}>
+          <Input
+            type="text"
+            placeholder="今日やるタスクを入力"
+            value={todoInput}
+            onChange={(e) => setTodoInput(e.target.value)}
+            className="flex-1"
+          />
+          <Button type="submit">追加</Button>
+        </form>
       </div>
 
       <div className="flex gap-5">
