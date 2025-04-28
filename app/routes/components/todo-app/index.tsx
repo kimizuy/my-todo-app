@@ -21,37 +21,32 @@ const COLUMNS = [
   { id: "done", title: "今日やらない" },
 ] as const;
 
+export type ColumnId = (typeof COLUMNS)[number]["id"];
+
 export interface Task {
   id: string;
   content: string;
-  columnId: (typeof COLUMNS)[number]["id"];
+  columnId: ColumnId;
 }
 
 export function TodoApp() {
-  const [todoTasks, setTodoTasks] = useState<Task[]>([]);
-  const [doneTasks, setDoneTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [todoInput, setTodoInput] = useState<string>("");
 
   useEffect(function loadTasksFromLocalStorage() {
-    const storedTodoTasks = localStorage.getItem("todoTasks");
-    const storedDoneTasks = localStorage.getItem("doneTasks");
+    const storedTasks = localStorage.getItem("tasks");
 
-    if (storedTodoTasks) {
-      setTodoTasks(JSON.parse(storedTodoTasks));
-    }
-
-    if (storedDoneTasks) {
-      setDoneTasks(JSON.parse(storedDoneTasks));
+    if (storedTasks) {
+      setTasks(JSON.parse(storedTasks));
     }
   }, []);
 
   useEffect(
     function saveTasksToLocalStorage() {
-      localStorage.setItem("todoTasks", JSON.stringify(todoTasks));
-      localStorage.setItem("doneTasks", JSON.stringify(doneTasks));
+      localStorage.setItem("tasks", JSON.stringify(tasks));
     },
-    [todoTasks, doneTasks],
+    [tasks],
   );
 
   const sensors = useSensors(
@@ -65,7 +60,7 @@ export function TodoApp() {
     const { active } = event;
     const id = active.id as string;
 
-    const task = [...todoTasks, ...doneTasks].find((task) => task.id === id);
+    const task = tasks.find((task) => task.id === id);
     if (task) {
       setActiveTask(task);
     }
@@ -81,52 +76,36 @@ export function TodoApp() {
 
     // タスクからコンテナへのドラッグの場合
     if (overId === "todo" || overId === "done") {
-      const activeTask = [...todoTasks, ...doneTasks].find(
-        (task) => task.id === activeId,
-      );
+      const activeTask = tasks.find((task) => task.id === activeId);
 
       if (!activeTask) return;
 
       // コンテナが変わる場合のみ処理する
       if (activeTask.columnId !== overId) {
-        if (overId === "todo") {
-          setTodoTasks((prev) => [
-            ...prev,
-            { ...activeTask, columnId: "todo" },
-          ]);
-          setDoneTasks((prev) => prev.filter((task) => task.id !== activeId));
-        } else {
-          setDoneTasks((prev) => [
-            ...prev,
-            { ...activeTask, columnId: "done" },
-          ]);
-          setTodoTasks((prev) => prev.filter((task) => task.id !== activeId));
-        }
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === activeId ? { ...task, columnId: overId } : task,
+          ),
+        );
       }
       return;
     }
 
     // タスク間のドラッグ
-    const activeTask = [...todoTasks, ...doneTasks].find(
-      (task) => task.id === activeId,
-    );
-    const overTask = [...todoTasks, ...doneTasks].find(
-      (task) => task.id === overId,
-    );
+    const activeTask = tasks.find((task) => task.id === activeId);
+    const overTask = tasks.find((task) => task.id === overId);
 
     if (!activeTask || !overTask) return;
 
     // 異なる列への移動
     if (activeTask.columnId !== overTask.columnId) {
-      const isMovingToTodo = overTask.columnId === "todo";
-
-      if (isMovingToTodo) {
-        setTodoTasks((prev) => [...prev, { ...activeTask, columnId: "todo" }]);
-        setDoneTasks((prev) => prev.filter((task) => task.id !== activeId));
-      } else {
-        setDoneTasks((prev) => [...prev, { ...activeTask, columnId: "done" }]);
-        setTodoTasks((prev) => prev.filter((task) => task.id !== activeId));
-      }
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === activeId
+            ? { ...task, columnId: overTask.columnId }
+            : task,
+        ),
+      );
     }
   };
 
@@ -146,37 +125,28 @@ export function TodoApp() {
       return;
     }
 
-    const activeTask = [...todoTasks, ...doneTasks].find(
-      (task) => task.id === activeId,
-    );
+    const activeTask = tasks.find((task) => task.id === activeId);
 
     if (!activeTask) {
       setActiveTask(null);
       return;
     }
 
-    if (activeTask.columnId === "todo") {
-      setTodoTasks((prev) => {
-        const oldIndex = prev.findIndex((task) => task.id === activeId);
-        const newIndex = prev.findIndex((task) => task.id === overId);
+    // 同じカラム内での並び替え
+    const columnTasks = tasks.filter(
+      (task) => task.columnId === activeTask.columnId,
+    );
+    const oldIndex = columnTasks.findIndex((task) => task.id === activeId);
+    const newIndex = columnTasks.findIndex((task) => task.id === overId);
 
-        if (oldIndex !== -1 && newIndex !== -1) {
-          return arrayMove(prev, oldIndex, newIndex);
-        }
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const reorderedColumnTasks = arrayMove(columnTasks, oldIndex, newIndex);
 
-        return prev;
-      });
-    } else {
-      setDoneTasks((prev) => {
-        const oldIndex = prev.findIndex((task) => task.id === activeId);
-        const newIndex = prev.findIndex((task) => task.id === overId);
-
-        if (oldIndex !== -1 && newIndex !== -1) {
-          return arrayMove(prev, oldIndex, newIndex);
-        }
-
-        return prev;
-      });
+      // 他のカラムのタスクと結合して新しいタスク配列を作成
+      setTasks((prev) => [
+        ...prev.filter((task) => task.columnId !== activeTask.columnId),
+        ...reorderedColumnTasks,
+      ]);
     }
 
     setActiveTask(null);
@@ -193,8 +163,12 @@ export function TodoApp() {
       columnId: "todo",
     };
 
-    setTodoTasks((prev) => [newTask, ...prev]);
+    setTasks((prev) => [...prev, newTask]);
     setTodoInput("");
+  };
+
+  const getTasksByColumn = (columnId: ColumnId) => {
+    return tasks.filter((task) => task.columnId === columnId);
   };
 
   return (
@@ -225,7 +199,7 @@ export function TodoApp() {
               key={column.id}
               id={column.id}
               title={column.title}
-              tasks={column.id === "todo" ? todoTasks : doneTasks}
+              tasks={getTasksByColumn(column.id)}
             />
           ))}
           <DragOverlay>

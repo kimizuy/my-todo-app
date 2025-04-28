@@ -1,4 +1,4 @@
-import type { Task } from ".";
+import type { ColumnId, Task } from ".";
 import { SortableItem } from "./sortable-item";
 import { useDroppable } from "@dnd-kit/core";
 import {
@@ -8,7 +8,7 @@ import {
 import { cn } from "~/lib/utils";
 
 interface ColumnProps {
-  id: Task["columnId"];
+  id: ColumnId;
   title: string;
   tasks: Task[];
 }
