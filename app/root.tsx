@@ -44,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <TopNav
                 links={[
                   {
-                    title: "Home",
+                    title: "Daily Tasks",
                     href: "/",
                   },
                   {
