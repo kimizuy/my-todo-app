@@ -21,37 +21,24 @@ export interface Task {
   column: "todo" | "done";
 }
 
-function loadFromLocalStorage(): { todoTasks: Task[]; doneTasks: Task[] } {
-  try {
-    if (typeof window === "undefined") {
-      return { todoTasks: [], doneTasks: [] };
-    }
+export function TodoApp() {
+  const [todoTasks, setTodoTasks] = useState<Task[]>([]);
+  const [doneTasks, setDoneTasks] = useState<Task[]>([]);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  useEffect(function loadTasksFromLocalStorage() {
     const storedTodoTasks = localStorage.getItem("todoTasks");
     const storedDoneTasks = localStorage.getItem("doneTasks");
 
-    return {
-      todoTasks: storedTodoTasks ? JSON.parse(storedTodoTasks) : [],
-      doneTasks: storedDoneTasks ? JSON.parse(storedDoneTasks) : [],
-    };
-  } catch (error) {
-    console.error("Failed to load from localStorage:", error);
-    return {
-      todoTasks: [],
-      doneTasks: [],
-    };
-  }
-}
+    if (storedTodoTasks) {
+      setTodoTasks(JSON.parse(storedTodoTasks));
+    }
 
-export function TodoApp() {
-  // ローカルストレージからデータを読み込んで初期化
-  const { todoTasks: initialTodoTasks, doneTasks: initialDoneTasks } =
-    loadFromLocalStorage();
+    if (storedDoneTasks) {
+      setDoneTasks(JSON.parse(storedDoneTasks));
+    }
+  }, []);
 
-  const [todoTasks, setTodoTasks] = useState<Task[]>(initialTodoTasks);
-  const [doneTasks, setDoneTasks] = useState<Task[]>(initialDoneTasks);
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
-
-  // タスクの状態が変わったらローカルストレージに保存
   useEffect(
     function saveTasksToLocalStorage() {
       localStorage.setItem("todoTasks", JSON.stringify(todoTasks));
