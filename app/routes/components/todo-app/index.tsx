@@ -15,10 +15,15 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 
+const COLUMNS = [
+  { id: "todo", title: "今日やる" },
+  { id: "done", title: "今日やらない" },
+] as const;
+
 export interface Task {
   id: string;
   content: string;
-  column: "todo" | "done";
+  columnId: (typeof COLUMNS)[number]["id"];
 }
 
 export function TodoApp() {
@@ -81,12 +86,18 @@ export function TodoApp() {
       if (!activeTask) return;
 
       // コンテナが変わる場合のみ処理する
-      if (activeTask.column !== overId) {
+      if (activeTask.columnId !== overId) {
         if (overId === "todo") {
-          setTodoTasks((prev) => [...prev, { ...activeTask, column: "todo" }]);
+          setTodoTasks((prev) => [
+            ...prev,
+            { ...activeTask, columnId: "todo" },
+          ]);
           setDoneTasks((prev) => prev.filter((task) => task.id !== activeId));
         } else {
-          setDoneTasks((prev) => [...prev, { ...activeTask, column: "done" }]);
+          setDoneTasks((prev) => [
+            ...prev,
+            { ...activeTask, columnId: "done" },
+          ]);
           setTodoTasks((prev) => prev.filter((task) => task.id !== activeId));
         }
       }
@@ -104,14 +115,14 @@ export function TodoApp() {
     if (!activeTask || !overTask) return;
 
     // 異なる列への移動
-    if (activeTask.column !== overTask.column) {
-      const isMovingToTodo = overTask.column === "todo";
+    if (activeTask.columnId !== overTask.columnId) {
+      const isMovingToTodo = overTask.columnId === "todo";
 
       if (isMovingToTodo) {
-        setTodoTasks((prev) => [...prev, { ...activeTask, column: "todo" }]);
+        setTodoTasks((prev) => [...prev, { ...activeTask, columnId: "todo" }]);
         setDoneTasks((prev) => prev.filter((task) => task.id !== activeId));
       } else {
-        setDoneTasks((prev) => [...prev, { ...activeTask, column: "done" }]);
+        setDoneTasks((prev) => [...prev, { ...activeTask, columnId: "done" }]);
         setTodoTasks((prev) => prev.filter((task) => task.id !== activeId));
       }
     }
@@ -142,7 +153,7 @@ export function TodoApp() {
       return;
     }
 
-    if (activeTask.column === "todo") {
+    if (activeTask.columnId === "todo") {
       setTodoTasks((prev) => {
         const oldIndex = prev.findIndex((task) => task.id === activeId);
         const newIndex = prev.findIndex((task) => task.id === overId);
@@ -174,7 +185,7 @@ export function TodoApp() {
     const newTask: Task = {
       id: `task-${Date.now()}`,
       content: `新しいタスク ${Math.floor(Math.random() * 1000)}`,
-      column,
+      columnId: column,
     };
 
     if (column === "todo") {
@@ -203,8 +214,14 @@ export function TodoApp() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <Column id="todo" title="今日やる" tasks={todoTasks} />
-          <Column id="done" title="今日やらない" tasks={doneTasks} />
+          {COLUMNS.map((column) => (
+            <Column
+              key={column.id}
+              id={column.id}
+              title={column.title}
+              tasks={column.id === "todo" ? todoTasks : doneTasks}
+            />
+          ))}
           <DragOverlay>
             {activeTask ? (
               <div className="cursor-grabbing rounded border border-blue-500 p-3 shadow-lg">

@@ -8,7 +8,7 @@ import {
 import { cn } from "~/lib/utils";
 
 interface ColumnProps {
-  id: string;
+  id: Task["columnId"];
   title: string;
   tasks: Task[];
 }
@@ -18,7 +18,7 @@ export function Column({ id, title, tasks }: ColumnProps) {
     id,
   });
 
-  const columnTasks = tasks.filter((task) => task.column === id);
+  const columnTasks = tasks.filter((task) => task.columnId === id);
 
   return (
     <div
