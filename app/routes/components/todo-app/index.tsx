@@ -197,10 +197,11 @@ export function TodoApp() {
       <form className="flex gap-2" onSubmit={handleAddTodoTask}>
         <Input
           type="text"
-          placeholder="今日やるタスクを入力"
+          placeholder="新しいタスクを入力"
           value={todoInput}
           onChange={(e) => setTodoInput(e.target.value)}
           className="flex-1"
+          aria-label="新しいタスクを入力"
         />
         <Button type="submit">追加</Button>
       </form>
