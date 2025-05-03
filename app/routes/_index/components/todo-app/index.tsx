@@ -40,7 +40,13 @@ export function TodoApp() {
     const storedTasks = localStorage.getItem("tasks");
 
     if (storedTasks) {
-      setTasks(JSON.parse(storedTasks));
+      try {
+        const parsedTasks = JSON.parse(storedTasks);
+        setTasks(parsedTasks);
+      } catch (error) {
+        console.error("タスクの読み込みに失敗しました:", error);
+        setTasks([]);
+      }
     }
   }, []);
 
@@ -54,7 +60,7 @@ export function TodoApp() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 1,
+        distance: 1, // 削除ボタンをクリックしたときにドラッグを開始しないようにする
       },
     }),
     useSensor(KeyboardSensor, {
@@ -66,9 +72,9 @@ export function TodoApp() {
     const { active } = event;
     const id = active.id as string;
 
-    const task = tasks.find((task) => task.id === id);
-    if (task) {
-      setActiveTask(task);
+    const foundTask = tasks.find((task) => task.id === id);
+    if (foundTask) {
+      setActiveTask(foundTask);
     }
   };
 
@@ -80,14 +86,15 @@ export function TodoApp() {
     const activeId = active.id;
     const overId = over.id;
 
-    // タスクからコンテナへのドラッグの場合
+    // タスクをカラムにドロップする場合
     if (isColumnId(overId)) {
-      const activeTask = tasks.find((task) => task.id === activeId);
+      const foundTask = tasks.find((task) => task.id === activeId);
 
-      if (!activeTask) return;
+      // タスクが見つからない場合は処理しない
+      if (!foundTask) return;
 
-      // コンテナが変わる場合のみ処理する
-      if (activeTask.columnId !== overId) {
+      // カラムが変わる場合のみ処理する
+      if (foundTask.columnId !== overId) {
         setTasks((prev) =>
           prev.map((task) =>
             task.id === activeId ? { ...task, columnId: overId } : task,
@@ -97,18 +104,19 @@ export function TodoApp() {
       return;
     }
 
-    // タスク間のドラッグ
-    const activeTask = tasks.find((task) => task.id === activeId);
-    const overTask = tasks.find((task) => task.id === overId);
+    // タスク間のドラッグ処理
+    const draggedTask = tasks.find((task) => task.id === activeId);
+    const targetTask = tasks.find((task) => task.id === overId);
 
-    if (!activeTask || !overTask) return;
+    // いずれかのタスクが見つからない場合は処理しない
+    if (!draggedTask || !targetTask) return;
 
-    // 異なる列への移動
-    if (activeTask.columnId !== overTask.columnId) {
+    // 異なるカラムへの移動時のみ処理
+    if (draggedTask.columnId !== targetTask.columnId) {
       setTasks((prev) =>
         prev.map((task) =>
           task.id === activeId
-            ? { ...task, columnId: overTask.columnId }
+            ? { ...task, columnId: targetTask.columnId }
             : task,
         ),
       );
@@ -118,6 +126,7 @@ export function TodoApp() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
+    // ドラッグ先がない場合は処理を終了
     if (!over) {
       setActiveTask(null);
       return;
@@ -126,31 +135,34 @@ export function TodoApp() {
     const activeId = active.id;
     const overId = over.id;
 
+    // 同じアイテム上でドラッグが終了した場合は処理しない
     if (activeId === overId) {
       setActiveTask(null);
       return;
     }
 
-    const activeTask = tasks.find((task) => task.id === activeId);
+    const draggedTask = tasks.find((task) => task.id === activeId);
 
-    if (!activeTask) {
+    // ドラッグされたタスクが見つからない場合は処理を終了
+    if (!draggedTask) {
       setActiveTask(null);
       return;
     }
 
-    // 同じカラム内での並び替え
+    // 同じカラム内での並び替え処理
     const columnTasks = tasks.filter(
-      (task) => task.columnId === activeTask.columnId,
+      (task) => task.columnId === draggedTask.columnId,
     );
     const oldIndex = columnTasks.findIndex((task) => task.id === activeId);
     const newIndex = columnTasks.findIndex((task) => task.id === overId);
 
+    // インデックスが有効な場合のみ処理
     if (oldIndex !== -1 && newIndex !== -1) {
       const reorderedColumnTasks = arrayMove(columnTasks, oldIndex, newIndex);
 
       // 他のカラムのタスクと結合して新しいタスク配列を作成
       setTasks((prev) => [
-        ...prev.filter((task) => task.columnId !== activeTask.columnId),
+        ...prev.filter((task) => task.columnId !== draggedTask.columnId),
         ...reorderedColumnTasks,
       ]);
     }
@@ -158,24 +170,25 @@ export function TodoApp() {
     setActiveTask(null);
   };
 
-  const handleAddTodoTask = (event: FormEvent) => {
+  const handleAddTask = (event: FormEvent) => {
     event.preventDefault();
 
     if (!todoInput.trim()) return;
 
     const newTask: Task = {
       id: `task-${Date.now()}`,
-      content: todoInput,
-      columnId: "uncategorized",
+      content: todoInput.trim(),
+      columnId: "uncategorized", // 初期カラムは未分類
     };
 
     setTasks((prev) => [...prev, newTask]);
     setTodoInput("");
   };
 
-  const handleResetDailyTasks = () => {
+  const handleResetTasks = () => {
     setTasks((prevTasks) =>
       prevTasks.map((task) => {
+        // 今日やる/やらないのタスクを未分類に戻す
         if (task.columnId === "do-today" || task.columnId === "do-not-today") {
           return { ...task, columnId: "uncategorized" };
         }
@@ -188,26 +201,27 @@ export function TodoApp() {
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
   };
 
-  const getTasksByColumn = (columnId: ColumnId) => {
+  const getTasksByColumn = (columnId: ColumnId): Task[] => {
     return tasks.filter((task) => task.columnId === columnId);
   };
 
   return (
     <div className="flex flex-col gap-8">
-      <form className="flex gap-2" onSubmit={handleAddTodoTask}>
+      <form className="flex gap-2" onSubmit={handleAddTask}>
         <Input
           type="text"
-          placeholder="今日やるタスクを入力"
+          placeholder="新しいタスクを入力"
           value={todoInput}
           onChange={(e) => setTodoInput(e.target.value)}
           className="flex-1"
+          aria-label="新しいタスクを入力"
         />
         <Button type="submit">追加</Button>
       </form>
 
       <Button
         variant="outline"
-        onClick={handleResetDailyTasks}
+        onClick={handleResetTasks}
         className="self-end text-sm"
       >
         今日のタスクをリセット

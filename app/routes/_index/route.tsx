@@ -1,4 +1,4 @@
-import type { Route } from "./+types/_index";
+import type { Route } from "./+types/route";
 import { TodoApp } from "./components/todo-app";
 
 export function meta(_: Route.MetaArgs) {
