@@ -1,53 +1,36 @@
-# Welcome to React Router!
+# このTODOアプリについて
 
-A modern, production-ready template for building full-stack React applications using React Router.
+このアプリは「使いやすさを重視した」日々のタスク管理ツールです。スマートフォンでも快適に使用できるよう設計されています。
 
-## Features
+## 主な特徴
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- **直感的なドラッグ＆ドロップ**: タスクを指でスワイプするだけで、簡単に異なるカテゴリに移動できます
+- **レスポンシブデザイン**: スマートフォン画面に最適化されたレイアウトで、外出先でも快適に使用可能
+- **最小限の操作でタスク管理**: シンプルな入力フォームで新規タスクを素早く追加
+- **視覚的な状態管理**: 4つの明確なカテゴリ（「未分類」「今日やる」「今日やらない」「完了」）で作業の優先順位が一目でわかる
+- **ワンタップ操作**: 「今日のタスクをリセット」ボタン一つで、翌日の計画をスムーズに立て直せます。今日のタスクをリセットし、再度構築し直すことで今日やることにフォーカスします
+- **オフライン対応**: ローカルストレージ機能でデータを自動保存、インターネット接続がなくても使用可能
 
-## Getting Started
+モバイルファーストの思想で設計されており、スマートフォンの画面サイズに合わせたグリッドレイアウトを採用。タップやスワイプの操作感を最適化し、外出先でも素早くタスク管理ができます。
 
-### Installation
+## 技術スタック
 
-Install the dependencies:
+### フロントエンド
+- React 19
+- TypeScript
 
-```bash
-npm install
-```
+### UI/スタイリング
+- Tailwind CSS
+- Radix UI
 
-### Development
+### ドラッグ＆ドロップ
+- @dnd-kit/core
+- @dnd-kit/sortable
 
-Start the development server with HMR:
+### ルーティング
+- React Router 7
 
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:3000`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fremix-run%2Freact-router-templates%2Ftree%2Fmain%2Fvercel&project-name=my-react-router-app&repository-name=my-react-router-app)
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+### 開発環境
+- Vite
+- TypeScript
+- Biome
