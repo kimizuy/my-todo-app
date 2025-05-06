@@ -1,4 +1,5 @@
 import { Menu } from "lucide-react";
+import type { ReactNode } from "react";
 import { NavLink } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
@@ -11,7 +12,7 @@ import { cn } from "~/lib/utils";
 
 interface TopNavProps extends React.HTMLAttributes<HTMLElement> {
   links: {
-    title: string;
+    title: ReactNode;
     href: string;
     disabled?: boolean;
   }[];
