@@ -201,6 +201,17 @@ export function TodoApp() {
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
   };
 
+  const handleCompleteTask = (taskId: string) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) => {
+        if (task.id === taskId) {
+          return { ...task, columnId: "done" };
+        }
+        return task;
+      }),
+    );
+  };
+
   const getTasksByColumn = (columnId: ColumnId): Task[] => {
     return tasks.filter((task) => task.columnId === columnId);
   };
@@ -242,6 +253,7 @@ export function TodoApp() {
               title={column.title}
               tasks={getTasksByColumn(column.id)}
               onDeleteTask={handleDeleteTask}
+              onCompleteTask={handleCompleteTask}
             />
           ))}
         </div>

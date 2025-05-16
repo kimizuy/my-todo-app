@@ -12,9 +12,16 @@ interface ColumnProps {
   title: string;
   tasks: Task[];
   onDeleteTask: (taskId: string) => void;
+  onCompleteTask: (taskId: string) => void;
 }
 
-export function Column({ id, title, tasks, onDeleteTask }: ColumnProps) {
+export function Column({
+  id,
+  title,
+  tasks,
+  onDeleteTask,
+  onCompleteTask,
+}: ColumnProps) {
   const { setNodeRef } = useDroppable({
     id,
   });
@@ -29,7 +36,12 @@ export function Column({ id, title, tasks, onDeleteTask }: ColumnProps) {
         >
           <div className="grid gap-2">
             {tasks.map((task) => (
-              <SortableItem key={task.id} task={task} onDelete={onDeleteTask} />
+              <SortableItem
+                key={task.id}
+                task={task}
+                onDelete={onDeleteTask}
+                onComplete={onCompleteTask}
+              />
             ))}
             {tasks.length === 0 && (
               <div className="text-muted-foreground flex min-h-[58px] items-center gap-2">
