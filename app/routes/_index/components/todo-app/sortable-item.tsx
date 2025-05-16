@@ -2,6 +2,7 @@ import type { Task } from ".";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Trash2 } from "lucide-react";
+import type { KeyboardEvent } from "react";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
@@ -25,10 +26,18 @@ export function SortableItem({ task, onDelete }: SortableItemProps) {
     transition,
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
+  function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
     onDelete(task.id);
-  };
+  }
+
+  function handleKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.stopPropagation();
+      e.preventDefault();
+      onDelete(task.id);
+    }
+  }
 
   return (
     <div
@@ -42,7 +51,12 @@ export function SortableItem({ task, onDelete }: SortableItemProps) {
       {...listeners}
     >
       <div>{task.content}</div>
-      <Button variant="ghost" size="sm" onClick={handleDelete}>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleDelete}
+        onKeyDown={handleKeyDown}
+      >
         <Trash2 className="text-destructive" />
         <span className="sr-only">削除</span>
       </Button>
