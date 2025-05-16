@@ -202,14 +202,18 @@ export function TodoApp() {
   };
 
   const handleCompleteTask = (taskId: string) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => {
-        if (task.id === taskId) {
-          return { ...task, columnId: "done" };
-        }
-        return task;
-      }),
-    );
+    setTasks((prevTasks) => {
+      const taskToComplete = prevTasks.find((task) => task.id === taskId);
+      if (!taskToComplete) return prevTasks;
+
+      const tasksWithoutCompleted = prevTasks.filter(
+        (task) => task.id !== taskId,
+      );
+
+      const completedTask: Task = { ...taskToComplete, columnId: "done" };
+
+      return [completedTask, ...tasksWithoutCompleted];
+    });
   };
 
   const getTasksByColumn = (columnId: ColumnId): Task[] => {
