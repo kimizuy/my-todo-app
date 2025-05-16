@@ -46,10 +46,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 links={[
                   {
                     title: (
-                      <>
+                      <div className="flex items-center gap-1">
                         <ListTodo />
                         Daily Tasks
-                      </>
+                      </div>
                     ),
                     href: "/",
                   },
