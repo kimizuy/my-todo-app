@@ -1,5 +1,8 @@
 import type { Task } from "../_index/components/todo-app";
-import { updateTasksWithCreatedAt, sortTasksByCreatedAt } from "../_index/components/todo-app";
+import {
+  sortTasksByCreatedAt,
+  updateTasksWithCreatedAt,
+} from "../_index/components/todo-app/utils";
 import type { Route } from "./+types/route";
 import { useState, useEffect } from "react";
 
