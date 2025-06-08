@@ -26,7 +26,10 @@ export default function Archives() {
       if (storedArchivedTasks) {
         try {
           const parsedTasks: Task[] = JSON.parse(storedArchivedTasks);
-          const tasksWithCreatedAt = updateTasksWithCreatedAt(parsedTasks, "archivedTasks");
+          const tasksWithCreatedAt = updateTasksWithCreatedAt(
+            parsedTasks,
+            "archivedTasks",
+          );
           setArchivedTasks(tasksWithCreatedAt.reverse()); // 最新のものを上に表示
         } catch (error) {
           console.error(
@@ -74,6 +77,22 @@ export default function Archives() {
     },
     {} as Record<string, Task[]>,
   );
+
+  // 各グループ内のタスクをcreatedAtの降順（新しいタスクが上）でソート
+  // createdAtが同じ場合はidでソート（タスク作成順を保つため）
+  for (const date in groupedTasks) {
+    groupedTasks[date].sort((a, b) => {
+      const aCreatedAt = new Date(a.createdAt || 0).getTime();
+      const bCreatedAt = new Date(b.createdAt || 0).getTime();
+      // createdAtが異なる場合は、新しいものを上に
+      if (aCreatedAt !== bCreatedAt) {
+        return bCreatedAt - aCreatedAt; // 降順
+      }
+
+      // createdAtが同じ場合はidで比較（idには通常タイムスタンプが含まれる）
+      return b.id.localeCompare(a.id);
+    });
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
