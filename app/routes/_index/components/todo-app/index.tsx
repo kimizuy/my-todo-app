@@ -51,7 +51,7 @@ export function TodoApp() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 1, // 削除ボタンをクリックしたときにドラッグを開始しないようにする
+        distance: 1, // タスクカード上のボタンをクリックしたときにドラッグを開始しないようにする
       },
     }),
     useSensor(KeyboardSensor, {
