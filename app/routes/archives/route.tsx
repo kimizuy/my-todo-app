@@ -117,12 +117,12 @@ export default function Archives() {
                       key={task.id}
                       className="bg-muted/50 rounded-lg border p-4"
                     >
-                      <div className="flex flex-col gap-1">
-                        <div className="text-sm font-medium">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="text-sm font-medium flex-1 min-w-0">
                           {task.content}
                         </div>
                         {task.createdAt && (
-                          <time className="text-muted-foreground text-xs">
+                          <time className="text-muted-foreground text-xs whitespace-nowrap">
                             {formatDate(task.createdAt)}
                           </time>
                         )}
