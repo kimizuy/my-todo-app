@@ -1,5 +1,5 @@
 import type { Task } from "../_index/components/todo-app";
-import { updateTasksWithCreatedAt } from "../_index/components/todo-app";
+import { updateTasksWithCreatedAt, sortTasksByCreatedAt } from "../_index/components/todo-app";
 import type { Route } from "./+types/route";
 import { useState, useEffect } from "react";
 
@@ -79,19 +79,8 @@ export default function Archives() {
   );
 
   // 各グループ内のタスクをcreatedAtの降順（新しいタスクが上）でソート
-  // createdAtが同じ場合はidでソート（タスク作成順を保つため）
   for (const date in groupedTasks) {
-    groupedTasks[date].sort((a, b) => {
-      const aCreatedAt = new Date(a.createdAt || 0).getTime();
-      const bCreatedAt = new Date(b.createdAt || 0).getTime();
-      // createdAtが異なる場合は、新しいものを上に
-      if (aCreatedAt !== bCreatedAt) {
-        return bCreatedAt - aCreatedAt; // 降順
-      }
-
-      // createdAtが同じ場合はidで比較（idには通常タイムスタンプが含まれる）
-      return b.id.localeCompare(a.id);
-    });
+    groupedTasks[date] = sortTasksByCreatedAt(groupedTasks[date]);
   }
 
   return (
