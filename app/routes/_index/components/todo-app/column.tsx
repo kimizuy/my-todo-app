@@ -6,6 +6,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { PartyPopper } from "lucide-react";
+import { Button } from "~/components/ui/button";
 
 interface ColumnProps {
   id: ColumnId;
@@ -13,6 +14,7 @@ interface ColumnProps {
   tasks: Task[];
   onDeleteTask: (taskId: string) => void;
   onCompleteTask: (taskId: string) => void;
+  onArchiveAll?: () => void;
 }
 
 export function Column({
@@ -21,6 +23,7 @@ export function Column({
   tasks,
   onDeleteTask,
   onCompleteTask,
+  onArchiveAll,
 }: ColumnProps) {
   const { setNodeRef } = useDroppable({
     id,
@@ -28,7 +31,19 @@ export function Column({
 
   return (
     <div>
-      <h2>{title}</h2>
+      <div className="flex items-center justify-between">
+        <h2>{title}</h2>
+        {id === "done" && tasks.length > 0 && onArchiveAll && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onArchiveAll}
+            className="text-xs"
+          >
+            すべてアーカイブする
+          </Button>
+        )}
+      </div>
       <div ref={setNodeRef} className="mt-4 rounded border p-3">
         <SortableContext
           items={tasks.map((task) => task.id)}

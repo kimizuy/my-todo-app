@@ -31,12 +31,26 @@ export interface Task {
   columnId: ColumnId;
 }
 
+export interface ArchivedTask {
+  id: string;
+  content: string;
+  archivedAt: string;
+}
+
 export function TodoApp() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [todoInput, setTodoInput] = useState<string>("");
+  const [hasLoadedTasks, setHasLoadedTasks] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(function initializeClient() {
+    setIsClient(true);
+  }, []);
 
   useEffect(function loadTasksFromLocalStorage() {
+    if (!isClient) return;
+    
     const storedTasks = localStorage.getItem("tasks");
 
     if (storedTasks) {
@@ -48,13 +62,16 @@ export function TodoApp() {
         setTasks([]);
       }
     }
-  }, []);
+    setHasLoadedTasks(true);
+  }, [isClient]);
 
   useEffect(
     function saveTasksToLocalStorage() {
-      localStorage.setItem("tasks", JSON.stringify(tasks));
+      if (hasLoadedTasks && isClient) {
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+      }
     },
-    [tasks],
+    [tasks, hasLoadedTasks, isClient],
   );
 
   const sensors = useSensors(
@@ -216,6 +233,32 @@ export function TodoApp() {
     });
   };
 
+  const handleArchiveAll = () => {
+    const doneTasks = tasks.filter((task) => task.columnId === "done");
+    
+    if (doneTasks.length === 0) return;
+
+    const archivedTasks: ArchivedTask[] = doneTasks.map((task) => ({
+      id: task.id,
+      content: task.content,
+      archivedAt: new Date().toISOString(),
+    }));
+
+    const existingArchivedTasks = localStorage.getItem("archivedTasks");
+    const currentArchivedTasks: ArchivedTask[] = existingArchivedTasks
+      ? JSON.parse(existingArchivedTasks)
+      : [];
+
+    localStorage.setItem(
+      "archivedTasks",
+      JSON.stringify([...currentArchivedTasks, ...archivedTasks]),
+    );
+
+    setTasks((prevTasks) =>
+      prevTasks.filter((task) => task.columnId !== "done"),
+    );
+  };
+
   const getTasksByColumn = (columnId: ColumnId): Task[] => {
     return tasks.filter((task) => task.columnId === columnId);
   };
@@ -258,6 +301,7 @@ export function TodoApp() {
               tasks={getTasksByColumn(column.id)}
               onDeleteTask={handleDeleteTask}
               onCompleteTask={handleCompleteTask}
+              onArchiveAll={column.id === "done" ? handleArchiveAll : undefined}
             />
           ))}
         </div>
