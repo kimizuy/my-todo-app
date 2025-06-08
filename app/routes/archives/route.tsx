@@ -1,4 +1,4 @@
-import type { ArchivedTask } from "../_index/components/todo-app";
+import type { Task } from "../_index/components/todo-app";
 import type { Route } from "./+types/route";
 import { useState, useEffect } from "react";
 
@@ -10,7 +10,7 @@ export function meta(_: Route.MetaArgs) {
 }
 
 export default function Archives() {
-  const [archivedTasks, setArchivedTasks] = useState<ArchivedTask[]>([]);
+  const [archivedTasks, setArchivedTasks] = useState<Task[]>([]);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(function initializeClient() {
@@ -64,7 +64,7 @@ export default function Archives() {
               <div className="flex justify-between">
                 <p className="text-sm font-medium">{task.content}</p>
                 <time className="text-muted-foreground ml-4 text-xs">
-                  {formatDate(task.archivedAt)}
+                  {task.archivedAt && formatDate(task.archivedAt)}
                 </time>
               </div>
             </div>

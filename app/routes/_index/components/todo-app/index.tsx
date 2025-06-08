@@ -35,12 +35,8 @@ export interface Task {
   id: string;
   content: string;
   columnId: ColumnId;
-}
-
-export interface ArchivedTask {
-  id: string;
-  content: string;
-  archivedAt: string;
+  createdAt: string;
+  archivedAt?: string;
 }
 
 export function TodoApp() {
@@ -170,6 +166,7 @@ export function TodoApp() {
       id: `task-${Date.now()}`,
       content: todoInput.trim(),
       columnId: "uncategorized", // 初期カラムは未分類
+      createdAt: new Date().toISOString(),
     };
 
     setTasks((prev) => [...prev, newTask]);
@@ -211,25 +208,28 @@ export function TodoApp() {
     const doneTasks = tasks.filter((task) => task.columnId === "done");
     if (doneTasks.length === 0) return;
 
-    const archivedTasks: ArchivedTask[] = doneTasks.map((task) => ({
-      id: task.id,
-      content: task.content,
+    const archivedTasks: Task[] = doneTasks.map((task) => ({
+      ...task,
       archivedAt: new Date().toISOString(),
     }));
 
-    const existingArchivedTasks = localStorage.getItem("archivedTasks");
-    const currentArchivedTasks: ArchivedTask[] = existingArchivedTasks
-      ? JSON.parse(existingArchivedTasks)
-      : [];
+    try {
+      const existingArchivedTasks = localStorage.getItem("archivedTasks");
+      const currentArchivedTasks: Task[] = existingArchivedTasks
+        ? JSON.parse(existingArchivedTasks)
+        : [];
 
-    localStorage.setItem(
-      "archivedTasks",
-      JSON.stringify([...currentArchivedTasks, ...archivedTasks]),
-    );
+      localStorage.setItem(
+        "archivedTasks",
+        JSON.stringify([...currentArchivedTasks, ...archivedTasks]),
+      );
 
-    setTasks((prevTasks) =>
-      prevTasks.filter((task) => task.columnId !== "done"),
-    );
+      setTasks((prevTasks) =>
+        prevTasks.filter((task) => task.columnId !== "done"),
+      );
+    } catch (error) {
+      console.error("アーカイブに失敗しました:", error);
+    }
   };
 
   const getTasksByColumn = (columnId: ColumnId): Task[] => {
@@ -297,8 +297,24 @@ function useTasks() {
     try {
       const storedTasks = localStorage.getItem("tasks");
       if (storedTasks) {
-        const parsedTasks = JSON.parse(storedTasks);
-        setTasksState(parsedTasks);
+        const parsedTasks: Task[] = JSON.parse(storedTasks);
+        
+        // 既存データにcreatedAtがない場合は現在時刻を設定
+        const tasksWithCreatedAt = parsedTasks.map((task) => ({
+          ...task,
+          createdAt: task.createdAt || new Date().toISOString(),
+        }));
+        
+        setTasksState(tasksWithCreatedAt);
+        
+        // createdAtを追加した場合はlocalStorageを更新
+        const hasUpdatedTasks = tasksWithCreatedAt.some(
+          (task, index) => task.createdAt !== parsedTasks[index]?.createdAt
+        );
+        
+        if (hasUpdatedTasks) {
+          localStorage.setItem("tasks", JSON.stringify(tasksWithCreatedAt));
+        }
       }
     } catch (error) {
       console.error("タスクの読み込みに失敗しました:", error);
