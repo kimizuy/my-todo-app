@@ -59,6 +59,17 @@ export function SortableItem({
 
   const showCompleteButton = task.columnId !== "done";
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ja-JP", {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -70,7 +81,14 @@ export function SortableItem({
       {...attributes}
       {...listeners}
     >
-      <div>{task.content}</div>
+      <div className="flex flex-col gap-1">
+        <div>{task.content}</div>
+        {task.createdAt && ( // 古いデータは createdAt が存在しない可能性があるため
+          <time className="text-muted-foreground text-xs">
+            {formatDate(task.createdAt)}
+          </time>
+        )}
+      </div>
       <div className="flex gap-1">
         {showCompleteButton && (
           <Button

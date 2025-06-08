@@ -12,7 +12,13 @@ import {
   type DragOverEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useState, useEffect, type FormEvent } from "react";
+import {
+  useState,
+  useEffect,
+  type FormEvent,
+  type SetStateAction,
+  type Dispatch,
+} from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
@@ -29,38 +35,19 @@ export interface Task {
   id: string;
   content: string;
   columnId: ColumnId;
+  createdAt: string;
+  archivedAt?: string;
 }
 
 export function TodoApp() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { tasks, setTasks } = useTasks();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [todoInput, setTodoInput] = useState<string>("");
-
-  useEffect(function loadTasksFromLocalStorage() {
-    const storedTasks = localStorage.getItem("tasks");
-
-    if (storedTasks) {
-      try {
-        const parsedTasks = JSON.parse(storedTasks);
-        setTasks(parsedTasks);
-      } catch (error) {
-        console.error("タスクの読み込みに失敗しました:", error);
-        setTasks([]);
-      }
-    }
-  }, []);
-
-  useEffect(
-    function saveTasksToLocalStorage() {
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-    },
-    [tasks],
-  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 1, // 削除ボタンをクリックしたときにドラッグを開始しないようにする
+        distance: 1, // タスクカード上のボタンをクリックしたときにドラッグを開始しないようにする
       },
     }),
     useSensor(KeyboardSensor, {
@@ -179,6 +166,7 @@ export function TodoApp() {
       id: `task-${Date.now()}`,
       content: todoInput.trim(),
       columnId: "uncategorized", // 初期カラムは未分類
+      createdAt: new Date().toISOString(),
     };
 
     setTasks((prev) => [...prev, newTask]);
@@ -214,6 +202,34 @@ export function TodoApp() {
 
       return [completedTask, ...tasksWithoutCompleted];
     });
+  };
+
+  const handleArchiveAll = () => {
+    const doneTasks = tasks.filter((task) => task.columnId === "done");
+    if (doneTasks.length === 0) return;
+
+    const archivedTasks: Task[] = doneTasks.map((task) => ({
+      ...task,
+      archivedAt: new Date().toISOString(),
+    }));
+
+    try {
+      const existingArchivedTasks = localStorage.getItem("archivedTasks");
+      const currentArchivedTasks: Task[] = existingArchivedTasks
+        ? JSON.parse(existingArchivedTasks)
+        : [];
+
+      localStorage.setItem(
+        "archivedTasks",
+        JSON.stringify([...currentArchivedTasks, ...archivedTasks]),
+      );
+
+      setTasks((prevTasks) =>
+        prevTasks.filter((task) => task.columnId !== "done"),
+      );
+    } catch (error) {
+      console.error("アーカイブに失敗しました:", error);
+    }
   };
 
   const getTasksByColumn = (columnId: ColumnId): Task[] => {
@@ -258,6 +274,7 @@ export function TodoApp() {
               tasks={getTasksByColumn(column.id)}
               onDeleteTask={handleDeleteTask}
               onCompleteTask={handleCompleteTask}
+              onArchiveAll={column.id === "done" ? handleArchiveAll : undefined}
             />
           ))}
         </div>
@@ -271,6 +288,75 @@ export function TodoApp() {
       </DndContext>
     </div>
   );
+}
+
+function useTasks() {
+  const [tasks, setTasksState] = useState<Task[]>([]);
+
+  useEffect(function hydrateFromLocalStorage() {
+    try {
+      const storedTasks = localStorage.getItem("tasks");
+      if (storedTasks) {
+        const parsedTasks: Task[] = JSON.parse(storedTasks);
+        const tasksWithCreatedAt = updateTasksWithCreatedAt(
+          parsedTasks,
+          "tasks",
+        );
+        setTasksState(tasksWithCreatedAt);
+      }
+    } catch (error) {
+      console.error("タスクの読み込みに失敗しました:", error);
+    }
+  }, []);
+
+  const setTasks: Dispatch<SetStateAction<Task[]>> = (value) => {
+    setTasksState((prevTasks) => {
+      const newTasks = typeof value === "function" ? value(prevTasks) : value;
+
+      try {
+        localStorage.setItem("tasks", JSON.stringify(newTasks));
+      } catch (error) {
+        console.error("タスクの保存に失敗しました:", error);
+      }
+
+      return newTasks;
+    });
+  };
+
+  return { tasks, setTasks };
+}
+
+// タスクリストにcreatedAtを追加し、必要に応じてlocalStorageを保存する関数
+// 主にcreatedAtがない古いデータを更新するために使用する
+export function updateTasksWithCreatedAt(
+  originalTasks: Task[],
+  storageKey: string,
+  fallbackDate?: string,
+): Task[] {
+  // 古いデータにcreatedAtを追加
+  const tasksWithCreatedAt = originalTasks.map((task) => ({
+    ...task,
+    createdAt:
+      task.createdAt ||
+      fallbackDate ||
+      task.archivedAt ||
+      new Date().toISOString(),
+  }));
+
+  // createdAtを追加した場合はlocalStorageを更新
+  const hasUpdatedTasks = tasksWithCreatedAt.some(
+    (task, index) => task.createdAt !== originalTasks[index]?.createdAt,
+  );
+
+  if (hasUpdatedTasks) {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(tasksWithCreatedAt));
+    } catch (error) {
+      console.error(`${storageKey}の保存に失敗しました:`, error);
+    }
+  }
+
+  return tasksWithCreatedAt;
 }
 
 function isColumnId(value: unknown): value is ColumnId {
