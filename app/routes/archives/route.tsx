@@ -1,5 +1,5 @@
 import type { Task } from "../_index/components/todo-app";
-import { updateTasksWithCreatedAt } from "../_index/components/todo-app";
+import { updateTasksWithCreatedAt, sortTasksByCreatedAt } from "../_index/components/todo-app";
 import type { Route } from "./+types/route";
 import { useState, useEffect } from "react";
 
@@ -26,7 +26,10 @@ export default function Archives() {
       if (storedArchivedTasks) {
         try {
           const parsedTasks: Task[] = JSON.parse(storedArchivedTasks);
-          const tasksWithCreatedAt = updateTasksWithCreatedAt(parsedTasks, "archivedTasks");
+          const tasksWithCreatedAt = updateTasksWithCreatedAt(
+            parsedTasks,
+            "archivedTasks",
+          );
           setArchivedTasks(tasksWithCreatedAt.reverse()); // 最新のものを上に表示
         } catch (error) {
           console.error(
@@ -75,6 +78,11 @@ export default function Archives() {
     {} as Record<string, Task[]>,
   );
 
+  // 各グループ内のタスクをcreatedAtの降順（新しいタスクが上）でソート
+  for (const date in groupedTasks) {
+    groupedTasks[date] = sortTasksByCreatedAt(groupedTasks[date]);
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-6 text-3xl font-bold">アーカイブ</h1>
@@ -98,12 +106,12 @@ export default function Archives() {
                       key={task.id}
                       className="bg-muted/50 rounded-lg border p-4"
                     >
-                      <div className="flex flex-col gap-1">
-                        <div className="text-sm font-medium">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="text-sm font-medium flex-1 min-w-0">
                           {task.content}
                         </div>
                         {task.createdAt && (
-                          <time className="text-muted-foreground text-xs">
+                          <time className="text-muted-foreground text-xs whitespace-nowrap">
                             {formatDate(task.createdAt)}
                           </time>
                         )}

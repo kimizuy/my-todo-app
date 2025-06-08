@@ -169,7 +169,7 @@ export function TodoApp() {
       createdAt: new Date().toISOString(),
     };
 
-    setTasks((prev) => [...prev, newTask]);
+    setTasks((prev) => [newTask, ...prev]);
     setTodoInput("");
   };
 
@@ -200,6 +200,7 @@ export function TodoApp() {
 
       const completedTask: Task = { ...taskToComplete, columnId: "done" };
 
+      // 完了タスクを先頭に追加（新しい完了タスクが上に表示される）
       return [completedTask, ...tasksWithoutCompleted];
     });
   };
@@ -233,7 +234,8 @@ export function TodoApp() {
   };
 
   const getTasksByColumn = (columnId: ColumnId): Task[] => {
-    return tasks.filter((task) => task.columnId === columnId);
+    const filteredTasks = tasks.filter((task) => task.columnId === columnId);
+    return sortTasksByCreatedAt(filteredTasks);
   };
 
   return (
@@ -357,6 +359,22 @@ export function updateTasksWithCreatedAt(
   }
 
   return tasksWithCreatedAt;
+}
+
+// タスクを新しい順（createdAt降順）でソートする共通関数
+export function sortTasksByCreatedAt(tasks: Task[]): Task[] {
+  return tasks.sort((a, b) => {
+    // createdAtの降順（新しいタスクが上）でソート
+    const aCreatedAt = new Date(a.createdAt || 0).getTime();
+    const bCreatedAt = new Date(b.createdAt || 0).getTime();
+    
+    if (aCreatedAt !== bCreatedAt) {
+      return bCreatedAt - aCreatedAt; // 降順
+    }
+    
+    // createdAtが同じ場合はidでソート
+    return b.id.localeCompare(a.id);
+  });
 }
 
 function isColumnId(value: unknown): value is ColumnId {
