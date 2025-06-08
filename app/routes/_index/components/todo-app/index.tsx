@@ -12,7 +12,13 @@ import {
   type DragOverEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useState, useEffect, type FormEvent } from "react";
+import {
+  useState,
+  useEffect,
+  type FormEvent,
+  type SetStateAction,
+  type Dispatch,
+} from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
@@ -38,41 +44,9 @@ export interface ArchivedTask {
 }
 
 export function TodoApp() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { tasks, setTasks } = useTasks();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [todoInput, setTodoInput] = useState<string>("");
-  const [hasLoadedTasks, setHasLoadedTasks] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(function initializeClient() {
-    setIsClient(true);
-  }, []);
-
-  useEffect(function loadTasksFromLocalStorage() {
-    if (!isClient) return;
-    
-    const storedTasks = localStorage.getItem("tasks");
-
-    if (storedTasks) {
-      try {
-        const parsedTasks = JSON.parse(storedTasks);
-        setTasks(parsedTasks);
-      } catch (error) {
-        console.error("タスクの読み込みに失敗しました:", error);
-        setTasks([]);
-      }
-    }
-    setHasLoadedTasks(true);
-  }, [isClient]);
-
-  useEffect(
-    function saveTasksToLocalStorage() {
-      if (hasLoadedTasks && isClient) {
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-      }
-    },
-    [tasks, hasLoadedTasks, isClient],
-  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -235,7 +209,6 @@ export function TodoApp() {
 
   const handleArchiveAll = () => {
     const doneTasks = tasks.filter((task) => task.columnId === "done");
-    
     if (doneTasks.length === 0) return;
 
     const archivedTasks: ArchivedTask[] = doneTasks.map((task) => ({
@@ -315,6 +288,38 @@ export function TodoApp() {
       </DndContext>
     </div>
   );
+}
+
+function useTasks() {
+  const [tasks, setTasksState] = useState<Task[]>([]);
+
+  useEffect(function hydrateFromLocalStorage() {
+    try {
+      const storedTasks = localStorage.getItem("tasks");
+      if (storedTasks) {
+        const parsedTasks = JSON.parse(storedTasks);
+        setTasksState(parsedTasks);
+      }
+    } catch (error) {
+      console.error("タスクの読み込みに失敗しました:", error);
+    }
+  }, []);
+
+  const setTasks: Dispatch<SetStateAction<Task[]>> = (value) => {
+    setTasksState((prevTasks) => {
+      const newTasks = typeof value === "function" ? value(prevTasks) : value;
+
+      try {
+        localStorage.setItem("tasks", JSON.stringify(newTasks));
+      } catch (error) {
+        console.error("タスクの保存に失敗しました:", error);
+      }
+
+      return newTasks;
+    });
+  };
+
+  return { tasks, setTasks };
 }
 
 function isColumnId(value: unknown): value is ColumnId {
