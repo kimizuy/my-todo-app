@@ -298,23 +298,11 @@ function useTasks() {
       const storedTasks = localStorage.getItem("tasks");
       if (storedTasks) {
         const parsedTasks: Task[] = JSON.parse(storedTasks);
-        
-        // 既存データにcreatedAtがない場合は現在時刻を設定
-        const tasksWithCreatedAt = parsedTasks.map((task) => ({
-          ...task,
-          createdAt: task.createdAt || new Date().toISOString(),
-        }));
-        
-        setTasksState(tasksWithCreatedAt);
-        
-        // createdAtを追加した場合はlocalStorageを更新
-        const hasUpdatedTasks = tasksWithCreatedAt.some(
-          (task, index) => task.createdAt !== parsedTasks[index]?.createdAt
+        const tasksWithCreatedAt = updateTasksWithCreatedAt(
+          parsedTasks,
+          "tasks",
         );
-        
-        if (hasUpdatedTasks) {
-          localStorage.setItem("tasks", JSON.stringify(tasksWithCreatedAt));
-        }
+        setTasksState(tasksWithCreatedAt);
       }
     } catch (error) {
       console.error("タスクの読み込みに失敗しました:", error);
@@ -336,6 +324,39 @@ function useTasks() {
   };
 
   return { tasks, setTasks };
+}
+
+// タスクリストにcreatedAtを追加し、必要に応じてlocalStorageを保存する関数
+// 主にcreatedAtがない古いデータを更新するために使用する
+export function updateTasksWithCreatedAt(
+  originalTasks: Task[],
+  storageKey: string,
+  fallbackDate?: string,
+): Task[] {
+  // 古いデータにcreatedAtを追加
+  const tasksWithCreatedAt = originalTasks.map((task) => ({
+    ...task,
+    createdAt:
+      task.createdAt ||
+      fallbackDate ||
+      task.archivedAt ||
+      new Date().toISOString(),
+  }));
+
+  // createdAtを追加した場合はlocalStorageを更新
+  const hasUpdatedTasks = tasksWithCreatedAt.some(
+    (task, index) => task.createdAt !== originalTasks[index]?.createdAt,
+  );
+
+  if (hasUpdatedTasks) {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(tasksWithCreatedAt));
+    } catch (error) {
+      console.error(`${storageKey}の保存に失敗しました:`, error);
+    }
+  }
+
+  return tasksWithCreatedAt;
 }
 
 function isColumnId(value: unknown): value is ColumnId {

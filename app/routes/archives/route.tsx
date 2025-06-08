@@ -1,4 +1,5 @@
 import type { Task } from "../_index/components/todo-app";
+import { updateTasksWithCreatedAt } from "../_index/components/todo-app";
 import type { Route } from "./+types/route";
 import { useState, useEffect } from "react";
 
@@ -25,27 +26,8 @@ export default function Archives() {
       if (storedArchivedTasks) {
         try {
           const parsedTasks: Task[] = JSON.parse(storedArchivedTasks);
-
-          // 古いアーカイブタスクにcreatedAtがない場合はarchivedAtを使用
-          const tasksWithCreatedAt = parsedTasks.map((task) => ({
-            ...task,
-            createdAt:
-              task.createdAt || task.archivedAt || new Date().toISOString(),
-          }));
-
+          const tasksWithCreatedAt = updateTasksWithCreatedAt(parsedTasks, "archivedTasks");
           setArchivedTasks(tasksWithCreatedAt.reverse()); // 最新のものを上に表示
-
-          // createdAtを追加した場合はlocalStorageを更新
-          const hasUpdatedTasks = tasksWithCreatedAt.some(
-            (task, index) => task.createdAt !== parsedTasks[index]?.createdAt,
-          );
-
-          if (hasUpdatedTasks) {
-            localStorage.setItem(
-              "archivedTasks",
-              JSON.stringify(tasksWithCreatedAt.reverse()),
-            );
-          }
         } catch (error) {
           console.error(
             "アーカイブされたタスクの読み込みに失敗しました:",
