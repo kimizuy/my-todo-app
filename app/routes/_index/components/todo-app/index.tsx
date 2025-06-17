@@ -1,5 +1,5 @@
 import { Column } from "./column";
-import { sortTasksByCreatedAt, updateTasksWithCreatedAt } from "./utils";
+import { updateTasksWithCreatedAt } from "./utils";
 import {
   DndContext,
   closestCenter,
@@ -235,8 +235,7 @@ export function TodoApp() {
   };
 
   const getTasksByColumn = (columnId: ColumnId): Task[] => {
-    const filteredTasks = tasks.filter((task) => task.columnId === columnId);
-    return sortTasksByCreatedAt(filteredTasks);
+    return tasks.filter((task) => task.columnId === columnId);
   };
 
   return (

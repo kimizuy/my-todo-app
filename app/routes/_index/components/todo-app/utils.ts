@@ -32,19 +32,3 @@ export function updateTasksWithCreatedAt(
 
   return tasksWithCreatedAt;
 }
-
-// タスクを新しい順（createdAt降順）でソートする共通関数
-export function sortTasksByCreatedAt(tasks: Task[]): Task[] {
-  return tasks.sort((a, b) => {
-    // createdAtの降順（新しいタスクが上）でソート
-    const aCreatedAt = new Date(a.createdAt || 0).getTime();
-    const bCreatedAt = new Date(b.createdAt || 0).getTime();
-
-    if (aCreatedAt !== bCreatedAt) {
-      return bCreatedAt - aCreatedAt; // 降順
-    }
-
-    // createdAtが同じ場合はidでソート
-    return b.id.localeCompare(a.id);
-  });
-}
