@@ -19,6 +19,26 @@ export default function Archives() {
   );
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // アーカイブ日付でグループ化
+  const groupedTasks = archivedTasks.reduce(
+    (groups, task) => {
+      if (!task.archivedAt) return groups;
+
+      const archiveDate = formatDateOnly(task.archivedAt);
+      if (!groups[archiveDate]) {
+        groups[archiveDate] = [];
+      }
+      groups[archiveDate].push(task);
+      return groups;
+    },
+    {} as Record<string, Task[]>,
+  );
+
+  // 各グループ内のタスクをcreatedAtの降順（新しいタスクが上）でソート
+  for (const date in groupedTasks) {
+    groupedTasks[date] = sortTasksByCreatedAt(groupedTasks[date]);
+  }
+
   useEffect(function initializeClient() {
     setIsClient(true);
   }, []);
@@ -47,26 +67,6 @@ export default function Archives() {
     },
     [isClient],
   );
-
-  // アーカイブ日付でグループ化
-  const groupedTasks = archivedTasks.reduce(
-    (groups, task) => {
-      if (!task.archivedAt) return groups;
-
-      const archiveDate = formatDateOnly(task.archivedAt);
-      if (!groups[archiveDate]) {
-        groups[archiveDate] = [];
-      }
-      groups[archiveDate].push(task);
-      return groups;
-    },
-    {} as Record<string, Task[]>,
-  );
-
-  // 各グループ内のタスクをcreatedAtの降順（新しいタスクが上）でソート
-  for (const date in groupedTasks) {
-    groupedTasks[date] = sortTasksByCreatedAt(groupedTasks[date]);
-  }
 
   useEffect(
     function initializeExpandedArchives() {
