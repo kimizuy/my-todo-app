@@ -70,8 +70,8 @@ export function SortableItem({
       {...attributes}
       {...listeners}
     >
-      <div className="flex flex-col gap-1">
-        <div>{task.content}</div>
+      <div className="flex flex-col gap-1 min-w-0 flex-1">
+        <div className="break-words">{task.content}</div>
         {task.createdAt && ( // 古いデータは createdAt が存在しない可能性があるため
           <time className="text-muted-foreground text-xs">
             {formatDate(task.createdAt)}
