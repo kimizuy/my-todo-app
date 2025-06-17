@@ -2,6 +2,7 @@ import type { Task } from "../_index/components/todo-app";
 import { updateTasksWithCreatedAt } from "../_index/components/todo-app/utils";
 import type { Route } from "./+types/route";
 import { useState, useEffect } from "react";
+import { formatDate } from "~/lib/utils";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -46,26 +47,6 @@ export default function Archives() {
     },
     [isClient],
   );
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ja-JP", {
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const formatDateOnly = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ja-JP", {
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-    });
-  };
 
   // アーカイブ日付でグループ化
   const groupedTasks = archivedTasks.reduce(
@@ -185,3 +166,12 @@ function sortTasksByCreatedAt(tasks: Task[]): Task[] {
     return b.id.localeCompare(a.id);
   });
 }
+
+const formatDateOnly = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  });
+};
