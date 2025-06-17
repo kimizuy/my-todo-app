@@ -4,7 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Trash2, CheckCircle } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import { Button } from "~/components/ui/button";
-import { cn } from "~/lib/utils";
+import { cn, formatDate } from "~/lib/utils";
 
 interface SortableItemProps {
   task: Task;
@@ -58,17 +58,6 @@ export function SortableItem({
   }
 
   const showCompleteButton = task.columnId !== "done";
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ja-JP", {
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   return (
     <div

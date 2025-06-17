@@ -22,6 +22,7 @@ import {
 } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { formatDate } from "~/lib/utils";
 
 const COLUMNS = [
   { id: "uncategorized", title: "未分類" },
@@ -282,8 +283,15 @@ export function TodoApp() {
         </div>
         <DragOverlay>
           {activeTask ? (
-            <div className="min-h-[58px] cursor-grabbing rounded border border-blue-500 p-3">
-              {activeTask.content}
+            <div className="flex cursor-grabbing items-center justify-between rounded border border-blue-500 p-3">
+              <div className="flex flex-col gap-1">
+                <div>{activeTask.content}</div>
+                {activeTask.createdAt && (
+                  <time className="text-muted-foreground text-xs">
+                    {formatDate(activeTask.createdAt)}
+                  </time>
+                )}
+              </div>
             </div>
           ) : null}
         </DragOverlay>
