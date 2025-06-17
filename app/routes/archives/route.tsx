@@ -166,11 +166,12 @@ function useExpandedArchives(groupedTasks: Record<string, Task[]>) {
   const [expandedArchives, setExpandedArchives] = useState<Set<string>>(
     new Set(),
   );
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(
     function initializeExpandedArchives() {
-      // すでに何かが展開されている場合や、グループ化されたタスクがない場合は何もしない
-      if (expandedArchives.size > 0 || Object.keys(groupedTasks).length === 0) {
+      // すでに初期化済みの場合や、グループ化されたタスクがない場合は何もしない
+      if (isInitialized || Object.keys(groupedTasks).length === 0) {
         return;
       }
 
@@ -180,9 +181,10 @@ function useExpandedArchives(groupedTasks: Record<string, Task[]>) {
 
       if (sortedArchiveDates.length > 0) {
         setExpandedArchives(new Set([sortedArchiveDates[0]]));
+        setIsInitialized(true);
       }
     },
-    [groupedTasks, expandedArchives.size],
+    [groupedTasks, isInitialized],
   );
 
   const toggleArchive = useCallback((archiveDate: string) => {
