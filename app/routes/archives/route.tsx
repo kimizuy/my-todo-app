@@ -13,6 +13,10 @@ export function meta(_: Route.MetaArgs) {
 export default function Archives() {
   const [archivedTasks, setArchivedTasks] = useState<Task[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [expandedArchives, setExpandedArchives] = useState<Set<string>>(
+    new Set(),
+  );
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(function initializeClient() {
     setIsClient(true);
@@ -83,6 +87,34 @@ export default function Archives() {
     groupedTasks[date] = sortTasksByCreatedAt(groupedTasks[date]);
   }
 
+  useEffect(
+    function initializeExpandedArchives() {
+      if (!isInitialized && Object.keys(groupedTasks).length > 0) {
+        const sortedArchiveDates = Object.keys(groupedTasks).sort(
+          (a, b) => new Date(b).getTime() - new Date(a).getTime(),
+        );
+
+        if (sortedArchiveDates.length > 0) {
+          setExpandedArchives(new Set([sortedArchiveDates[0]]));
+          setIsInitialized(true);
+        }
+      }
+    },
+    [groupedTasks, isInitialized],
+  );
+
+  const toggleArchive = (archiveDate: string) => {
+    setExpandedArchives((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(archiveDate)) {
+        newSet.delete(archiveDate);
+      } else {
+        newSet.add(archiveDate);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-6 text-3xl font-bold">アーカイブ</h1>
@@ -95,32 +127,44 @@ export default function Archives() {
         <div className="space-y-6">
           {Object.entries(groupedTasks)
             .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
-            .map(([archiveDate, tasks]) => (
-              <div key={archiveDate}>
-                <h2 className="text-muted-foreground bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 mb-3 py-2 text-sm font-semibold backdrop-blur">
-                  {archiveDate}にアーカイブ
-                </h2>
-                <div className="space-y-3">
-                  {tasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="bg-muted/50 rounded-lg border p-4"
-                    >
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="min-w-0 flex-1 text-sm font-medium">
-                          {task.content}
+            .map(([archiveDate, tasks]) => {
+              const isExpanded = expandedArchives.has(archiveDate);
+              return (
+                <div key={archiveDate}>
+                  <button
+                    type="button"
+                    onClick={() => toggleArchive(archiveDate)}
+                    className="text-muted-foreground bg-background/95 supports-[backdrop-filter]:bg-background/60 hover:text-foreground sticky top-0 mb-3 flex w-full items-center gap-2 py-2 text-left text-sm font-semibold backdrop-blur transition-colors"
+                  >
+                    <span className="transform transition-transform duration-200">
+                      {isExpanded ? "▼" : "▶"}
+                    </span>
+                    {archiveDate}にアーカイブ ({tasks.length}件)
+                  </button>
+                  {isExpanded && (
+                    <div className="space-y-3">
+                      {tasks.map((task) => (
+                        <div
+                          key={task.id}
+                          className="bg-muted/50 rounded-lg border p-4"
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="min-w-0 flex-1 text-sm font-medium">
+                              {task.content}
+                            </div>
+                            {task.createdAt && (
+                              <time className="text-muted-foreground text-xs whitespace-nowrap">
+                                {formatDate(task.createdAt)}
+                              </time>
+                            )}
+                          </div>
                         </div>
-                        {task.createdAt && (
-                          <time className="text-muted-foreground text-xs whitespace-nowrap">
-                            {formatDate(task.createdAt)}
-                          </time>
-                        )}
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
       )}
     </div>
