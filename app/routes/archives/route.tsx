@@ -65,7 +65,7 @@ export default function Archives() {
                 <button
                   type="button"
                   onClick={() => toggleArchive(archiveDate)}
-                  className="text-muted-foreground bg-background/95 supports-[backdrop-filter]:bg-background/60 hover:text-foreground sticky top-0 mb-3 flex w-full items-center gap-2 py-2 text-left text-sm font-semibold backdrop-blur transition-colors"
+                  className="text-muted-foreground bg-background/95 supports-[backdrop-filter]:bg-background/60 hover:text-foreground sticky top-0 mb-3 flex w-full cursor-pointer items-center gap-2 py-2 text-left text-sm font-semibold backdrop-blur transition-colors"
                 >
                   <span className="transform transition-transform duration-200">
                     {isExpanded ? "▼" : "▶"}
