@@ -1,8 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "WebFetch(domain:react.dev)"
-    ],
+    "allow": ["WebFetch(domain:react.dev)"],
     "deny": []
   }
 }
