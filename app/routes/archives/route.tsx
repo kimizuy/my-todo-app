@@ -80,7 +80,7 @@ export default function Archives() {
                         className="bg-muted/50 rounded-lg border p-4"
                       >
                         <div className="flex items-center justify-between gap-4">
-                          <div className="min-w-0 flex-1 text-sm font-medium break-words">
+                          <div className="min-w-0 flex-1 text-sm font-medium wrap-anywhere">
                             {task.content}
                           </div>
                           {task.createdAt && (
