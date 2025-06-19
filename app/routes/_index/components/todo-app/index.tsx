@@ -1,4 +1,5 @@
 import { Column } from "./column";
+import { TaskContent } from "./sortable-item";
 import { updateTasksWithCreatedAt } from "./utils";
 import {
   DndContext,
@@ -13,8 +14,6 @@ import {
   type DragOverEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import DOMPurify from "dompurify";
-import { marked } from "marked";
 import {
   useState,
   useEffect,
@@ -24,7 +23,6 @@ import {
 } from "react";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
-import { formatDate } from "~/lib/utils";
 
 const COLUMNS = [
   { id: "uncategorized", title: "未分類" },
@@ -241,14 +239,6 @@ export function TodoApp() {
     return tasks.filter((task) => task.columnId === columnId);
   };
 
-  const parseMarkdown = (content: string): string => {
-    const html = marked.parse(content, {
-      breaks: true,
-      async: false,
-    }) as string;
-    return DOMPurify.sanitize(html);
-  };
-
   return (
     <div className="flex flex-col gap-8">
       <form className="flex gap-2" onSubmit={handleAddTask}>
@@ -293,20 +283,7 @@ export function TodoApp() {
         <DragOverlay>
           {activeTask ? (
             <div className="flex cursor-grabbing items-center justify-between rounded border border-blue-500 p-3">
-              <div className="flex flex-col gap-1">
-                <div
-                  className="prose dark:prose-invert text-primary prose-p:text-primary prose-headings:text-primary prose-li:text-primary prose-strong:text-primary prose-em:text-primary prose-a:text-primary wrap-anywhere"
-                  // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized with DOMPurify
-                  dangerouslySetInnerHTML={{
-                    __html: parseMarkdown(activeTask.content),
-                  }}
-                />
-                {activeTask.createdAt && (
-                  <time className="text-muted-foreground text-xs">
-                    {formatDate(activeTask.createdAt)}
-                  </time>
-                )}
-              </div>
+              <TaskContent task={activeTask} />
             </div>
           ) : null}
         </DragOverlay>

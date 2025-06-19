@@ -61,14 +61,6 @@ export function SortableItem({
 
   const showCompleteButton = task.columnId !== "done";
 
-  const parseMarkdown = (content: string): string => {
-    const html = marked.parse(content, {
-      breaks: true,
-      async: false,
-    }) as string;
-    return DOMPurify.sanitize(html);
-  };
-
   return (
     <div
       ref={setNodeRef}
@@ -80,18 +72,7 @@ export function SortableItem({
       {...attributes}
       {...listeners}
     >
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div
-          className="prose dark:prose-invert text-primary prose-p:text-primary prose-headings:text-primary prose-li:text-primary prose-strong:text-primary prose-em:text-primary prose-a:text-primary wrap-anywhere"
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized with DOMPurify
-          dangerouslySetInnerHTML={{ __html: parseMarkdown(task.content) }}
-        />
-        {task.createdAt && ( // 古いデータは createdAt が存在しない可能性があるため
-          <time className="text-muted-foreground text-xs">
-            {formatDate(task.createdAt)}
-          </time>
-        )}
-      </div>
+      <TaskContent task={task} />
       <div className="flex gap-1">
         {showCompleteButton && (
           <Button
@@ -116,6 +97,35 @@ export function SortableItem({
           <span className="sr-only">削除</span>
         </Button>
       </div>
+    </div>
+  );
+}
+
+const parseMarkdown = (content: string): string => {
+  const html = marked.parse(content, {
+    breaks: true,
+    async: false,
+  });
+  return DOMPurify.sanitize(html);
+};
+
+interface TaskContentProps {
+  task: Task;
+}
+
+export function TaskContent({ task }: TaskContentProps) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div
+        className="prose dark:prose-invert text-primary prose-p:text-primary prose-headings:text-primary prose-li:text-primary prose-strong:text-primary prose-em:text-primary prose-a:text-primary wrap-anywhere"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized with DOMPurify
+        dangerouslySetInnerHTML={{ __html: parseMarkdown(task.content) }}
+      />
+      {task.createdAt && ( // 古いデータは createdAt が存在しない可能性があるため
+        <time className="text-muted-foreground text-xs">
+          {formatDate(task.createdAt)}
+        </time>
+      )}
     </div>
   );
 }
