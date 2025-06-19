@@ -1,7 +1,9 @@
 import type { Task } from ".";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import DOMPurify from "dompurify";
 import { Trash2, CheckCircle } from "lucide-react";
+import { marked } from "marked";
 import type { KeyboardEvent } from "react";
 import { Button } from "~/components/ui/button";
 import { cn, formatDate } from "~/lib/utils";
@@ -64,20 +66,13 @@ export function SortableItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex cursor-grab items-center justify-between rounded border p-3",
+        "flex cursor-grab items-center justify-between gap-1 rounded border p-3",
         isDragging && "opacity-50",
       )}
       {...attributes}
       {...listeners}
     >
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="wrap-anywhere">{task.content}</div>
-        {task.createdAt && ( // 古いデータは createdAt が存在しない可能性があるため
-          <time className="text-muted-foreground text-xs">
-            {formatDate(task.createdAt)}
-          </time>
-        )}
-      </div>
+      <TaskContent task={task} />
       <div className="flex gap-1">
         {showCompleteButton && (
           <Button
@@ -102,6 +97,35 @@ export function SortableItem({
           <span className="sr-only">削除</span>
         </Button>
       </div>
+    </div>
+  );
+}
+
+const parseMarkdown = (content: string): string => {
+  const html = marked.parse(content, {
+    breaks: true,
+    async: false,
+  });
+  return DOMPurify.sanitize(html);
+};
+
+interface TaskContentProps {
+  task: Task;
+}
+
+export function TaskContent({ task }: TaskContentProps) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div
+        className="prose dark:prose-invert text-primary prose-p:text-primary prose-headings:text-primary prose-li:text-primary prose-strong:text-primary prose-em:text-primary prose-a:text-primary wrap-anywhere"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized with DOMPurify
+        dangerouslySetInnerHTML={{ __html: parseMarkdown(task.content) }}
+      />
+      {task.createdAt && ( // 古いデータは createdAt が存在しない可能性があるため
+        <time className="text-muted-foreground text-xs">
+          {formatDate(task.createdAt)}
+        </time>
+      )}
     </div>
   );
 }

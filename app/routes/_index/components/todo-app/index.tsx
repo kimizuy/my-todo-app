@@ -1,4 +1,6 @@
+/// <reference types="user-agent-data-types" />
 import { Column } from "./column";
+import { TaskContent } from "./sortable-item";
 import { updateTasksWithCreatedAt } from "./utils";
 import {
   DndContext,
@@ -21,8 +23,7 @@ import {
   type Dispatch,
 } from "react";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { formatDate } from "~/lib/utils";
+import { Textarea } from "~/components/ui/textarea";
 
 const COLUMNS = [
   { id: "uncategorized", title: "未分類" },
@@ -45,6 +46,14 @@ export function TodoApp() {
   const { tasks, setTasks } = useTasks();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [todoInput, setTodoInput] = useState<string>("");
+  const [isMac, setIsMac] = useState<boolean>(false);
+
+  useEffect(() => {
+    const platform = navigator.userAgentData?.platform;
+    if (platform) {
+      setIsMac(platform.includes("mac"));
+    }
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -159,9 +168,7 @@ export function TodoApp() {
     setActiveTask(null);
   };
 
-  const handleAddTask = (event: FormEvent) => {
-    event.preventDefault();
-
+  const addTask = () => {
     if (!todoInput.trim()) return;
 
     const newTask: Task = {
@@ -173,6 +180,18 @@ export function TodoApp() {
 
     setTasks((prev) => [newTask, ...prev]);
     setTodoInput("");
+  };
+
+  const handleAddTask = (event: FormEvent) => {
+    event.preventDefault();
+    addTask();
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault();
+      addTask();
+    }
   };
 
   const handleResetTasks = () => {
@@ -242,15 +261,18 @@ export function TodoApp() {
   return (
     <div className="flex flex-col gap-8">
       <form className="flex gap-2" onSubmit={handleAddTask}>
-        <Input
-          type="text"
-          placeholder="新しいタスクを入力"
+        <Textarea
+          placeholder="新しいタスクを入力（マークダウン対応）"
           value={todoInput}
           onChange={(e) => setTodoInput(e.target.value)}
-          className="flex-1"
+          onKeyDown={handleKeyDown}
+          className="min-h-[40px] flex-1 resize-none"
           aria-label="新しいタスクを入力"
         />
-        <Button type="submit">追加</Button>
+        <Button type="submit">
+          追加
+          <span className="text-xs">({isMac ? "⌘" : "Ctrl"}+Enter)</span>
+        </Button>
       </form>
 
       <Button
@@ -284,14 +306,7 @@ export function TodoApp() {
         <DragOverlay>
           {activeTask ? (
             <div className="flex cursor-grabbing items-center justify-between rounded border border-blue-500 p-3">
-              <div className="flex flex-col gap-1">
-                <div>{activeTask.content}</div>
-                {activeTask.createdAt && (
-                  <time className="text-muted-foreground text-xs">
-                    {formatDate(activeTask.createdAt)}
-                  </time>
-                )}
-              </div>
+              <TaskContent task={activeTask} />
             </div>
           ) : null}
         </DragOverlay>
