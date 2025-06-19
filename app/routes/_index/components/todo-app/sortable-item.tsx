@@ -66,7 +66,7 @@ export function SortableItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex cursor-grab items-center justify-between rounded border p-3",
+        "flex cursor-grab items-center justify-between gap-1 rounded border p-3",
         isDragging && "opacity-50",
       )}
       {...attributes}
