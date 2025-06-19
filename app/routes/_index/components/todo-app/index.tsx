@@ -1,3 +1,4 @@
+/// <reference types="user-agent-data-types" />
 import { Column } from "./column";
 import { TaskContent } from "./sortable-item";
 import { updateTasksWithCreatedAt } from "./utils";
@@ -45,6 +46,14 @@ export function TodoApp() {
   const { tasks, setTasks } = useTasks();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [todoInput, setTodoInput] = useState<string>("");
+  const [isMac, setIsMac] = useState<boolean>(false);
+
+  useEffect(() => {
+    const platform = navigator.userAgentData?.platform;
+    if (platform) {
+      setIsMac(platform.includes("mac"));
+    }
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -159,9 +168,7 @@ export function TodoApp() {
     setActiveTask(null);
   };
 
-  const handleAddTask = (event: FormEvent) => {
-    event.preventDefault();
-
+  const addTask = () => {
     if (!todoInput.trim()) return;
 
     const newTask: Task = {
@@ -173,6 +180,18 @@ export function TodoApp() {
 
     setTasks((prev) => [newTask, ...prev]);
     setTodoInput("");
+  };
+
+  const handleAddTask = (event: FormEvent) => {
+    event.preventDefault();
+    addTask();
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault();
+      addTask();
+    }
   };
 
   const handleResetTasks = () => {
@@ -246,10 +265,14 @@ export function TodoApp() {
           placeholder="新しいタスクを入力（マークダウン対応）"
           value={todoInput}
           onChange={(e) => setTodoInput(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="min-h-[40px] flex-1 resize-none"
           aria-label="新しいタスクを入力"
         />
-        <Button type="submit">追加</Button>
+        <Button type="submit">
+          追加
+          <span className="text-xs">({isMac ? "⌘" : "Ctrl"}+Enter)</span>
+        </Button>
       </form>
 
       <Button
