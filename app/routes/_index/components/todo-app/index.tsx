@@ -13,6 +13,8 @@ import {
   type DragOverEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import DOMPurify from "dompurify";
+import { marked } from "marked";
 import {
   useState,
   useEffect,
@@ -21,7 +23,7 @@ import {
   type Dispatch,
 } from "react";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
 import { formatDate } from "~/lib/utils";
 
 const COLUMNS = [
@@ -239,15 +241,22 @@ export function TodoApp() {
     return tasks.filter((task) => task.columnId === columnId);
   };
 
+  const parseMarkdown = (content: string): string => {
+    const html = marked.parse(content, {
+      breaks: true,
+      async: false,
+    }) as string;
+    return DOMPurify.sanitize(html);
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <form className="flex gap-2" onSubmit={handleAddTask}>
-        <Input
-          type="text"
-          placeholder="新しいタスクを入力"
+        <Textarea
+          placeholder="新しいタスクを入力（マークダウン対応）"
           value={todoInput}
           onChange={(e) => setTodoInput(e.target.value)}
-          className="flex-1"
+          className="min-h-[40px] flex-1 resize-none"
           aria-label="新しいタスクを入力"
         />
         <Button type="submit">追加</Button>
@@ -285,7 +294,13 @@ export function TodoApp() {
           {activeTask ? (
             <div className="flex cursor-grabbing items-center justify-between rounded border border-blue-500 p-3">
               <div className="flex flex-col gap-1">
-                <div>{activeTask.content}</div>
+                <div
+                  className="prose dark:prose-invert text-primary prose-p:text-primary prose-headings:text-primary prose-li:text-primary prose-strong:text-primary prose-em:text-primary prose-a:text-primary wrap-anywhere"
+                  // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized with DOMPurify
+                  dangerouslySetInnerHTML={{
+                    __html: parseMarkdown(activeTask.content),
+                  }}
+                />
                 {activeTask.createdAt && (
                   <time className="text-muted-foreground text-xs">
                     {formatDate(activeTask.createdAt)}

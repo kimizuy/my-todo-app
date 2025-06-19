@@ -1,7 +1,9 @@
 import type { Task } from ".";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import DOMPurify from "dompurify";
 import { Trash2, CheckCircle } from "lucide-react";
+import { marked } from "marked";
 import type { KeyboardEvent } from "react";
 import { Button } from "~/components/ui/button";
 import { cn, formatDate } from "~/lib/utils";
@@ -59,6 +61,14 @@ export function SortableItem({
 
   const showCompleteButton = task.columnId !== "done";
 
+  const parseMarkdown = (content: string): string => {
+    const html = marked.parse(content, {
+      breaks: true,
+      async: false,
+    }) as string;
+    return DOMPurify.sanitize(html);
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -71,7 +81,11 @@ export function SortableItem({
       {...listeners}
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="wrap-anywhere">{task.content}</div>
+        <div
+          className="prose dark:prose-invert text-primary prose-p:text-primary prose-headings:text-primary prose-li:text-primary prose-strong:text-primary prose-em:text-primary prose-a:text-primary wrap-anywhere"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized with DOMPurify
+          dangerouslySetInnerHTML={{ __html: parseMarkdown(task.content) }}
+        />
         {task.createdAt && ( // 古いデータは createdAt が存在しない可能性があるため
           <time className="text-muted-foreground text-xs">
             {formatDate(task.createdAt)}
