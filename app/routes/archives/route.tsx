@@ -1,4 +1,4 @@
-import type { Task } from "../_index/components/todo-app";
+import type { Task } from "../_index/components/todo-app/types";
 import { updateTasksWithCreatedAt } from "../_index/components/todo-app/utils";
 import type { Route } from "./+types/route";
 import { useState, useEffect, useMemo, useCallback } from "react";

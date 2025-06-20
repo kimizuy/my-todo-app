@@ -1,5 +1,5 @@
-import type { ColumnId, Task } from ".";
-import { SortableItem } from "./sortable-item";
+import type { ColumnId, Task } from "../types";
+import { Item } from "./item";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -8,7 +8,7 @@ import {
 import { PartyPopper } from "lucide-react";
 import { Button } from "~/components/ui/button";
 
-interface ColumnProps {
+interface Props {
   id: ColumnId;
   title: string;
   tasks: Task[];
@@ -24,7 +24,7 @@ export function Column({
   onDeleteTask,
   onCompleteTask,
   onArchiveAll,
-}: ColumnProps) {
+}: Props) {
   const { setNodeRef } = useDroppable({
     id,
   });
@@ -51,7 +51,7 @@ export function Column({
         >
           <div className="grid gap-2">
             {tasks.map((task) => (
-              <SortableItem
+              <Item
                 key={task.id}
                 task={task}
                 onDelete={onDeleteTask}

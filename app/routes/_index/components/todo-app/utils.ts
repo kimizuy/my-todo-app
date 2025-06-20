@@ -1,20 +1,15 @@
-import type { Task } from ".";
+import type { Task } from "./types";
 
 // タスクリストにcreatedAtを追加し、必要に応じてlocalStorageを保存する関数
 // 主にcreatedAtがない古いデータを更新するために使用する
 export function updateTasksWithCreatedAt(
   originalTasks: Task[],
   storageKey: string,
-  fallbackDate?: string,
 ): Task[] {
   // 古いデータにcreatedAtを追加
   const tasksWithCreatedAt = originalTasks.map((task) => ({
     ...task,
-    createdAt:
-      task.createdAt ||
-      fallbackDate ||
-      task.archivedAt ||
-      new Date().toISOString(),
+    createdAt: task.createdAt || task.archivedAt || new Date().toISOString(),
   }));
 
   // createdAtを追加した場合はlocalStorageを更新
