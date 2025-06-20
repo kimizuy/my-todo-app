@@ -1,4 +1,4 @@
-import type { Task } from ".";
+import type { Task } from "../types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import DOMPurify from "dompurify";
@@ -8,17 +8,13 @@ import type { KeyboardEvent } from "react";
 import { Button } from "~/components/ui/button";
 import { cn, formatDate } from "~/lib/utils";
 
-interface SortableItemProps {
+interface Props {
   task: Task;
   onDelete: (taskId: string) => void;
   onComplete: (taskId: string) => void;
 }
 
-export function SortableItem({
-  task,
-  onDelete,
-  onComplete,
-}: SortableItemProps) {
+export function Item({ task, onDelete, onComplete }: Props) {
   const {
     attributes,
     listeners,
