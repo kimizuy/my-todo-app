@@ -15,6 +15,7 @@ export function InputForm({ onAddTask }: Props) {
   const [submitMode, setSubmitMode] = useState<"cmd-enter" | "enter">(
     "cmd-enter",
   );
+  const [isComposing, setIsComposing] = useState<boolean>(false);
 
   useEffect(function detectMacPlatform() {
     const platform = navigator.userAgentData?.platform;
@@ -46,7 +47,7 @@ export function InputForm({ onAddTask }: Props) {
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && !isComposing) {
       if (submitMode === "cmd-enter" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         addTask();
@@ -60,6 +61,14 @@ export function InputForm({ onAddTask }: Props) {
         addTask();
       }
     }
+  };
+
+  const handleCompositionStart = () => {
+    setIsComposing(true);
+  };
+
+  const handleCompositionEnd = () => {
+    setIsComposing(false);
   };
 
   const handleSubmitModeChange = (value: string) => {
@@ -80,6 +89,8 @@ export function InputForm({ onAddTask }: Props) {
           value={todoInput}
           onChange={(e) => setTodoInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           className="min-h-[40px] flex-1 resize-none"
           aria-label="新しいタスクを入力"
         />
