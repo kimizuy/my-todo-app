@@ -1,12 +1,12 @@
-import type { Task } from "../types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import DOMPurify from "dompurify";
-import { Trash2, CheckCircle } from "lucide-react";
+import { CheckCircle, Trash2 } from "lucide-react";
 import { marked } from "marked";
 import type { KeyboardEvent } from "react";
 import { Button } from "~/components/ui/button";
 import { cn, formatDate } from "~/lib/utils";
+import type { Task } from "../types";
 
 interface Props {
   task: Task;

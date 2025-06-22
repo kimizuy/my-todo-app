@@ -1,6 +1,6 @@
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import type { Task } from "./types";
 import { updateTasksWithCreatedAt } from "./utils";
-import { useState, useEffect, type SetStateAction, type Dispatch } from "react";
 
 export function useTasks() {
   const [tasks, setTasksState] = useState<Task[]>([]);
