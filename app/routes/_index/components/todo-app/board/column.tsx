@@ -44,12 +44,15 @@ export function Column({
           </Button>
         )}
       </div>
-      <div ref={setNodeRef} className="mt-4 rounded border p-3">
+      <div
+        ref={setNodeRef}
+        className="mt-4 grid min-h-[100px] place-items-center rounded border p-3"
+      >
         <SortableContext
           items={tasks.map((task) => task.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="grid gap-2">
+          <div className="grid w-full gap-2">
             {tasks.map((task) => (
               <Item
                 key={task.id}
@@ -59,7 +62,7 @@ export function Column({
               />
             ))}
             {tasks.length === 0 && (
-              <div className="text-muted-foreground flex min-h-[58px] items-center gap-2">
+              <div className="text-muted-foreground flex items-center justify-center gap-2">
                 <PartyPopper />
                 <span>タスクはありません</span>
               </div>
