@@ -1,20 +1,20 @@
 import type { Route } from "./+types/root";
 import "./app.css";
-import { Header } from "./components/layout/header";
-import { Main } from "./components/layout/main";
-import { TopNav } from "./components/layout/top-nav";
-import { ThemeProvider } from "./components/theme-provider";
-import { ThemeSwitch } from "./components/theme-switch";
 import { ListTodo } from "lucide-react";
 import {
+  isRouteErrorResponse,
   Link,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
-  isRouteErrorResponse,
 } from "react-router";
+import { Header } from "./components/layout/header";
+import { Main } from "./components/layout/main";
+import { TopNav } from "./components/layout/top-nav";
+import { ThemeProvider } from "./components/theme-provider";
+import { ThemeSwitch } from "./components/theme-switch";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },

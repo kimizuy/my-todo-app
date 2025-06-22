@@ -1,21 +1,21 @@
-import type { Task, ColumnId } from "../types";
-import { COLUMNS, isColumnId } from "../types";
-import { Column } from "./column";
-import { TaskContent } from "./item";
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  type DragEndEvent,
+  type DragOverEvent,
+  DragOverlay,
+  type DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  type DragEndEvent,
-  DragOverlay,
-  type DragStartEvent,
-  type DragOverEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
+import type { ColumnId, Task } from "../types";
+import { COLUMNS, isColumnId } from "../types";
+import { Column } from "./column";
+import { TaskContent } from "./item";
 
 interface Props {
   tasks: Task[];
@@ -170,7 +170,7 @@ export function Board({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {COLUMNS.map((column) => (
           <Column
             key={column.id}

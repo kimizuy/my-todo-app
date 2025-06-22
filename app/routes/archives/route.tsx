@@ -1,8 +1,8 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { formatDate } from "~/lib/utils";
 import type { Task } from "../_index/components/todo-app/types";
 import { updateTasksWithCreatedAt } from "../_index/components/todo-app/utils";
 import type { Route } from "./+types/route";
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { formatDate } from "~/lib/utils";
 
 export function meta(_: Route.MetaArgs) {
   return [

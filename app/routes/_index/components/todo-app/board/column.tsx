@@ -1,5 +1,3 @@
-import type { ColumnId, Task } from "../types";
-import { Item } from "./item";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -7,6 +5,8 @@ import {
 } from "@dnd-kit/sortable";
 import { PartyPopper } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import type { ColumnId, Task } from "../types";
+import { Item } from "./item";
 
 interface Props {
   id: ColumnId;

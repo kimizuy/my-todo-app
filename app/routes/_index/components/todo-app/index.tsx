@@ -1,8 +1,8 @@
+import { Button } from "~/components/ui/button";
 import { Board } from "./board";
 import { useTasks } from "./hooks";
 import { InputForm } from "./input-form";
 import type { Task } from "./types";
-import { Button } from "~/components/ui/button";
 
 export function TodoApp() {
   const { tasks, setTasks } = useTasks();

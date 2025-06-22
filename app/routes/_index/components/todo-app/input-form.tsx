@@ -1,5 +1,5 @@
 /// <reference types="user-agent-data-types" />
-import { useState, useEffect, useCallback, type FormEvent } from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
