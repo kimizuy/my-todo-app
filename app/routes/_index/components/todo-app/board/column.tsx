@@ -48,27 +48,28 @@ export function Column({
         ref={setNodeRef}
         className="mt-4 grid min-h-[100px] place-items-center rounded border p-3"
       >
-        <SortableContext
-          items={tasks.map((task) => task.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="grid w-full gap-2">
-            {tasks.map((task) => (
-              <Item
-                key={task.id}
-                task={task}
-                onDelete={onDeleteTask}
-                onComplete={onCompleteTask}
-              />
-            ))}
-            {tasks.length === 0 && (
-              <div className="text-muted-foreground flex items-center justify-center gap-2">
-                <PartyPopper />
-                <span>タスクはありません</span>
-              </div>
-            )}
+        {tasks.length > 0 ? (
+          <SortableContext
+            items={tasks.map((task) => task.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="grid w-full gap-2">
+              {tasks.map((task) => (
+                <Item
+                  key={task.id}
+                  task={task}
+                  onDelete={onDeleteTask}
+                  onComplete={onCompleteTask}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        ) : (
+          <div className="text-muted-foreground flex items-center justify-center gap-2">
+            <PartyPopper />
+            <span>タスクはありません</span>
           </div>
-        </SortableContext>
+        )}
       </div>
     </div>
   );
