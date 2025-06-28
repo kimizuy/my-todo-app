@@ -31,7 +31,7 @@ export function Column({
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex min-h-8 items-center justify-between">
         <h2>{title}</h2>
         {id === "done" && tasks.length > 0 && onArchiveAll && (
           <Button
