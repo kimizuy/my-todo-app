@@ -170,7 +170,11 @@ export function Board({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* biome-ignore lint/nursery/useUniqueElementIds: Skip link target requires static ID */}
+      <div
+        id="task-board"
+        className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
+      >
         {COLUMNS.map((column) => (
           <Column
             key={column.id}

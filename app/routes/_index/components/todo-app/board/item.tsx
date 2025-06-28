@@ -10,11 +10,12 @@ import type { Task } from "../types";
 
 interface Props {
   task: Task;
+  columnTitle: string;
   onDelete: (taskId: string) => void;
   onComplete: (taskId: string) => void;
 }
 
-export function Item({ task, onDelete, onComplete }: Props) {
+export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
   const {
     attributes,
     listeners,
@@ -58,13 +59,14 @@ export function Item({ task, onDelete, onComplete }: Props) {
   const showCompleteButton = task.columnId !== "done";
 
   return (
-    <div
+    <article
       ref={setNodeRef}
       style={style}
       className={cn(
         "flex cursor-grab items-center justify-between gap-1 rounded border p-3",
         isDragging && "opacity-50",
       )}
+      aria-label={`${task.content.replace(/<[^>]*>/g, "").slice(0, 50)}、${columnTitle}`}
       {...attributes}
       {...listeners}
     >
@@ -93,7 +95,7 @@ export function Item({ task, onDelete, onComplete }: Props) {
           <span className="sr-only">削除</span>
         </Button>
       </div>
-    </div>
+    </article>
   );
 }
 
