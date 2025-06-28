@@ -58,6 +58,7 @@ export function Column({
                 <Item
                   key={task.id}
                   task={task}
+                  columnTitle={title}
                   onDelete={onDeleteTask}
                   onComplete={onCompleteTask}
                 />
