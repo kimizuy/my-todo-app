@@ -15,6 +15,7 @@ import { Main } from "./components/layout/main";
 import { TopNav } from "./components/layout/top-nav";
 import { ThemeProvider } from "./components/theme-provider";
 import { ThemeSwitch } from "./components/theme-switch";
+import { SkipLink } from "./components/ui/skip-link";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -40,6 +41,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body suppressHydrationWarning>
         <ThemeProvider attribute="data-theme">
+          <SkipLink href="#task-board">ボードへスキップ</SkipLink>
           <div className="grid min-h-screen grid-cols-[100%] grid-rows-[auto_1fr_auto]">
             <Header>
               <TopNav
