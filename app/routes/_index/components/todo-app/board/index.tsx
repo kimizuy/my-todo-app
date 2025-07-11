@@ -11,7 +11,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { ColumnId, Task } from "../types";
 import { COLUMNS, isColumnId } from "../types";
 import { Column } from "./column";
@@ -64,39 +64,30 @@ export function Board({
 
       if (!over) return;
 
-      const activeId = active.id;
+      const activeId = active.id as string;
       const overId = over.id;
 
-      // タスクをカラムにドロップする場合
+      // ドラッグ中のタスクを一度だけ検索
+      const draggedTask = tasks.find((task) => task.id === activeId);
+      if (!draggedTask) return;
+
+      // ドロップ先のカラムIDを決定
+      let targetColumnId: ColumnId;
+
       if (isColumnId(overId)) {
-        const foundTask = tasks.find((task) => task.id === activeId);
-
-        // タスクが見つからない場合は処理しない
-        if (!foundTask) return;
-
-        // カラムが変わる場合のみ処理する
-        if (foundTask.columnId !== overId) {
-          const updatedTasks = tasks.map((task) =>
-            task.id === activeId ? { ...task, columnId: overId } : task,
-          );
-          onTaskUpdate(updatedTasks);
-        }
-        return;
+        // カラムに直接ドロップ
+        targetColumnId = overId;
+      } else {
+        // 他のタスクの上にドロップ
+        const targetTask = tasks.find((task) => task.id === overId);
+        if (!targetTask) return;
+        targetColumnId = targetTask.columnId;
       }
 
-      // タスク間のドラッグ処理
-      const draggedTask = tasks.find((task) => task.id === activeId);
-      const targetTask = tasks.find((task) => task.id === overId);
-
-      // いずれかのタスクが見つからない場合は処理しない
-      if (!draggedTask || !targetTask) return;
-
-      // 異なるカラムへの移動時のみ処理
-      if (draggedTask.columnId !== targetTask.columnId) {
+      // カラムが変わる場合のみ更新
+      if (draggedTask.columnId !== targetColumnId) {
         const updatedTasks = tasks.map((task) =>
-          task.id === activeId
-            ? { ...task, columnId: targetTask.columnId }
-            : task,
+          task.id === activeId ? { ...task, columnId: targetColumnId } : task,
         );
         onTaskUpdate(updatedTasks);
       }
@@ -155,12 +146,20 @@ export function Board({
     [tasks, onTaskUpdate],
   );
 
-  const getTasksByColumn = useCallback(
-    (columnId: ColumnId): Task[] => {
-      return tasks.filter((task) => task.columnId === columnId);
-    },
-    [tasks],
-  );
+  const tasksByColumn = useMemo(() => {
+    const grouped: Record<ColumnId, Task[]> = {
+      uncategorized: [],
+      "do-today": [],
+      "do-not-today": [],
+      done: [],
+    };
+
+    tasks.forEach((task) => {
+      grouped[task.columnId].push(task);
+    });
+
+    return grouped;
+  }, [tasks]);
 
   return (
     <DndContext
@@ -180,7 +179,7 @@ export function Board({
             key={column.id}
             id={column.id}
             title={column.title}
-            tasks={getTasksByColumn(column.id)}
+            tasks={tasksByColumn[column.id] || []}
             onDeleteTask={onDeleteTask}
             onCompleteTask={onCompleteTask}
             onArchiveAll={column.id === "done" ? onArchiveAll : undefined}
