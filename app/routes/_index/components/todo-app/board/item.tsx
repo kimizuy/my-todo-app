@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import DOMPurify from "dompurify";
 import { CheckCircle, Trash2 } from "lucide-react";
 import { marked } from "marked";
-import type { KeyboardEvent } from "react";
+import { type KeyboardEvent, useMemo } from "react";
 import { Button } from "~/components/ui/button";
 import { cn, formatDate } from "~/lib/utils";
 import type { Task } from "../types";
@@ -99,25 +99,25 @@ export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
   );
 }
 
-const parseMarkdown = (content: string): string => {
-  const html = marked.parse(content, {
-    breaks: true,
-    async: false,
-  });
-  return DOMPurify.sanitize(html);
-};
-
 interface TaskContentProps {
   task: Task;
 }
 
 export function TaskContent({ task }: TaskContentProps) {
+  const parsedContent = useMemo(() => {
+    const html = marked.parse(task.content, {
+      breaks: true,
+      async: false,
+    });
+    return DOMPurify.sanitize(html);
+  }, [task.content]);
+
   return (
     <div className="flex flex-col gap-1">
       <div
         className="prose dark:prose-invert text-primary prose-p:text-primary prose-headings:text-primary prose-li:text-primary prose-strong:text-primary prose-em:text-primary prose-a:text-primary wrap-anywhere"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized with DOMPurify
-        dangerouslySetInnerHTML={{ __html: parseMarkdown(task.content) }}
+        dangerouslySetInnerHTML={{ __html: parsedContent }}
       />
       {task.createdAt && ( // 古いデータは createdAt が存在しない可能性があるため
         <time className="text-muted-foreground text-xs">

@@ -15,7 +15,7 @@ export default function Archives() {
   const archivedTasks = useArchivedTasks();
 
   // アーカイブ日付でグループ化
-  const groupedTasks = useMemo(() => {
+  const tasksByArchivedDate = useMemo(() => {
     const groups = archivedTasks.reduce(
       (groups, task) => {
         if (!task.archivedAt) return groups;
@@ -38,19 +38,40 @@ export default function Archives() {
     return groups;
   }, [archivedTasks]);
 
-  const { expandedArchives, toggleArchive } = useExpandedArchives(groupedTasks);
+  const { expandedArchives, toggle, expandAll, collapseAll } =
+    useExpandedArchives(tasksByArchivedDate);
 
   const sortedArchiveEntries = useMemo(
     () =>
-      Object.entries(groupedTasks).sort(
+      Object.entries(tasksByArchivedDate).sort(
         ([a], [b]) => new Date(b).getTime() - new Date(a).getTime(),
       ),
-    [groupedTasks],
+    [tasksByArchivedDate],
   );
 
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-6 text-3xl font-bold">アーカイブ</h1>
+
+      {archivedTasks.length > 0 &&
+        Object.keys(tasksByArchivedDate).length > 1 && (
+          <div className="mb-6 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={expandAll}
+              className="hover:bg-muted rounded-md border px-3 py-1 text-sm transition-colors"
+            >
+              すべて開く
+            </button>
+            <button
+              type="button"
+              onClick={collapseAll}
+              className="hover:bg-muted rounded-md border px-3 py-1 text-sm transition-colors"
+            >
+              すべて閉じる
+            </button>
+          </div>
+        )}
 
       {archivedTasks.length === 0 ? (
         <div className="text-muted-foreground py-8 text-center">
@@ -64,7 +85,7 @@ export default function Archives() {
               <div key={archiveDate}>
                 <button
                   type="button"
-                  onClick={() => toggleArchive(archiveDate)}
+                  onClick={() => toggle(archiveDate)}
                   className="text-muted-foreground bg-background/95 supports-[backdrop-filter]:bg-background/60 hover:text-foreground sticky top-0 mb-3 flex w-full cursor-pointer items-center gap-2 py-2 text-left text-sm font-semibold backdrop-blur transition-colors"
                 >
                   <span className="transform transition-transform duration-200">
@@ -187,7 +208,7 @@ function useExpandedArchives(groupedTasks: Record<string, Task[]>) {
     [groupedTasks, isInitialized],
   );
 
-  const toggleArchive = useCallback((archiveDate: string) => {
+  const toggle = useCallback((archiveDate: string) => {
     setExpandedArchives((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(archiveDate)) {
@@ -199,5 +220,13 @@ function useExpandedArchives(groupedTasks: Record<string, Task[]>) {
     });
   }, []);
 
-  return { expandedArchives, toggleArchive };
+  const expandAll = useCallback(() => {
+    setExpandedArchives(new Set(Object.keys(groupedTasks)));
+  }, [groupedTasks]);
+
+  const collapseAll = useCallback(() => {
+    setExpandedArchives(new Set());
+  }, []);
+
+  return { expandedArchives, toggle, expandAll, collapseAll };
 }
