@@ -13,7 +13,7 @@ export function Filter({ value, onChange }: Props) {
         placeholder="タスクを絞り込む..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full"
+        className="w-full min-w-[200px]"
         aria-label="タスクを絞り込む"
       />
     </div>
