@@ -35,12 +35,12 @@ export function Column({
         <h2>{title}</h2>
         {id === "done" && tasks.length > 0 && onArchiveAll && (
           <Button
-            variant="outline"
+            variant="destructive"
             size="sm"
             onClick={onArchiveAll}
             className="text-xs"
           >
-            すべてアーカイブする
+            完了したタスクをアーカイブ
           </Button>
         )}
       </div>
