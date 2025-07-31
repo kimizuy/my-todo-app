@@ -1,11 +1,14 @@
+import { useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Board } from "./board";
+import { Filter } from "./filter";
 import { useTasks } from "./hooks";
 import { InputForm } from "./input-form";
 import type { Task } from "./types";
 
 export function TodoApp() {
   const { tasks, setTasks } = useTasks();
+  const [filterText, setFilterText] = useState<string>("");
 
   const handleAddTaskFromForm = (content: string) => {
     const newTask: Task = {
@@ -78,14 +81,28 @@ export function TodoApp() {
     }
   };
 
+  const filteredTasks = useMemo(() => {
+    if (!filterText.trim()) {
+      return tasks;
+    }
+    return tasks.filter((task) =>
+      task.content.toLowerCase().includes(filterText.toLowerCase()),
+    );
+  }, [tasks, filterText]);
+
   return (
     <div className="flex flex-col gap-8">
       <InputForm onAddTask={handleAddTaskFromForm} />
-      <div className="self-end text-sm">
-        <ResetButton onResetTasks={handleResetTasks} />
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <Filter value={filterText} onChange={setFilterText} />
+        </div>
+        <div className="text-sm">
+          <ResetButton onResetTasks={handleResetTasks} />
+        </div>
       </div>
       <Board
-        tasks={tasks}
+        tasks={filteredTasks}
         onTaskUpdate={setTasks}
         onDeleteTask={handleDeleteTask}
         onCompleteTask={handleCompleteTask}
