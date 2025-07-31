@@ -93,9 +93,13 @@ export function TodoApp() {
   return (
     <div className="flex flex-col gap-8">
       <InputForm onAddTask={handleAddTaskFromForm} />
-      <Filter value={filterText} onChange={setFilterText} />
-      <div className="self-end text-sm">
-        <ResetButton onResetTasks={handleResetTasks} />
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <Filter value={filterText} onChange={setFilterText} />
+        </div>
+        <div className="text-sm">
+          <ResetButton onResetTasks={handleResetTasks} />
+        </div>
       </div>
       <Board
         tasks={filteredTasks}

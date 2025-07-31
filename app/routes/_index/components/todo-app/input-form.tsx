@@ -83,7 +83,10 @@ export function InputForm({ onAddTask }: Props) {
 
   return (
     <div>
-      <form className="flex gap-2" onSubmit={handleAddTask}>
+      <form
+        className="flex flex-col gap-2 sm:flex-row sm:items-center"
+        onSubmit={handleAddTask}
+      >
         <Textarea
           placeholder="新しいタスクを入力（マークダウン対応）"
           value={todoInput}
@@ -91,23 +94,27 @@ export function InputForm({ onAddTask }: Props) {
           onKeyDown={handleKeyDown}
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
-          className="min-h-[40px] flex-1 resize-none"
+          className="min-h-[40px] min-w-[200px] flex-1 resize-none"
           aria-label="新しいタスクを入力"
         />
-        <Button type="submit">追加</Button>
+        <div className="flex items-center gap-2 self-end sm:self-start">
+          <Button type="submit">追加</Button>
+          <RadioGroup
+            value={submitMode}
+            onValueChange={handleSubmitModeChange}
+            className="flex flex-col gap-1"
+          >
+            <Label className="flex items-center gap-1 text-sm">
+              <RadioGroupItem value="cmd-enter" />
+              {isMac ? "⌘" : "Ctrl"}+Enter
+            </Label>
+            <Label className="flex items-center gap-1 text-sm">
+              <RadioGroupItem value="enter" />
+              Enter
+            </Label>
+          </RadioGroup>
+        </div>
       </form>
-      <div className="mt-2 flex justify-end">
-        <RadioGroup value={submitMode} onValueChange={handleSubmitModeChange}>
-          <Label>
-            <RadioGroupItem value="cmd-enter" />
-            {isMac ? "⌘" : "Ctrl"}+Enter
-          </Label>
-          <Label>
-            <RadioGroupItem value="enter" />
-            Enter
-          </Label>
-        </RadioGroup>
-      </div>
     </div>
   );
 }

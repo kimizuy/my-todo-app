@@ -10,11 +10,11 @@ export function Filter({ value, onChange }: Props) {
     <div className="w-full">
       <Input
         type="text"
-        placeholder="タスクを検索..."
+        placeholder="タスクを絞り込む..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full"
-        aria-label="タスクを検索"
+        aria-label="タスクを絞り込む"
       />
     </div>
   );
