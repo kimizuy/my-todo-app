@@ -93,7 +93,7 @@ export function TodoApp() {
   return (
     <div className="flex flex-col gap-8">
       <InputForm onAddTask={handleAddTaskFromForm} />
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-8 sm:flex-row sm:items-center">
         <div className="flex-1">
           <Filter value={filterText} onChange={setFilterText} />
         </div>
