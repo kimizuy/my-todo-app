@@ -1,3 +1,5 @@
+import DOMPurify from "dompurify";
+import { marked } from "marked";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatDate } from "~/lib/utils";
 import type { Task } from "../_index/components/todo-app/types";
@@ -100,9 +102,9 @@ export default function Archives() {
                         key={task.id}
                         className="bg-muted/50 rounded-lg border p-4"
                       >
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="min-w-0 flex-1 text-sm font-medium wrap-anywhere">
-                            {task.content}
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0 flex-1">
+                            <ArchivedTaskContent task={task} />
                           </div>
                           {task.createdAt && (
                             <time className="text-muted-foreground text-xs whitespace-nowrap">
@@ -120,6 +122,28 @@ export default function Archives() {
         </div>
       )}
     </div>
+  );
+}
+
+interface ArchivedTaskContentProps {
+  task: Task;
+}
+
+function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
+  const parsedContent = useMemo(() => {
+    const html = marked.parse(task.content, {
+      breaks: true,
+      async: false,
+    });
+    return DOMPurify.sanitize(html);
+  }, [task.content]);
+
+  return (
+    <div
+      className="prose dark:prose-invert text-primary prose-p:text-primary prose-headings:text-primary prose-li:text-primary prose-strong:text-primary prose-em:text-primary prose-a:text-primary text-sm wrap-anywhere"
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized with DOMPurify
+      dangerouslySetInnerHTML={{ __html: parsedContent }}
+    />
   );
 }
 
