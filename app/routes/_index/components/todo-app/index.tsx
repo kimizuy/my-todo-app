@@ -22,15 +22,45 @@ export function TodoApp() {
   };
 
   const handleResetTasks = () => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => {
-        // 今日やる/やらないのタスクを未分類に戻す
-        if (task.columnId === "do-today" || task.columnId === "do-not-today") {
-          return { ...task, columnId: "uncategorized" };
-        }
-        return task;
-      }),
-    );
+    setTasks((prevTasks) => {
+      // 今日やる/やらないのタスクを分類
+      const doTodayTasks = prevTasks.filter(
+        (task) => task.columnId === "do-today",
+      );
+      const doNotTodayTasks = prevTasks.filter(
+        (task) => task.columnId === "do-not-today",
+      );
+      const otherTasks = prevTasks.filter(
+        (task) =>
+          task.columnId !== "do-today" && task.columnId !== "do-not-today",
+      );
+
+      // リセット対象のタスクを未分類に変更し、指定された順序で配置
+      const resetDoTodayTasks = doTodayTasks.map((task) => ({
+        ...task,
+        columnId: "uncategorized" as const,
+      }));
+      const resetDoNotTodayTasks = doNotTodayTasks.map((task) => ({
+        ...task,
+        columnId: "uncategorized" as const,
+      }));
+
+      // 他のタスクの中の未分類タスクを分離
+      const uncategorizedTasks = otherTasks.filter(
+        (task) => task.columnId === "uncategorized",
+      );
+      const nonUncategorizedTasks = otherTasks.filter(
+        (task) => task.columnId !== "uncategorized",
+      );
+
+      // 最終的な順序: 非未分類 + 今日やる + 今日やらない + 既存の未分類
+      return [
+        ...nonUncategorizedTasks,
+        ...resetDoTodayTasks,
+        ...resetDoNotTodayTasks,
+        ...uncategorizedTasks,
+      ];
+    });
   };
 
   const handleDeleteTask = (taskId: string) => {
