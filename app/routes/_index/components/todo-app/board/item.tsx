@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import DOMPurify from "dompurify";
+import DOMPurify from "isomorphic-dompurify";
 import { CheckCircle, Trash2 } from "lucide-react";
 import { marked } from "marked";
 import { type KeyboardEvent, useMemo } from "react";

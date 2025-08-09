@@ -3,15 +3,12 @@ import "./app.css";
 import { ListTodo } from "lucide-react";
 import {
   isRouteErrorResponse,
-  Link,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import { Header } from "./components/layout/header";
-import { Main } from "./components/layout/main";
 import { TopNav } from "./components/layout/top-nav";
 import { ThemeProvider } from "./components/theme-provider";
 import { ThemeSwitch } from "./components/theme-switch";
@@ -42,8 +39,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body suppressHydrationWarning>
         <ThemeProvider attribute="data-theme">
           <SkipLink href="#task-board">ボードへスキップ</SkipLink>
-          <div className="grid min-h-screen grid-cols-[100%] grid-rows-[auto_1fr_auto]">
-            <Header>
+          <div className="flex h-screen flex-col overflow-hidden">
+            <header className="bg-background flex items-center gap-3 border-b px-4 py-3 sm:gap-4">
               <TopNav
                 links={[
                   {
@@ -56,20 +53,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     href: "/",
                   },
                   { title: "Archives", href: "/archives" },
+                  { title: "Sample", href: "/sample" },
                 ]}
               />
               <div className="ml-auto flex items-center space-x-4">
                 <ThemeSwitch />
               </div>
-            </Header>
-            <Main>{children}</Main>
-            <footer>
-              <div className="container mx-auto p-4 text-center">
-                <p>
-                  <Link to="https://github.com/kimizuy">@kimizuy</Link>
-                </p>
-              </div>
-            </footer>
+            </header>
+            <main className="flex-1 overflow-hidden">{children}</main>
           </div>
         </ThemeProvider>
         <ScrollRestoration />

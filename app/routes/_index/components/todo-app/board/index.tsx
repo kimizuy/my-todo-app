@@ -162,37 +162,41 @@ export function Board({
   }, [tasks]);
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      {/* biome-ignore lint/nursery/useUniqueElementIds: Skip link target requires static ID */}
-      <div
-        id="task-board"
-        className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
+    <>
+      {/* biome-ignore lint/nursery/useUniqueElementIds: Fixed ID required for SSR hydration compatibility with @dnd-kit */}
+      <DndContext
+        id="main-kanban-dnd"
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
       >
-        {COLUMNS.map((column) => (
-          <Column
-            key={column.id}
-            id={column.id}
-            title={column.title}
-            tasks={tasksByColumn[column.id] || []}
-            onDeleteTask={onDeleteTask}
-            onCompleteTask={onCompleteTask}
-            onArchiveAll={column.id === "done" ? onArchiveAll : undefined}
-          />
-        ))}
-      </div>
-      <DragOverlay>
-        {activeTask ? (
-          <div className="flex cursor-grabbing items-center justify-between rounded border border-blue-500 p-3">
-            <TaskContent task={activeTask} />
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+        {/* biome-ignore lint/nursery/useUniqueElementIds: Skip link target requires static ID */}
+        <div
+          id="task-board"
+          className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
+        >
+          {COLUMNS.map((column) => (
+            <Column
+              key={column.id}
+              id={column.id}
+              title={column.title}
+              tasks={tasksByColumn[column.id] || []}
+              onDeleteTask={onDeleteTask}
+              onCompleteTask={onCompleteTask}
+              onArchiveAll={column.id === "done" ? onArchiveAll : undefined}
+            />
+          ))}
+        </div>
+        <DragOverlay>
+          {activeTask ? (
+            <div className="flex cursor-grabbing items-center justify-between rounded border border-blue-500 p-3">
+              <TaskContent task={activeTask} />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </>
   );
 }

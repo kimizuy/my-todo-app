@@ -30,9 +30,14 @@ export function Column({
   });
 
   return (
-    <div>
-      <div className="flex min-h-8 items-center justify-between">
-        <h2>{title}</h2>
+    <div className="bg-background flex min-w-80 flex-shrink-0 flex-col border">
+      <div className="flex items-center justify-between border-b p-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">{title}</span>
+          <span className="bg-muted text-muted-foreground rounded px-2 py-1 text-xs">
+            {tasks.length}
+          </span>
+        </div>
         {id === "done" && tasks.length > 0 && onArchiveAll && (
           <Button
             variant="destructive"
@@ -46,27 +51,25 @@ export function Column({
       </div>
       <div
         ref={setNodeRef}
-        className="mt-4 grid min-h-[100px] place-items-center rounded border p-3"
+        className="flex flex-1 flex-col gap-2 overflow-y-auto p-3"
       >
         {tasks.length > 0 ? (
           <SortableContext
             items={tasks.map((task) => task.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="grid w-full gap-2">
-              {tasks.map((task) => (
-                <Item
-                  key={task.id}
-                  task={task}
-                  columnTitle={title}
-                  onDelete={onDeleteTask}
-                  onComplete={onCompleteTask}
-                />
-              ))}
-            </div>
+            {tasks.map((task) => (
+              <Item
+                key={task.id}
+                task={task}
+                columnTitle={title}
+                onDelete={onDeleteTask}
+                onComplete={onCompleteTask}
+              />
+            ))}
           </SortableContext>
         ) : (
-          <div className="text-muted-foreground flex items-center justify-center gap-2">
+          <div className="text-muted-foreground flex flex-1 items-center justify-center gap-2">
             <PartyPopper />
             <span>タスクはありません</span>
           </div>
