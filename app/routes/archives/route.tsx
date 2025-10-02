@@ -1,9 +1,10 @@
-import DOMPurify from "isomorphic-dompurify";
-import { marked } from "marked";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatDate } from "~/lib/utils";
 import type { Task } from "../_index/components/todo-app/types";
-import { updateTasksWithCreatedAt } from "../_index/components/todo-app/utils";
+import {
+  parseTaskContent,
+  updateTasksWithCreatedAt,
+} from "../_index/components/todo-app/utils";
 import type { Route } from "./+types/route";
 
 export function meta(_: Route.MetaArgs) {
@@ -131,11 +132,7 @@ interface ArchivedTaskContentProps {
 
 function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
   const parsedContent = useMemo(() => {
-    const html = marked.parse(task.content, {
-      breaks: true,
-      async: false,
-    });
-    return DOMPurify.sanitize(html);
+    return parseTaskContent(task.content);
   }, [task.content]);
 
   return (
