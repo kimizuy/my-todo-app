@@ -1,4 +1,4 @@
-import DOMPurify from "dompurify";
+import DOMPurify from "isomorphic-dompurify";
 import { marked } from "marked";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatDate } from "~/lib/utils";

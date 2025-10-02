@@ -22,7 +22,6 @@
     "@react-router/node": "^7.1.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "dompurify": "^3.2.7",
     "isbot": "^5.1.31",
     "isomorphic-dompurify": "^2.28.0",
     "lucide-react": "^0.544.0",

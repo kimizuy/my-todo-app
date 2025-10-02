@@ -7,3 +7,6 @@ pre-commit:
         - "*.tsx"
         - "*.jsx"
       stage_fixed: true
+pre-push:
+  jobs:
+    - run: npm run build
