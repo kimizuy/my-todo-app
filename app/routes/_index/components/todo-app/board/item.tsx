@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import DOMPurify from "dompurify";
+import DOMPurify from "isomorphic-dompurify";
 import { CheckCircle, Trash2 } from "lucide-react";
 import { marked } from "marked";
 import { type KeyboardEvent, useMemo } from "react";
@@ -71,7 +71,9 @@ export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
       {...listeners}
     >
       <TaskContent task={task} />
-      <div className="flex gap-1">
+      {/* relativeを追加してボタン内の.sr-only要素（position: absolute）の基準点を設定 */}
+      {/* これがないと.sr-only要素が画面外に配置され、HTMLドキュメントの高さが拡張されてボード下部に余白が生じる */}
+      <div className="relative flex gap-1">
         {showCompleteButton && (
           <Button
             variant="ghost"
@@ -105,9 +107,26 @@ interface TaskContentProps {
 
 export function TaskContent({ task }: TaskContentProps) {
   const parsedContent = useMemo(() => {
+    // カスタムレンダラーを設定
+    const renderer = new marked.Renderer();
+
+    // リンクのレンダリングをカスタマイズ
+    renderer.link = ({ href, title, tokens }) => {
+      // tokensからテキストを取得（markdown内のリンクテキスト）
+      let text = href;
+      if (tokens.length > 0) {
+        text = tokens.map((token) => token.raw || "").join("");
+      }
+
+      const displayText = text === href ? truncateUrl(href) : text;
+      const titleAttr = title ? ` title="${title}"` : ` title="${href}"`;
+      return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer">${displayText}</a>`;
+    };
+
     const html = marked.parse(task.content, {
       breaks: true,
       async: false,
+      renderer,
     });
     return DOMPurify.sanitize(html);
   }, [task.content]);
@@ -126,4 +145,30 @@ export function TaskContent({ task }: TaskContentProps) {
       )}
     </div>
   );
+}
+
+function truncateUrl(url: string, maxLength = 40): string {
+  if (url.length <= maxLength) return url;
+
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname;
+    const pathAndQuery = urlObj.pathname + urlObj.search + urlObj.hash;
+
+    const availableLength = maxLength - domain.length - 3; // 3 for "..."
+
+    if (availableLength > 10 && pathAndQuery.length > availableLength) {
+      const truncatedPath = pathAndQuery.substring(0, availableLength);
+      return `${domain}${truncatedPath}...`;
+    }
+
+    if (domain.length > maxLength - 3) {
+      return `${domain.substring(0, maxLength - 3)}...`;
+    }
+
+    return `${domain}...`;
+  } catch {
+    // URLパースに失敗した場合は単純に切り詰める
+    return `${url.substring(0, maxLength - 3)}...`;
+  }
 }

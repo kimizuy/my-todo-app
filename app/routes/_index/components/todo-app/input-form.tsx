@@ -84,11 +84,11 @@ export function InputForm({ onAddTask }: Props) {
   return (
     <div>
       <form
-        className="flex flex-col gap-2 sm:flex-row sm:items-center"
+        className="flex flex-row items-center gap-2"
         onSubmit={handleAddTask}
       >
         <Textarea
-          placeholder="新しいタスクを入力（マークダウン対応）"
+          placeholder="タスクを入力（マークダウン対応）"
           value={todoInput}
           onChange={(e) => setTodoInput(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -97,12 +97,12 @@ export function InputForm({ onAddTask }: Props) {
           className="min-h-[40px] min-w-[200px] flex-1 resize-none"
           aria-label="新しいタスクを入力"
         />
-        <div className="flex items-center gap-2 self-end sm:self-start">
+        <div className="flex items-center gap-2">
           <Button type="submit">追加</Button>
           <RadioGroup
             value={submitMode}
             onValueChange={handleSubmitModeChange}
-            className="flex flex-col gap-1"
+            className="hidden flex-col gap-1 md:flex"
           >
             <Label className="flex items-center gap-1 text-sm">
               <RadioGroupItem value="cmd-enter" />

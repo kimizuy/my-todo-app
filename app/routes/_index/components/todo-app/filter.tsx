@@ -15,7 +15,7 @@ export function Filter({ value, onChange }: Props) {
     <div className="relative w-full">
       <Input
         type="text"
-        placeholder="タスクを絞り込む..."
+        placeholder="タスクを絞り込む"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full min-w-[200px] pr-10"
