@@ -3,9 +3,9 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   ssr: {
-    noExternal: command === "build" ? true : undefined,
+    external: ["isomorphic-dompurify"],
   },
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
-}));
+});
