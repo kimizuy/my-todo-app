@@ -53,7 +53,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     href: "/",
                   },
                   { title: "Archives", href: "/archives" },
-                  { title: "Sample", href: "/sample" },
                 ]}
               />
               <div className="ml-auto flex items-center space-x-4">

@@ -16,6 +16,7 @@ export function formatDate(dateString: string) {
   });
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Generic debounce function requires any for flexibility with different function signatures
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
   delay: number,
