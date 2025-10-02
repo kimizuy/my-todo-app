@@ -163,7 +163,7 @@ export function Board({
 
   return (
     <div className="h-full">
-      {/* biome-ignore lint/nursery/useUniqueElementIds: Fixed ID required for SSR hydration compatibility with @dnd-kit */}
+      {/* biome-ignore lint/correctness/useUniqueElementIds: Fixed ID required for SSR hydration compatibility with @dnd-kit */}
       <DndContext
         id="main-kanban-dnd"
         sensors={sensors}
@@ -172,7 +172,7 @@ export function Board({
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {/* biome-ignore lint/nursery/useUniqueElementIds: Skip link target requires static ID */}
+        {/* biome-ignore lint/correctness/useUniqueElementIds: Skip link target requires static ID */}
         <div id="task-board" className="flex h-full gap-4 overflow-x-auto px-4">
           {COLUMNS.map((column) => (
             <Column
