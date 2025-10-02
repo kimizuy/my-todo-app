@@ -128,7 +128,9 @@ export function TaskContent({ task }: TaskContentProps) {
       async: false,
       renderer,
     });
-    return DOMPurify.sanitize(html);
+    return DOMPurify.sanitize(html, {
+      ADD_ATTR: ["target", "rel"],
+    });
   }, [task.content]);
 
   return (
