@@ -31,7 +31,7 @@ export function Column({
 
   return (
     <div className="bg-background flex h-full min-w-80 flex-1 flex-col rounded-md border">
-      <div className="flex items-center justify-between border-b p-4">
+      <div className="flex items-center justify-between border-b p-3">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">{title}</span>
           <span className="bg-muted text-muted-foreground rounded px-2 py-1 text-xs">
