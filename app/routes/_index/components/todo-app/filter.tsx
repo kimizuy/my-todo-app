@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { Input } from "~/components/ui/input";
+import { cn } from "~/lib/utils";
 
 interface Props {
   value: string;
@@ -18,7 +19,11 @@ export function Filter({ value, onChange }: Props) {
         placeholder="タスクを絞り込む"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full min-w-[200px] pr-10"
+        className={cn(
+          "w-full min-w-[200px] pr-10",
+          value &&
+            "border-blue-500 ring-[3px] ring-blue-500/30 focus-visible:border-blue-500 focus-visible:ring-blue-500/30",
+        )}
         aria-label="タスクを絞り込む"
       />
       {value && (
