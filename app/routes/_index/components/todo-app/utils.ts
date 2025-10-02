@@ -30,24 +30,23 @@ export function updateTasksWithCreatedAt(
   return tasksWithCreatedAt;
 }
 
+const renderer = new marked.Renderer();
+
+// リンクのレンダリングをカスタマイズ
+renderer.link = ({ href, title, tokens }) => {
+  // tokensからテキストを取得（markdown内のリンクテキスト）
+  let text = href;
+  if (tokens.length > 0) {
+    text = tokens.map((token) => token.raw || "").join("");
+  }
+
+  const displayText = text === href ? truncateUrl(href) : text;
+  const titleAttr = title ? ` title="${title}"` : ` title="${href}"`;
+  return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer">${displayText}</a>`;
+};
+
 // タスクのコンテンツをマークダウンからHTMLにパースする関数
 export function parseTaskContent(content: string): string {
-  // カスタムレンダラーを設定
-  const renderer = new marked.Renderer();
-
-  // リンクのレンダリングをカスタマイズ
-  renderer.link = ({ href, title, tokens }) => {
-    // tokensからテキストを取得（markdown内のリンクテキスト）
-    let text = href;
-    if (tokens.length > 0) {
-      text = tokens.map((token) => token.raw || "").join("");
-    }
-
-    const displayText = text === href ? truncateUrl(href) : text;
-    const titleAttr = title ? ` title="${title}"` : ` title="${href}"`;
-    return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer">${displayText}</a>`;
-  };
-
   const html = marked.parse(content, {
     breaks: true,
     async: false,
