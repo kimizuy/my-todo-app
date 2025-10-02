@@ -173,10 +173,7 @@ export function Board({
         onDragEnd={handleDragEnd}
       >
         {/* biome-ignore lint/nursery/useUniqueElementIds: Skip link target requires static ID */}
-        <div
-          id="task-board"
-          className="grid h-full grid-cols-1 grid-rows-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
-        >
+        <div id="task-board" className="flex h-full gap-4 overflow-x-auto px-4">
           {COLUMNS.map((column) => (
             <Column
               key={column.id}

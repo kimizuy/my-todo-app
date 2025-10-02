@@ -60,7 +60,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <ThemeSwitch />
               </div>
             </header>
-            <main className="flex-1 overflow-hidden">{children}</main>
+            <main className="flex-1 overflow-hidden p-4">{children}</main>
           </div>
         </ThemeProvider>
         <ScrollRestoration />
