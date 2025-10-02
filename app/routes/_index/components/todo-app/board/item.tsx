@@ -71,7 +71,9 @@ export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
       {...listeners}
     >
       <TaskContent task={task} />
-      <div className="flex gap-1">
+      {/* relativeを追加してボタン内の.sr-only要素（position: absolute）の基準点を設定 */}
+      {/* これがないと.sr-only要素が画面外に配置され、HTMLドキュメントの高さが拡張されてボード下部に余白が生じる */}
+      <div className="relative flex gap-1">
         {showCompleteButton && (
           <Button
             variant="ghost"

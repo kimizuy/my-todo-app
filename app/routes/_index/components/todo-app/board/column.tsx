@@ -30,7 +30,7 @@ export function Column({
   });
 
   return (
-    <div className="bg-background flex min-w-80 flex-shrink-0 flex-col border">
+    <div className="bg-background flex h-full min-w-80 flex-shrink-0 flex-col border">
       <div className="flex items-center justify-between border-b p-4">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">{title}</span>
@@ -51,7 +51,7 @@ export function Column({
       </div>
       <div
         ref={setNodeRef}
-        className="flex flex-1 flex-col gap-2 overflow-y-auto p-3"
+        className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3"
       >
         {tasks.length > 0 ? (
           <SortableContext

@@ -162,7 +162,7 @@ export function Board({
   }, [tasks]);
 
   return (
-    <>
+    <div className="h-full">
       {/* biome-ignore lint/nursery/useUniqueElementIds: Fixed ID required for SSR hydration compatibility with @dnd-kit */}
       <DndContext
         id="main-kanban-dnd"
@@ -175,7 +175,7 @@ export function Board({
         {/* biome-ignore lint/nursery/useUniqueElementIds: Skip link target requires static ID */}
         <div
           id="task-board"
-          className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid h-full grid-cols-1 grid-rows-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
         >
           {COLUMNS.map((column) => (
             <Column
@@ -197,6 +197,6 @@ export function Board({
           ) : null}
         </DragOverlay>
       </DndContext>
-    </>
+    </div>
   );
 }

@@ -121,7 +121,7 @@ export function TodoApp() {
   }, [tasks, filterText]);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex h-full flex-col gap-8">
       <InputForm onAddTask={handleAddTaskFromForm} />
       <div className="flex flex-col gap-8 sm:flex-row sm:items-center">
         <div className="flex-1">
@@ -131,13 +131,15 @@ export function TodoApp() {
           <ResetButton onResetTasks={handleResetTasks} />
         </div>
       </div>
-      <Board
-        tasks={filteredTasks}
-        onTaskUpdate={setTasks}
-        onDeleteTask={handleDeleteTask}
-        onCompleteTask={handleCompleteTask}
-        onArchiveAll={handleArchiveAll}
-      />
+      <div className="flex-1 overflow-hidden">
+        <Board
+          tasks={filteredTasks}
+          onTaskUpdate={setTasks}
+          onDeleteTask={handleDeleteTask}
+          onCompleteTask={handleCompleteTask}
+          onArchiveAll={handleArchiveAll}
+        />
+      </div>
     </div>
   );
 }
