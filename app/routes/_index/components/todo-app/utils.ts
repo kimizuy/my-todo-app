@@ -1,4 +1,4 @@
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "dompurify";
 import { marked } from "marked";
 import type { Task } from "./types";
 
@@ -53,9 +53,15 @@ export function parseTaskContent(content: string): string {
     renderer,
   });
 
-  return DOMPurify.sanitize(html, {
-    ADD_ATTR: ["target", "rel"],
-  });
+  // Client-side only: sanitize HTML using DOMPurify
+  if (typeof window !== "undefined") {
+    return DOMPurify.sanitize(html, {
+      ADD_ATTR: ["target", "rel"],
+    });
+  }
+
+  // Server-side: return unsanitized HTML (will be sanitized on client after hydration)
+  return html as string;
 }
 
 function truncateUrl(url: string, maxLength = 40): string {
