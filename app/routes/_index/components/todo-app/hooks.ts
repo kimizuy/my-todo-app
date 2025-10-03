@@ -1,6 +1,7 @@
 import {
   type Dispatch,
   type SetStateAction,
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -41,16 +42,19 @@ export function useTasks() {
     }
   }, []);
 
-  const setTasks: Dispatch<SetStateAction<Task[]>> = (value) => {
-    setTasksState((prevTasks) => {
-      const newTasks = typeof value === "function" ? value(prevTasks) : value;
+  const setTasks: Dispatch<SetStateAction<Task[]>> = useCallback(
+    (value) => {
+      setTasksState((prevTasks) => {
+        const newTasks = typeof value === "function" ? value(prevTasks) : value;
 
-      // 非同期でLocalStorageに保存
-      debouncedSave(newTasks);
+        // 非同期でLocalStorageに保存
+        debouncedSave(newTasks);
 
-      return newTasks;
-    });
-  };
+        return newTasks;
+      });
+    },
+    [debouncedSave],
+  );
 
   return { tasks, setTasks };
 }

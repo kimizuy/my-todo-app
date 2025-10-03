@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CheckCircle, Trash2 } from "lucide-react";
-import { type KeyboardEvent, useMemo } from "react";
+import { type KeyboardEvent, memo, useMemo } from "react";
 import { Button } from "~/components/ui/button";
 import { cn, formatDate } from "~/lib/utils";
 import type { Task } from "../types";
@@ -14,7 +14,12 @@ interface Props {
   onComplete: (taskId: string) => void;
 }
 
-export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
+export const Item = memo(function Item({
+  task,
+  columnTitle,
+  onDelete,
+  onComplete,
+}: Props) {
   const {
     attributes,
     listeners,
@@ -98,7 +103,7 @@ export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
       </div>
     </article>
   );
-}
+});
 
 interface TaskContentProps {
   task: Task;

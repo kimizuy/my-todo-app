@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Board } from "./board";
 import { Filter } from "./filter";
@@ -10,18 +10,21 @@ export function TodoApp() {
   const { tasks, setTasks } = useTasks();
   const [filterText, setFilterText] = useState<string>("");
 
-  const handleAddTaskFromForm = (content: string) => {
-    const newTask: Task = {
-      id: `task-${Date.now()}`,
-      content,
-      columnId: "uncategorized", // 初期カラムは未分類
-      createdAt: new Date().toISOString(),
-    };
+  const handleAddTaskFromForm = useCallback(
+    (content: string) => {
+      const newTask: Task = {
+        id: `task-${Date.now()}`,
+        content,
+        columnId: "uncategorized", // 初期カラムは未分類
+        createdAt: new Date().toISOString(),
+      };
 
-    setTasks((prev) => [newTask, ...prev]);
-  };
+      setTasks((prev) => [newTask, ...prev]);
+    },
+    [setTasks],
+  );
 
-  const handleResetTasks = () => {
+  const handleResetTasks = useCallback(() => {
     setTasks((prevTasks) => {
       // 今日やる/やらないのタスクを分類
       const doTodayTasks = prevTasks.filter(
@@ -61,55 +64,62 @@ export function TodoApp() {
         ...uncategorizedTasks,
       ];
     });
-  };
+  }, [setTasks]);
 
-  const handleDeleteTask = (taskId: string) => {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
-  };
+  const handleDeleteTask = useCallback(
+    (taskId: string) => {
+      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+    },
+    [setTasks],
+  );
 
-  const handleCompleteTask = (taskId: string) => {
+  const handleCompleteTask = useCallback(
+    (taskId: string) => {
+      setTasks((prevTasks) => {
+        const taskToComplete = prevTasks.find((task) => task.id === taskId);
+        if (!taskToComplete) return prevTasks;
+
+        const tasksWithoutCompleted = prevTasks.filter(
+          (task) => task.id !== taskId,
+        );
+
+        const completedTask: Task = { ...taskToComplete, columnId: "done" };
+
+        // 完了タスクを先頭に追加（新しい完了タスクが上に表示される）
+        return [completedTask, ...tasksWithoutCompleted];
+      });
+    },
+    [setTasks],
+  );
+
+  const handleArchiveAll = useCallback(() => {
     setTasks((prevTasks) => {
-      const taskToComplete = prevTasks.find((task) => task.id === taskId);
-      if (!taskToComplete) return prevTasks;
+      const doneTasks = prevTasks.filter((task) => task.columnId === "done");
+      if (doneTasks.length === 0) return prevTasks;
 
-      const tasksWithoutCompleted = prevTasks.filter(
-        (task) => task.id !== taskId,
-      );
+      const archivedTasks: Task[] = doneTasks.map((task) => ({
+        ...task,
+        archivedAt: new Date().toISOString(),
+      }));
 
-      const completedTask: Task = { ...taskToComplete, columnId: "done" };
+      try {
+        const existingArchivedTasks = localStorage.getItem("archivedTasks");
+        const currentArchivedTasks: Task[] = existingArchivedTasks
+          ? JSON.parse(existingArchivedTasks)
+          : [];
 
-      // 完了タスクを先頭に追加（新しい完了タスクが上に表示される）
-      return [completedTask, ...tasksWithoutCompleted];
+        localStorage.setItem(
+          "archivedTasks",
+          JSON.stringify([...currentArchivedTasks, ...archivedTasks]),
+        );
+
+        return prevTasks.filter((task) => task.columnId !== "done");
+      } catch (error) {
+        console.error("アーカイブに失敗しました:", error);
+        return prevTasks;
+      }
     });
-  };
-
-  const handleArchiveAll = () => {
-    const doneTasks = tasks.filter((task) => task.columnId === "done");
-    if (doneTasks.length === 0) return;
-
-    const archivedTasks: Task[] = doneTasks.map((task) => ({
-      ...task,
-      archivedAt: new Date().toISOString(),
-    }));
-
-    try {
-      const existingArchivedTasks = localStorage.getItem("archivedTasks");
-      const currentArchivedTasks: Task[] = existingArchivedTasks
-        ? JSON.parse(existingArchivedTasks)
-        : [];
-
-      localStorage.setItem(
-        "archivedTasks",
-        JSON.stringify([...currentArchivedTasks, ...archivedTasks]),
-      );
-
-      setTasks((prevTasks) =>
-        prevTasks.filter((task) => task.columnId !== "done"),
-      );
-    } catch (error) {
-      console.error("アーカイブに失敗しました:", error);
-    }
-  };
+  }, [setTasks]);
 
   const filteredTasks = useMemo(() => {
     if (!filterText.trim()) {
