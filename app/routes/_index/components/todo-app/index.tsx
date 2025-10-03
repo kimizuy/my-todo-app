@@ -145,6 +145,7 @@ export function TodoApp() {
       </div>
       <div className="-mx-4 flex-1 overflow-hidden">
         <Board
+          allTasks={tasks}
           tasks={filteredTasks}
           onTaskUpdate={setTasks}
           onDeleteTask={handleDeleteTask}

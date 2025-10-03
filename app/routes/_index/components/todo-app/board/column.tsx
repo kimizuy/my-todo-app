@@ -13,6 +13,7 @@ interface Props {
   id: ColumnId;
   title: string;
   tasks: Task[];
+  totalCount?: number;
   onDeleteTask: (taskId: string) => void;
   onCompleteTask: (taskId: string) => void;
   onArchiveAll?: () => void;
@@ -22,6 +23,7 @@ export const Column = memo(function Column({
   id,
   title,
   tasks,
+  totalCount,
   onDeleteTask,
   onCompleteTask,
   onArchiveAll,
@@ -36,7 +38,7 @@ export const Column = memo(function Column({
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">{title}</span>
           <span className="bg-muted text-muted-foreground rounded px-2 py-1 text-xs">
-            {tasks.length}
+            {totalCount ?? tasks.length}
           </span>
         </div>
         {id === "done" && tasks.length > 0 && onArchiveAll && (

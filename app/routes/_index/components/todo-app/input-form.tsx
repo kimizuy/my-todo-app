@@ -18,10 +18,8 @@ export function InputForm({ onAddTask }: Props) {
   const [isComposing, setIsComposing] = useState<boolean>(false);
 
   useEffect(function detectMacPlatform() {
-    const platform = navigator.userAgentData?.platform;
-    if (platform) {
-      setIsMac(platform.includes("mac"));
-    }
+    const platform = navigator.userAgentData?.platform || navigator.userAgent;
+    setIsMac(platform.toLowerCase().includes("mac"));
   }, []);
 
   useEffect(function loadSubmitMode() {

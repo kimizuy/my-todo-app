@@ -18,6 +18,7 @@ import { Column } from "./column";
 import { TaskContent } from "./item";
 
 interface Props {
+  allTasks: Task[];
   tasks: Task[];
   onTaskUpdate: (tasks: Task[]) => void;
   onDeleteTask: (taskId: string) => void;
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export function Board({
+  allTasks,
   tasks,
   onTaskUpdate,
   onDeleteTask,
@@ -50,12 +52,12 @@ export function Board({
       const { active } = event;
       const id = active.id as string;
 
-      const foundTask = tasks.find((task) => task.id === id);
+      const foundTask = allTasks.find((task) => task.id === id);
       if (foundTask) {
         setActiveTask(foundTask);
       }
     },
-    [tasks],
+    [allTasks],
   );
 
   const handleDragOver = useCallback(
@@ -68,7 +70,7 @@ export function Board({
       const overId = over.id;
 
       // ドラッグ中のタスクを一度だけ検索
-      const draggedTask = tasks.find((task) => task.id === activeId);
+      const draggedTask = allTasks.find((task) => task.id === activeId);
       if (!draggedTask) return;
 
       // ドロップ先のカラムIDを決定
@@ -79,20 +81,20 @@ export function Board({
         targetColumnId = overId;
       } else {
         // 他のタスクの上にドロップ
-        const targetTask = tasks.find((task) => task.id === overId);
+        const targetTask = allTasks.find((task) => task.id === overId);
         if (!targetTask) return;
         targetColumnId = targetTask.columnId;
       }
 
       // カラムが変わる場合のみ更新
       if (draggedTask.columnId !== targetColumnId) {
-        const updatedTasks = tasks.map((task) =>
+        const updatedTasks = allTasks.map((task) =>
           task.id === activeId ? { ...task, columnId: targetColumnId } : task,
         );
         onTaskUpdate(updatedTasks);
       }
     },
-    [tasks, onTaskUpdate],
+    [allTasks, onTaskUpdate],
   );
 
   const handleDragEnd = useCallback(
@@ -114,7 +116,7 @@ export function Board({
         return;
       }
 
-      const draggedTask = tasks.find((task) => task.id === activeId);
+      const draggedTask = allTasks.find((task) => task.id === activeId);
 
       // ドラッグされたタスクが見つからない場合は処理を終了
       if (!draggedTask) {
@@ -123,7 +125,7 @@ export function Board({
       }
 
       // 同じカラム内での並び替え処理
-      const columnTasks = tasks.filter(
+      const columnTasks = allTasks.filter(
         (task) => task.columnId === draggedTask.columnId,
       );
       const oldIndex = columnTasks.findIndex((task) => task.id === activeId);
@@ -135,7 +137,7 @@ export function Board({
 
         // 他のカラムのタスクと結合して新しいタスク配列を作成
         const updatedTasks = [
-          ...tasks.filter((task) => task.columnId !== draggedTask.columnId),
+          ...allTasks.filter((task) => task.columnId !== draggedTask.columnId),
           ...reorderedColumnTasks,
         ];
         onTaskUpdate(updatedTasks);
@@ -143,7 +145,7 @@ export function Board({
 
       setActiveTask(null);
     },
-    [tasks, onTaskUpdate],
+    [allTasks, onTaskUpdate],
   );
 
   const tasksByColumn = useMemo(() => {
@@ -160,6 +162,21 @@ export function Board({
 
     return grouped;
   }, [tasks]);
+
+  const totalTaskCountByColumn = useMemo(() => {
+    const counts: Record<ColumnId, number> = {
+      uncategorized: 0,
+      "do-today": 0,
+      "do-not-today": 0,
+      done: 0,
+    };
+
+    allTasks.forEach((task) => {
+      counts[task.columnId]++;
+    });
+
+    return counts;
+  }, [allTasks]);
 
   return (
     <div className="h-full">
@@ -180,6 +197,7 @@ export function Board({
               id={column.id}
               title={column.title}
               tasks={tasksByColumn[column.id] || []}
+              totalCount={totalTaskCountByColumn[column.id]}
               onDeleteTask={onDeleteTask}
               onCompleteTask={onCompleteTask}
               onArchiveAll={column.id === "done" ? onArchiveAll : undefined}
