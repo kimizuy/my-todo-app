@@ -4,6 +4,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { PartyPopper } from "lucide-react";
+import { memo } from "react";
 import { Button } from "~/components/ui/button";
 import type { ColumnId, Task } from "../types";
 import { Item } from "./item";
@@ -17,7 +18,7 @@ interface Props {
   onArchiveAll?: () => void;
 }
 
-export function Column({
+export const Column = memo(function Column({
   id,
   title,
   tasks,
@@ -77,4 +78,4 @@ export function Column({
       </div>
     </div>
   );
-}
+});
