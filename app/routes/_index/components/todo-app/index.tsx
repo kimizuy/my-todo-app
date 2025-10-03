@@ -138,7 +138,9 @@ export function TodoApp() {
           <Filter value={filterText} onChange={setFilterText} />
         </div>
         <div className="self-end text-sm sm:self-auto">
-          <ResetButton onResetTasks={handleResetTasks} />
+          <Button variant="outline" onClick={handleResetTasks}>
+            今日のタスクをリセット
+          </Button>
         </div>
       </div>
       <div className="-mx-4 flex-1 overflow-hidden">
@@ -151,17 +153,5 @@ export function TodoApp() {
         />
       </div>
     </div>
-  );
-}
-
-interface ResetButtonProps {
-  onResetTasks: () => void;
-}
-
-function ResetButton({ onResetTasks }: ResetButtonProps) {
-  return (
-    <Button variant="outline" onClick={onResetTasks}>
-      今日のタスクをリセット
-    </Button>
   );
 }
