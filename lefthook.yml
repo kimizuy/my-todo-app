@@ -1,6 +1,12 @@
 pre-commit:
   jobs:
     - run: npm run check
+      glob:
+        - "**/*.{js,cjs,mjs,jsx,ts,tsx}"
+        - "**/*.d.ts"
+        - "**/*.d.{cts,mts}"
+        - "**/*.{json,jsonc}"
+        - "**/*.css"
       stage_fixed: true
 pre-push:
   jobs:
