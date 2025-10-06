@@ -1,11 +1,6 @@
 pre-commit:
   jobs:
     - run: npm run check
-      glob:
-        - "*.ts"
-        - "*.js"
-        - "*.tsx"
-        - "*.jsx"
       stage_fixed: true
 pre-push:
   jobs:

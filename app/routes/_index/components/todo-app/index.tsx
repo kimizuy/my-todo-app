@@ -1,5 +1,15 @@
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { Board } from "./board";
 import { Filter } from "./filter";
 import { useTasks } from "./hooks";
@@ -138,9 +148,27 @@ export function TodoApp() {
           <Filter value={filterText} onChange={setFilterText} />
         </div>
         <div className="self-end text-sm sm:self-auto">
-          <Button variant="outline" onClick={handleResetTasks}>
-            今日のタスクをリセット
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">今日のタスクをリセット</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>タスクをリセットしますか？</DialogTitle>
+                <DialogDescription>
+                  今日やる/やらないのタスクを未分類に戻します。
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">キャンセル</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button onClick={handleResetTasks}>リセット</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       <div className="-mx-4 flex-1 overflow-hidden">
