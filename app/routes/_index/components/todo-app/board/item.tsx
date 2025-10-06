@@ -3,6 +3,16 @@ import { CSS } from "@dnd-kit/utilities";
 import { CheckCircle, Trash2 } from "lucide-react";
 import { type KeyboardEvent, memo, useMemo } from "react";
 import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { cn, formatDate } from "~/lib/utils";
 import type { Task } from "../types";
 import { parseTaskContent } from "../utils";
@@ -44,14 +54,6 @@ export const Item = memo(function Item({
     onComplete(task.id);
   }
 
-  function handleDeleteKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.stopPropagation();
-      e.preventDefault();
-      onDelete(task.id);
-    }
-  }
-
   function handleCompleteKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
     if (e.key === "Enter" || e.key === " ") {
       e.stopPropagation();
@@ -90,16 +92,35 @@ export const Item = memo(function Item({
             <span className="sr-only">完了</span>
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleDelete}
-          onKeyDown={handleDeleteKeyDown}
-          title="削除する"
-        >
-          <Trash2 className="text-destructive" />
-          <span className="sr-only">削除</span>
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => e.stopPropagation()}
+              title="削除する"
+            >
+              <Trash2 className="text-destructive" />
+              <span className="sr-only">削除</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>タスクを削除しますか？</DialogTitle>
+              <DialogDescription>この操作は取り消せません。</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">キャンセル</Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button variant="destructive" onClick={handleDelete}>
+                  削除
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </article>
   );
