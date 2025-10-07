@@ -1,0 +1,8 @@
+name = "my-todo-app"
+main = "build/server/index.js"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "my-todo-db"
+database_id = "68fe50bc-dbfb-488d-b289-7d3a02fd848c"
