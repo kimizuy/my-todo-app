@@ -1,0 +1,45 @@
+import { sql } from "drizzle-orm";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+// ユーザーテーブル
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// タスクテーブル
+export const tasks = sqliteTable("tasks", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  columnId: text("column_id", {
+    enum: ["uncategorized", "do-today", "do-not-today", "done"],
+  }).notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+// アーカイブテーブル
+export const archivedTasks = sqliteTable("archived_tasks", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  columnId: text("column_id").notNull(),
+  createdAt: text("created_at").notNull(),
+  archivedAt: text("archived_at").notNull(),
+});
+
+// TypeScript 型をエクスポート
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type Task = typeof tasks.$inferSelect;
+export type NewTask = typeof tasks.$inferInsert;
+export type ArchivedTask = typeof archivedTasks.$inferSelect;
+export type NewArchivedTask = typeof archivedTasks.$inferInsert;
