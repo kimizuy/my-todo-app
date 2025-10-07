@@ -2,26 +2,17 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { ListTodo } from "lucide-react";
 import {
-  Form,
   isRouteErrorResponse,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
-  useRouteLoaderData,
 } from "react-router";
 import { TopNav } from "./components/layout/top-nav";
 import { ThemeProvider } from "./components/theme-provider";
 import { ThemeSwitch } from "./components/theme-switch";
-import { Button } from "./components/ui/button";
 import { SkipLink } from "./components/ui/skip-link";
-import { getAuthUser } from "./lib/auth.server";
-
-export async function loader({ request, context }: Route.LoaderArgs) {
-  const user = await getAuthUser(request, context);
-  return { user };
-}
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -37,9 +28,6 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const data = useRouteLoaderData<typeof loader>("root");
-  const user = data?.user;
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -68,18 +56,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 ]}
               />
               <div className="ml-auto flex items-center space-x-4">
-                {user && (
-                  <>
-                    <span className="text-muted-foreground text-sm">
-                      {user.email}
-                    </span>
-                    <Form method="post" action="/api/auth/logout">
-                      <Button type="submit" variant="outline" size="sm">
-                        ログアウト
-                      </Button>
-                    </Form>
-                  </>
-                )}
                 <ThemeSwitch />
               </div>
             </header>
