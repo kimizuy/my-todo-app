@@ -10,11 +10,18 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useCallback, useMemo, useState } from "react";
 import type { ColumnId, Task } from "~/db/schema";
 import { Column } from "./column";
 import { TaskContent } from "./item";
+import {
+  findTaskById,
+  getTasksByColumn,
+  isColumnId,
+  moveTaskToColumn,
+  reorderTasksInColumn,
+} from "./utils";
 
 interface Props {
   allTasks: Task[];
@@ -24,6 +31,8 @@ interface Props {
   onCompleteTask: (taskId: string) => void;
   onArchiveAll: () => void;
 }
+
+const EMPTY_TASKS: Task[] = [];
 
 export function Board({
   allTasks,
@@ -51,7 +60,7 @@ export function Board({
       const { active } = event;
       const id = active.id as string;
 
-      const foundTask = allTasks.find((task) => task.id === id);
+      const foundTask = findTaskById(allTasks, id);
       if (foundTask) {
         setActiveTask(foundTask);
       }
@@ -68,8 +77,7 @@ export function Board({
       const activeId = active.id as string;
       const overId = over.id;
 
-      // ドラッグ中のタスクを一度だけ検索
-      const draggedTask = allTasks.find((task) => task.id === activeId);
+      const draggedTask = findTaskById(allTasks, activeId);
       if (!draggedTask) return;
 
       // ドロップ先のカラムIDを決定
@@ -80,26 +88,17 @@ export function Board({
         targetColumnId = overId;
       } else {
         // 他のタスクの上にドロップ
-        const targetTask = allTasks.find((task) => task.id === overId);
+        const targetTask = findTaskById(allTasks, overId as string);
         if (!targetTask) return;
         targetColumnId = targetTask.columnId;
       }
 
       // カラムが変わる場合のみ更新
       if (draggedTask.columnId !== targetColumnId) {
-        // 移動先のカラムの最大のorder値を取得
-        const targetColumnTasks = allTasks.filter(
-          (task) => task.columnId === targetColumnId,
-        );
-        const maxOrder = targetColumnTasks.reduce(
-          (max, task) => Math.max(max, task.order),
-          -1,
-        );
-
-        const updatedTasks = allTasks.map((task) =>
-          task.id === activeId
-            ? { ...task, columnId: targetColumnId, order: maxOrder + 1 }
-            : task,
+        const updatedTasks = moveTaskToColumn(
+          allTasks,
+          activeId,
+          targetColumnId,
         );
         onTaskUpdate(updatedTasks);
       }
@@ -117,8 +116,8 @@ export function Board({
         return;
       }
 
-      const activeId = active.id;
-      const overId = over.id;
+      const activeId = active.id as string;
+      const overId = over.id as string;
 
       // 同じアイテム上でドラッグが終了した場合は処理しない
       if (activeId === overId) {
@@ -126,7 +125,7 @@ export function Board({
         return;
       }
 
-      const draggedTask = allTasks.find((task) => task.id === activeId);
+      const draggedTask = findTaskById(allTasks, activeId);
 
       // ドラッグされたタスクが見つからない場合は処理を終了
       if (!draggedTask) {
@@ -135,22 +134,16 @@ export function Board({
       }
 
       // 同じカラム内での並び替え処理
-      const columnTasks = allTasks.filter(
-        (task) => task.columnId === draggedTask.columnId,
-      );
+      const columnTasks = getTasksByColumn(allTasks, draggedTask.columnId);
       const oldIndex = columnTasks.findIndex((task) => task.id === activeId);
       const newIndex = columnTasks.findIndex((task) => task.id === overId);
 
       // インデックスが有効な場合のみ処理
       if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedColumnTasks = arrayMove(columnTasks, oldIndex, newIndex);
-
-        // 並び替えたタスクにorderフィールドを更新
-        const tasksWithUpdatedOrder = reorderedColumnTasks.map(
-          (task, index) => ({
-            ...task,
-            order: index,
-          }),
+        const tasksWithUpdatedOrder = reorderTasksInColumn(
+          columnTasks,
+          oldIndex,
+          newIndex,
         );
 
         // 他のカラムのタスクと結合して新しいタスク配列を作成
@@ -219,7 +212,7 @@ export function Board({
               key={column.id}
               id={column.id}
               title={column.title}
-              tasks={tasksByColumn[column.id] || []}
+              tasks={tasksByColumn[column.id] || EMPTY_TASKS}
               totalCount={totalTaskCountByColumn[column.id]}
               onDeleteTask={onDeleteTask}
               onCompleteTask={onCompleteTask}
@@ -248,9 +241,3 @@ const COLUMNS: {
   { id: "do-not-today", title: "今日やらない" },
   { id: "done", title: "完了" },
 ];
-
-function isColumnId(value: unknown): value is ColumnId {
-  return (
-    typeof value === "string" && COLUMNS.some((column) => column.id === value)
-  );
-}
