@@ -50,8 +50,10 @@ export async function action({ request, context }: Route.ActionArgs) {
         | "do-today"
         | "do-not-today"
         | "done";
+      const orderStr = formData.get("order") as string | null;
+      const order = orderStr ? Number.parseInt(orderStr, 10) : undefined;
 
-      await userDb.updateTask(taskId, { columnId });
+      await userDb.updateTask(taskId, { columnId, order });
 
       return { success: true };
     }

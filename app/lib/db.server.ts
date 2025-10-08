@@ -27,7 +27,7 @@ export class UserScopedDb {
       .select()
       .from(schema.tasks)
       .where(conditions)
-      .orderBy(desc(schema.tasks.createdAt))
+      .orderBy(schema.tasks.order)
       .all();
   }
 
@@ -39,11 +39,24 @@ export class UserScopedDb {
     content: string;
     columnId: "uncategorized" | "do-today" | "do-not-today" | "done";
     createdAt: string;
+    order?: number;
   }) {
+    // orderが指定されていない場合、最大値+1を設定
+    let order = data.order;
+    if (order === undefined) {
+      const tasks = await this.getTasks();
+      const maxOrder = tasks.reduce(
+        (max, task) => Math.max(max, task.order),
+        -1,
+      );
+      order = maxOrder + 1;
+    }
+
     return this.db
       .insert(schema.tasks)
       .values({
         ...data,
+        order,
         userId: this.userId, // 自動的にuserIdを追加
       })
       .returning();
@@ -58,6 +71,7 @@ export class UserScopedDb {
     data: {
       columnId?: "uncategorized" | "do-today" | "do-not-today" | "done";
       content?: string;
+      order?: number;
     },
   ) {
     return this.db
@@ -127,6 +141,7 @@ export class UserScopedDb {
           userId: task.userId,
           content: task.content,
           columnId: task.columnId,
+          order: task.order,
           createdAt: task.createdAt,
           archivedAt,
         })),
@@ -154,10 +169,14 @@ export class UserScopedDb {
     tasksData: Array<{
       id: string;
       columnId: "uncategorized" | "do-today" | "do-not-today" | "done";
+      order?: number;
     }>,
   ) {
     for (const task of tasksData) {
-      await this.updateTask(task.id, { columnId: task.columnId });
+      await this.updateTask(task.id, {
+        columnId: task.columnId,
+        order: task.order,
+      });
     }
   }
 

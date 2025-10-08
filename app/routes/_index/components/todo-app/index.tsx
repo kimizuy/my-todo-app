@@ -22,11 +22,18 @@ export function TodoApp() {
 
   const handleAddTaskFromForm = useCallback(
     (content: string) => {
+      // 最大のorder値を取得
+      const maxOrder = tasks.reduce(
+        (max, task) => Math.max(max, task.order),
+        -1,
+      );
+
       const newTask: Task = {
         id: `task-${Date.now()}`,
         userId: 0, // サーバーからの応答で正しいuserIdに更新される
         content,
         columnId: "uncategorized",
+        order: maxOrder + 1,
         createdAt: new Date().toISOString(),
       };
 
@@ -39,7 +46,7 @@ export function TodoApp() {
       formData.append("content", content);
       fetcher.submit(formData, { method: "post" });
     },
-    [setTasks, fetcher],
+    [tasks, setTasks, fetcher],
   );
 
   const handleResetTasks = useCallback(() => {
@@ -56,7 +63,7 @@ export function TodoApp() {
           task.columnId !== "do-today" && task.columnId !== "do-not-today",
       );
 
-      // リセット対象のタスクを未分類に変更し、指定された順序で配置
+      // リセット対象のタスクを未分類に変更
       const resetDoTodayTasks = doTodayTasks.map((task) => ({
         ...task,
         columnId: "uncategorized" as const,
@@ -75,14 +82,29 @@ export function TodoApp() {
       );
 
       // 最終的な順序: 非未分類 + 今日やる + 今日やらない + 既存の未分類
-      return [
-        ...nonUncategorizedTasks,
+      const updatedUncategorizedTasks = [
         ...resetDoTodayTasks,
         ...resetDoNotTodayTasks,
         ...uncategorizedTasks,
       ];
+
+      // 未分類タスクにorderを設定
+      const tasksWithOrder = updatedUncategorizedTasks.map((task, index) => ({
+        ...task,
+        order: index,
+      }));
+
+      const allTasks = [...nonUncategorizedTasks, ...tasksWithOrder];
+
+      // サーバーに送信（batch-update）
+      const formData = new FormData();
+      formData.append("intent", "batch-update");
+      formData.append("tasks", JSON.stringify(allTasks));
+      fetcher.submit(formData, { method: "post" });
+
+      return allTasks;
     });
-  }, [setTasks]);
+  }, [setTasks, fetcher]);
 
   const handleDeleteTask = useCallback(
     (taskId: string) => {
@@ -100,6 +122,8 @@ export function TodoApp() {
 
   const handleCompleteTask = useCallback(
     (taskId: string) => {
+      let newOrder = 0;
+
       // 楽観的更新
       setTasks((prevTasks) => {
         const taskToComplete = prevTasks.find((task) => task.id === taskId);
@@ -109,7 +133,22 @@ export function TodoApp() {
           (task) => task.id !== taskId,
         );
 
-        const completedTask: Task = { ...taskToComplete, columnId: "done" };
+        // 完了カラムの最小のorder値を取得して、それより小さい値を設定
+        const doneColumnTasks = prevTasks.filter(
+          (task) => task.columnId === "done",
+        );
+        const minOrder = doneColumnTasks.reduce(
+          (min, task) => Math.min(min, task.order),
+          0,
+        );
+
+        newOrder = minOrder - 1;
+
+        const completedTask: Task = {
+          ...taskToComplete,
+          columnId: "done",
+          order: newOrder,
+        };
         return [completedTask, ...tasksWithoutCompleted];
       });
 
@@ -118,6 +157,7 @@ export function TodoApp() {
       formData.append("intent", "update");
       formData.append("taskId", taskId);
       formData.append("columnId", "done");
+      formData.append("order", newOrder.toString());
       fetcher.submit(formData, { method: "post" });
     },
     [setTasks, fetcher],

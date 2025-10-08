@@ -87,8 +87,19 @@ export function Board({
 
       // カラムが変わる場合のみ更新
       if (draggedTask.columnId !== targetColumnId) {
+        // 移動先のカラムの最大のorder値を取得
+        const targetColumnTasks = allTasks.filter(
+          (task) => task.columnId === targetColumnId,
+        );
+        const maxOrder = targetColumnTasks.reduce(
+          (max, task) => Math.max(max, task.order),
+          -1,
+        );
+
         const updatedTasks = allTasks.map((task) =>
-          task.id === activeId ? { ...task, columnId: targetColumnId } : task,
+          task.id === activeId
+            ? { ...task, columnId: targetColumnId, order: maxOrder + 1 }
+            : task,
         );
         onTaskUpdate(updatedTasks);
       }
@@ -134,10 +145,18 @@ export function Board({
       if (oldIndex !== -1 && newIndex !== -1) {
         const reorderedColumnTasks = arrayMove(columnTasks, oldIndex, newIndex);
 
+        // 並び替えたタスクにorderフィールドを更新
+        const tasksWithUpdatedOrder = reorderedColumnTasks.map(
+          (task, index) => ({
+            ...task,
+            order: index,
+          }),
+        );
+
         // 他のカラムのタスクと結合して新しいタスク配列を作成
         const updatedTasks = [
           ...allTasks.filter((task) => task.columnId !== draggedTask.columnId),
-          ...reorderedColumnTasks,
+          ...tasksWithUpdatedOrder,
         ];
         onTaskUpdate(updatedTasks);
       }
@@ -158,6 +177,11 @@ export function Board({
     tasks.forEach((task) => {
       grouped[task.columnId].push(task);
     });
+
+    // 各カラムのタスクをorderでソート
+    for (const columnId in grouped) {
+      grouped[columnId as ColumnId].sort((a, b) => a.order - b.order);
+    }
 
     return grouped;
   }, [tasks]);
