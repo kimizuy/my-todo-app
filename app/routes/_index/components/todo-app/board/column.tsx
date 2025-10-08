@@ -6,7 +6,7 @@ import {
 import { PartyPopper } from "lucide-react";
 import { memo } from "react";
 import { Button } from "~/components/ui/button";
-import type { ColumnId, Task } from "../types";
+import type { ColumnId, Task } from "~/db/schema";
 import { Item } from "./item";
 
 interface Props {

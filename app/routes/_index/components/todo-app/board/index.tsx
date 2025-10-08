@@ -12,8 +12,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useCallback, useMemo, useState } from "react";
-import type { ColumnId, Task } from "../types";
-import { COLUMNS, isColumnId } from "../types";
+import type { ColumnId, Task } from "~/db/schema";
 import { Column } from "./column";
 import { TaskContent } from "./item";
 
@@ -213,5 +212,21 @@ export function Board({
         </DragOverlay>
       </DndContext>
     </div>
+  );
+}
+
+const COLUMNS: {
+  id: ColumnId;
+  title: string;
+}[] = [
+  { id: "uncategorized", title: "未分類" },
+  { id: "do-today", title: "今日やる" },
+  { id: "do-not-today", title: "今日やらない" },
+  { id: "done", title: "完了" },
+];
+
+function isColumnId(value: unknown): value is ColumnId {
+  return (
+    typeof value === "string" && COLUMNS.some((column) => column.id === value)
   );
 }

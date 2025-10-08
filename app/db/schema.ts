@@ -1,6 +1,13 @@
 import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
+const COLUMN_IDS = [
+  "uncategorized",
+  "do-today",
+  "do-not-today",
+  "done",
+] as const;
+
 // ユーザーテーブル
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -19,7 +26,7 @@ export const tasks = sqliteTable("tasks", {
     .references(() => users.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   columnId: text("column_id", {
-    enum: ["uncategorized", "do-today", "do-not-today", "done"],
+    enum: COLUMN_IDS,
   }).notNull(),
   createdAt: text("created_at").notNull(),
 });
@@ -31,7 +38,9 @@ export const archivedTasks = sqliteTable("archived_tasks", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
-  columnId: text("column_id").notNull(),
+  columnId: text("column_id", {
+    enum: COLUMN_IDS,
+  }).notNull(),
   createdAt: text("created_at").notNull(),
   archivedAt: text("archived_at").notNull(),
 });
@@ -43,3 +52,4 @@ export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
 export type ArchivedTask = typeof archivedTasks.$inferSelect;
 export type NewArchivedTask = typeof archivedTasks.$inferInsert;
+export type ColumnId = (typeof COLUMN_IDS)[number];

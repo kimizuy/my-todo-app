@@ -13,8 +13,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
+import type { Task } from "~/db/schema";
 import { cn, formatDate } from "~/lib/utils";
-import type { Task } from "../types";
 import { parseTaskContent } from "../utils";
 
 interface Props {

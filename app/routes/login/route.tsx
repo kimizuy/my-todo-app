@@ -1,9 +1,14 @@
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/d1";
 import { useId } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { getAuthUser } from "~/lib/auth.server";
+import { users } from "~/db/schema";
+import { createAuthService, getAuthUser } from "~/lib/auth.server";
+import { setCookie } from "~/lib/cookies.server";
+import { verifyPassword } from "~/lib/password.server";
 import type { Route } from "./+types/route";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -14,24 +19,43 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return null;
 }
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
   const formData = await request.formData();
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
 
-  const response = await fetch(new URL("/api/auth/login", request.url), {
-    method: "POST",
-    body: formData,
-  });
-
-  const data = (await response.json()) as { error?: string };
-
-  if (!response.ok) {
-    return { error: data.error || "Login failed" };
+  if (!email || !password) {
+    return { error: "Email and password are required" };
   }
 
-  const cookie = response.headers.get("Set-Cookie");
+  const db = drizzle(context.cloudflare.env.DB);
+
+  // ユーザー検索
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .get();
+
+  if (!user) {
+    return { error: "Invalid email or password" };
+  }
+
+  // パスワード検証
+  const isValid = await verifyPassword(password, user.passwordHash);
+  if (!isValid) {
+    return { error: "Invalid email or password" };
+  }
+
+  // セッション作成
+  const auth = createAuthService(context);
+  const token = await auth.createSession({ id: user.id, email: user.email });
+
+  // Cookie 設定
+  const cookie = setCookie("auth_token", token);
 
   return redirect("/", {
-    headers: cookie ? { "Set-Cookie": cookie } : undefined,
+    headers: { "Set-Cookie": cookie },
   });
 }
 

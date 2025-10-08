@@ -1,9 +1,14 @@
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/d1";
 import { useId } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { getAuthUser } from "~/lib/auth.server";
+import { users } from "~/db/schema";
+import { createAuthService, getAuthUser } from "~/lib/auth.server";
+import { setCookie } from "~/lib/cookies.server";
+import { hashPassword } from "~/lib/password.server";
 import type { Route } from "./+types/route";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -14,24 +19,61 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return null;
 }
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
   const formData = await request.formData();
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
 
-  const response = await fetch(new URL("/api/auth/register", request.url), {
-    method: "POST",
-    body: formData,
-  });
-
-  const data = (await response.json()) as { error?: string };
-
-  if (!response.ok) {
-    return { error: data.error || "Registration failed" };
+  // バリデーション
+  if (!email || !password) {
+    return { error: "Email and password are required" };
   }
 
-  const cookie = response.headers.get("Set-Cookie");
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters" };
+  }
+
+  const db = drizzle(context.cloudflare.env.DB);
+
+  // 既存ユーザーチェック
+  const existingUser = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .get();
+
+  if (existingUser) {
+    return { error: "Email already exists" };
+  }
+
+  // パスワードハッシュ化
+  const passwordHash = await hashPassword(password);
+
+  // ユーザー作成
+  const [newUser] = await db
+    .insert(users)
+    .values({
+      email,
+      passwordHash,
+    })
+    .returning({ id: users.id, email: users.email });
+
+  if (!newUser) {
+    return { error: "Failed to create user" };
+  }
+
+  // セッション作成
+  const auth = createAuthService(context);
+  const token = await auth.createSession({
+    id: newUser.id,
+    email: newUser.email,
+  });
+
+  // Cookie 設定
+  const cookie = setCookie("auth_token", token);
 
   return redirect("/", {
-    headers: cookie ? { "Set-Cookie": cookie } : undefined,
+    headers: { "Set-Cookie": cookie },
   });
 }
 

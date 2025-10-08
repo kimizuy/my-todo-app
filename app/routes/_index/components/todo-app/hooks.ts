@@ -1,60 +1,31 @@
-import {
-  type Dispatch,
-  type SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { debounce } from "~/lib/utils";
-import type { Task } from "./types";
-import { updateTasksWithCreatedAt } from "./utils";
+import { useEffect, useMemo, useState } from "react";
+import { useFetcher, useLoaderData } from "react-router";
+import type { Task } from "~/db/schema";
+import type { loader } from "../../route";
 
 export function useTasks() {
-  const [tasks, setTasksState] = useState<Task[]>([]);
+  const { tasks: serverTasks } = useLoaderData<typeof loader>();
+  const fetcher = useFetcher();
 
-  // LocalStorageへの保存をdebounceで最適化
-  const debouncedSave = useMemo(
-    () =>
-      debounce((tasks: Task[]) => {
-        try {
-          localStorage.setItem("tasks", JSON.stringify(tasks));
-        } catch (error) {
-          console.error("タスクの保存に失敗しました:", error);
-        }
-      }, 500),
-    [],
-  );
+  // サーバーのタスクを初期値として使用
+  const [optimisticTasks, setOptimisticTasks] = useState<Task[]>(serverTasks);
 
-  useEffect(function hydrateFromLocalStorage() {
-    try {
-      const storedTasks = localStorage.getItem("tasks");
-      if (storedTasks) {
-        const parsedTasks: Task[] = JSON.parse(storedTasks);
-        const tasksWithCreatedAt = updateTasksWithCreatedAt(
-          parsedTasks,
-          "tasks",
-        );
-        setTasksState(tasksWithCreatedAt);
-      }
-    } catch (error) {
-      console.error("タスクの読み込みに失敗しました:", error);
+  // サーバーのタスクが更新されたら反映
+  useEffect(() => {
+    setOptimisticTasks(serverTasks);
+  }, [serverTasks]);
+
+  const tasks = useMemo(() => {
+    // fetcherが実行中で楽観的更新がある場合はそれを使用
+    if (fetcher.state === "submitting" || fetcher.state === "loading") {
+      return optimisticTasks;
     }
-  }, []);
+    return serverTasks;
+  }, [serverTasks, optimisticTasks, fetcher.state]);
 
-  const setTasks: Dispatch<SetStateAction<Task[]>> = useCallback(
-    (value) => {
-      setTasksState((prevTasks) => {
-        const newTasks = typeof value === "function" ? value(prevTasks) : value;
-
-        // 非同期でLocalStorageに保存
-        debouncedSave(newTasks);
-
-        return newTasks;
-      });
-    },
-    [debouncedSave],
-  );
-
-  return { tasks, setTasks };
+  return {
+    tasks,
+    setTasks: setOptimisticTasks,
+    fetcher,
+  };
 }

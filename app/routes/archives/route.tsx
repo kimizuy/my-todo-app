@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLoaderData } from "react-router";
+import type { ArchivedTask } from "~/db/schema";
+import { requireAuth } from "~/lib/auth.server";
+import { createUserDb } from "~/lib/db.server";
 import { formatDate } from "~/lib/utils";
-import type { Task } from "../_index/components/todo-app/types";
-import {
-  parseTaskContent,
-  updateTasksWithCreatedAt,
-} from "../_index/components/todo-app/utils";
+import { parseTaskContent } from "../_index/components/todo-app/utils";
 import type { Route } from "./+types/route";
 
 export function meta(_: Route.MetaArgs) {
@@ -14,8 +14,18 @@ export function meta(_: Route.MetaArgs) {
   ];
 }
 
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const user = await requireAuth(request, context);
+  const userDb = createUserDb(context.cloudflare.env.DB, user.id);
+
+  // UserScopedDbで自動的にuserIdでフィルタリング＆ソート
+  const userArchivedTasks = await userDb.getArchivedTasks();
+
+  return { archivedTasks: userArchivedTasks };
+}
+
 export default function Archives() {
-  const archivedTasks = useArchivedTasks();
+  const { archivedTasks } = useLoaderData<typeof loader>();
 
   // アーカイブ日付でグループ化
   const tasksByArchivedDate = useMemo(() => {
@@ -30,7 +40,7 @@ export default function Archives() {
         groups[archiveDate].push(task);
         return groups;
       },
-      {} as Record<string, Task[]>,
+      {} as Record<string, ArchivedTask[]>,
     );
 
     // 各グループ内のタスクをcreatedAtの降順（新しいタスクが上）でソート
@@ -127,7 +137,7 @@ export default function Archives() {
 }
 
 interface ArchivedTaskContentProps {
-  task: Task;
+  task: ArchivedTask;
 }
 
 function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
@@ -144,7 +154,7 @@ function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
   );
 }
 
-function sortTasksByCreatedAt(tasks: Task[]): Task[] {
+function sortTasksByCreatedAt(tasks: ArchivedTask[]): ArchivedTask[] {
   return tasks.sort((a, b) => {
     // createdAtの降順（新しいタスクが上）でソート
     const aCreatedAt = new Date(a.createdAt || 0).getTime();
@@ -168,43 +178,7 @@ const formatDateOnly = (dateString: string) => {
   });
 };
 
-function useArchivedTasks() {
-  const [archivedTasks, setArchivedTasks] = useState<Task[]>([]);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(function initializeClient() {
-    setIsClient(true);
-  }, []);
-
-  useEffect(
-    function loadArchivedTasksFromLocalStorage() {
-      if (!isClient) return;
-
-      const storedArchivedTasks = localStorage.getItem("archivedTasks");
-      if (storedArchivedTasks) {
-        try {
-          const parsedTasks: Task[] = JSON.parse(storedArchivedTasks);
-          const tasksWithCreatedAt = updateTasksWithCreatedAt(
-            parsedTasks,
-            "archivedTasks",
-          );
-          setArchivedTasks(tasksWithCreatedAt.reverse()); // 最新のものを上に表示
-        } catch (error) {
-          console.error(
-            "アーカイブされたタスクの読み込みに失敗しました:",
-            error,
-          );
-          setArchivedTasks([]);
-        }
-      }
-    },
-    [isClient],
-  );
-
-  return archivedTasks;
-}
-
-function useExpandedArchives(groupedTasks: Record<string, Task[]>) {
+function useExpandedArchives(groupedTasks: Record<string, ArchivedTask[]>) {
   const [expandedArchives, setExpandedArchives] = useState<Set<string>>(
     new Set(),
   );

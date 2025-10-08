@@ -10,28 +10,36 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
+import type { Task } from "~/db/schema";
 import { Board } from "./board";
 import { Filter } from "./filter";
 import { useTasks } from "./hooks";
 import { InputForm } from "./input-form";
-import type { Task } from "./types";
 
 export function TodoApp() {
-  const { tasks, setTasks } = useTasks();
+  const { tasks, setTasks, fetcher } = useTasks();
   const [filterText, setFilterText] = useState<string>("");
 
   const handleAddTaskFromForm = useCallback(
     (content: string) => {
       const newTask: Task = {
         id: `task-${Date.now()}`,
+        userId: 0, // サーバーからの応答で正しいuserIdに更新される
         content,
-        columnId: "uncategorized", // 初期カラムは未分類
+        columnId: "uncategorized",
         createdAt: new Date().toISOString(),
       };
 
+      // 楽観的更新
       setTasks((prev) => [newTask, ...prev]);
+
+      // サーバーに送信
+      const formData = new FormData();
+      formData.append("intent", "create");
+      formData.append("content", content);
+      fetcher.submit(formData, { method: "post" });
     },
-    [setTasks],
+    [setTasks, fetcher],
   );
 
   const handleResetTasks = useCallback(() => {
@@ -78,13 +86,21 @@ export function TodoApp() {
 
   const handleDeleteTask = useCallback(
     (taskId: string) => {
+      // 楽観的更新
       setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+
+      // サーバーに送信
+      const formData = new FormData();
+      formData.append("intent", "delete");
+      formData.append("taskId", taskId);
+      fetcher.submit(formData, { method: "post" });
     },
-    [setTasks],
+    [setTasks, fetcher],
   );
 
   const handleCompleteTask = useCallback(
     (taskId: string) => {
+      // 楽観的更新
       setTasks((prevTasks) => {
         const taskToComplete = prevTasks.find((task) => task.id === taskId);
         if (!taskToComplete) return prevTasks;
@@ -94,42 +110,44 @@ export function TodoApp() {
         );
 
         const completedTask: Task = { ...taskToComplete, columnId: "done" };
-
-        // 完了タスクを先頭に追加（新しい完了タスクが上に表示される）
         return [completedTask, ...tasksWithoutCompleted];
       });
+
+      // サーバーに送信
+      const formData = new FormData();
+      formData.append("intent", "update");
+      formData.append("taskId", taskId);
+      formData.append("columnId", "done");
+      fetcher.submit(formData, { method: "post" });
     },
-    [setTasks],
+    [setTasks, fetcher],
   );
 
   const handleArchiveAll = useCallback(() => {
-    setTasks((prevTasks) => {
-      const doneTasks = prevTasks.filter((task) => task.columnId === "done");
-      if (doneTasks.length === 0) return prevTasks;
+    // 楽観的更新
+    setTasks((prevTasks) =>
+      prevTasks.filter((task) => task.columnId !== "done"),
+    );
 
-      const archivedTasks: Task[] = doneTasks.map((task) => ({
-        ...task,
-        archivedAt: new Date().toISOString(),
-      }));
+    // サーバーに送信
+    const formData = new FormData();
+    formData.append("intent", "archive");
+    fetcher.submit(formData, { method: "post" });
+  }, [setTasks, fetcher]);
 
-      try {
-        const existingArchivedTasks = localStorage.getItem("archivedTasks");
-        const currentArchivedTasks: Task[] = existingArchivedTasks
-          ? JSON.parse(existingArchivedTasks)
-          : [];
+  const handleTaskUpdate = useCallback(
+    (updatedTasks: Task[]) => {
+      // 楽観的更新
+      setTasks(updatedTasks);
 
-        localStorage.setItem(
-          "archivedTasks",
-          JSON.stringify([...currentArchivedTasks, ...archivedTasks]),
-        );
-
-        return prevTasks.filter((task) => task.columnId !== "done");
-      } catch (error) {
-        console.error("アーカイブに失敗しました:", error);
-        return prevTasks;
-      }
-    });
-  }, [setTasks]);
+      // サーバーに送信（batch-update）
+      const formData = new FormData();
+      formData.append("intent", "batch-update");
+      formData.append("tasks", JSON.stringify(updatedTasks));
+      fetcher.submit(formData, { method: "post" });
+    },
+    [setTasks, fetcher],
+  );
 
   const filteredTasks = useMemo(() => {
     if (!filterText.trim()) {
@@ -175,7 +193,7 @@ export function TodoApp() {
         <Board
           allTasks={tasks}
           tasks={filteredTasks}
-          onTaskUpdate={setTasks}
+          onTaskUpdate={handleTaskUpdate}
           onDeleteTask={handleDeleteTask}
           onCompleteTask={handleCompleteTask}
           onArchiveAll={handleArchiveAll}
