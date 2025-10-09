@@ -44,7 +44,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // すでに認証済みの場合
     if (user.emailVerified) {
-      throw new AppError("Email is already verified", 400);
+      // セキュリティ上、認証済みかどうかも明かさない
+      return Response.json({
+        success: true,
+        message: "If the email exists, a verification email has been sent",
+      });
     }
 
     // 新しいトークンを生成
