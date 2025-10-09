@@ -11,9 +11,9 @@ import {
   ScrollRestoration,
   useRouteLoaderData,
 } from "react-router";
-import { TopNav } from "./components/layout/top-nav";
 import { ThemeProvider } from "./components/theme-provider";
 import { ThemeSwitch } from "./components/theme-switch";
+import { TopNav } from "./components/top-nav";
 import { Button } from "./components/ui/button";
 import { SkipLink } from "./components/ui/skip-link";
 import { getAuthUser } from "./lib/auth.server";
