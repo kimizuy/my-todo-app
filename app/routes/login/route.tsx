@@ -75,7 +75,7 @@ export default function Login() {
   const passwordId = useId();
 
   return (
-    <div className="flex h-full items-center justify-center">
+    <div className="grid h-full place-items-center">
       <div className="w-full max-w-md space-y-8 rounded-lg border p-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">ログイン</h1>
