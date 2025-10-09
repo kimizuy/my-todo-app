@@ -25,7 +25,7 @@ export async function sendVerificationEmail(
 
   const resend = new Resend(apiKey);
   const verificationUrl = `${baseUrl}/verify-email?token=${token}`;
-  const emailContent = getVerificationEmailTemplate({ verificationUrl });
+  const emailContent = await getVerificationEmailTemplate({ verificationUrl });
 
   try {
     const result = await resend.emails.send({
