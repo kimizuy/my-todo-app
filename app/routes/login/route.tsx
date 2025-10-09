@@ -47,6 +47,14 @@ export async function action({ request, context }: Route.ActionArgs) {
     return { error: "Invalid email or password" };
   }
 
+  // メール認証チェック（厳格な認証）
+  if (!user.emailVerified) {
+    return {
+      error:
+        "メールアドレスが認証されていません。登録時に送信されたメールから認証を完了してください。",
+    };
+  }
+
   // セッション作成
   const auth = createAuthService(context);
   const token = await auth.createSession({ id: user.id, email: user.email });

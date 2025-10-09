@@ -4,12 +4,20 @@ import type { ActionFunctionArgs } from "react-router";
 import { users } from "~/db/schema";
 import { createAuthService } from "~/lib/auth.server";
 import { setCookie } from "~/lib/cookies.server";
+import { sendVerificationEmail } from "~/lib/email.server";
 import { hashPassword } from "~/lib/password.server";
+import {
+  generateTokenExpiry,
+  generateVerificationToken,
+} from "~/lib/token.server";
 
 export async function action({ request, context }: ActionFunctionArgs) {
+  console.log("=== Register API called ===");
   const formData = await request.formData();
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  console.log("Email:", email);
+  console.log("Password length:", password?.length);
 
   // バリデーション
   if (!email || !password) {
@@ -42,12 +50,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // パスワードハッシュ化
   const passwordHash = await hashPassword(password);
 
+  // 認証トークン生成
+  const verificationToken = generateVerificationToken();
+  const verificationTokenExpiry = generateTokenExpiry();
+
   // ユーザー作成（型安全）
   const [newUser] = await db
     .insert(users)
     .values({
       email,
       passwordHash,
+      verificationToken,
+      verificationTokenExpiry,
     })
     .returning({ id: users.id, email: users.email });
 
@@ -55,7 +69,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return Response.json({ error: "Failed to create user" }, { status: 500 });
   }
 
-  // セッション作成
+  // 認証メール送信
+  const apiKey = context.cloudflare.env.RESEND_API_KEY;
+  if (apiKey) {
+    const baseUrl = new URL(request.url).origin;
+    console.log("Attempting to send verification email to:", email);
+    const emailResult = await sendVerificationEmail(
+      { email, token: verificationToken, baseUrl },
+      apiKey,
+    );
+    if (emailResult.success) {
+      console.log("Verification email sent successfully");
+    } else {
+      console.error("Failed to send verification email:", emailResult.error);
+    }
+  } else {
+    console.warn("RESEND_API_KEY is not set, skipping verification email");
+  }
+
+  // セッション作成（メール未認証でもログイン可能にする場合）
   const auth = createAuthService(context);
   const token = await auth.createSession({
     id: newUser.id,
@@ -66,7 +98,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const cookie = setCookie("auth_token", token);
 
   return Response.json(
-    { success: true, user: newUser },
+    {
+      success: true,
+      user: newUser,
+      message:
+        "Registration successful. Please check your email to verify your account.",
+    },
     { headers: { "Set-Cookie": cookie } },
   );
 }

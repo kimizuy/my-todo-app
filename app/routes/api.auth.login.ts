@@ -43,6 +43,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
     );
   }
 
+  // メール認証チェック（厳格な認証）
+  if (!user.emailVerified) {
+    return Response.json(
+      {
+        error: "Email not verified",
+        code: "EMAIL_NOT_VERIFIED",
+        message: "Please verify your email address before logging in",
+      },
+      { status: 403 },
+    );
+  }
+
   // セッション作成
   const auth = createAuthService(context);
   const token = await auth.createSession({ id: user.id, email: user.email });
