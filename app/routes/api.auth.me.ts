@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { getAuthUser } from "~/lib/auth.server";
+import { getAuthUser } from "~/features/auth/lib/auth-service";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const user = await getAuthUser(request, context);

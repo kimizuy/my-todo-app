@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Button } from "~/components/ui/button";
+import { Button } from "~/shared/components/ui/button";
 
 export default function VerifyEmailPending() {
   return (

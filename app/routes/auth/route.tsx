@@ -1,6 +1,6 @@
 import { Link, redirect } from "react-router";
-import { Button } from "~/components/ui/button";
-import { getAuthUser } from "~/lib/auth.server";
+import { getAuthUser } from "~/features/auth/lib/auth-service";
+import { Button } from "~/shared/components/ui/button";
 import type { Route } from "./+types/route";
 
 export async function loader({ request, context }: Route.LoaderArgs) {

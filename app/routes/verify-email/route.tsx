@@ -1,12 +1,12 @@
 import { drizzle } from "drizzle-orm/d1";
 import { Link, useLoaderData } from "react-router";
-import { Button } from "~/components/ui/button";
-import { getAuthUser } from "~/lib/auth.server";
-import { InvalidTokenError } from "~/lib/errors.server";
+import { getAuthUser } from "~/features/auth/lib/auth-service";
 import {
   markEmailAsVerified,
   verifyEmailToken,
-} from "~/lib/verification.server";
+} from "~/features/auth/lib/verification";
+import { Button } from "~/shared/components/ui/button";
+import { InvalidTokenError } from "~/shared/lib/errors";
 import type { Route } from "./+types/route";
 
 export async function loader({ request, context }: Route.LoaderArgs) {

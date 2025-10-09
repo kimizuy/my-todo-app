@@ -1,5 +1,5 @@
 import { type ActionFunctionArgs, redirect } from "react-router";
-import { deleteCookie } from "~/lib/cookies.server";
+import { deleteCookie } from "~/shared/lib/cookies";
 
 export async function action(_args: ActionFunctionArgs) {
   const cookie = deleteCookie("auth_token");

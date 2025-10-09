@@ -8,13 +8,16 @@ import {
   useActionData,
   useNavigation,
 } from "react-router";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { users } from "~/db/schema";
-import { createAuthService, getAuthUser } from "~/lib/auth.server";
-import { setCookie } from "~/lib/cookies.server";
-import { verifyPassword } from "~/lib/password.server";
+import {
+  createAuthService,
+  getAuthUser,
+} from "~/features/auth/lib/auth-service";
+import { verifyPassword } from "~/features/auth/lib/password";
+import { users } from "~/features/auth/schema";
+import { Button } from "~/shared/components/ui/button";
+import { Input } from "~/shared/components/ui/input";
+import { Label } from "~/shared/components/ui/label";
+import { setCookie } from "~/shared/lib/cookies";
 import type { Route } from "./+types/route";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
