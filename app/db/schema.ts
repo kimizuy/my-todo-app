@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-const COLUMN_IDS = [
+export const COLUMN_IDS = [
   "uncategorized",
   "do-today",
   "do-not-today",

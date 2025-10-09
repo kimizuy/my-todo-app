@@ -1,14 +1,8 @@
 import { arrayMove } from "@dnd-kit/sortable";
-import type { ColumnId, Task } from "~/db/schema";
-
-const COLUMN_ID_SET = new Set<ColumnId>([
-  "uncategorized",
-  "do-today",
-  "do-not-today",
-  "done",
-]);
+import { COLUMN_IDS, type ColumnId, type Task } from "~/db/schema";
 
 export function isColumnId(value: unknown): value is ColumnId {
+  const COLUMN_ID_SET = new Set<ColumnId>(COLUMN_IDS);
   return typeof value === "string" && COLUMN_ID_SET.has(value as ColumnId);
 }
 
