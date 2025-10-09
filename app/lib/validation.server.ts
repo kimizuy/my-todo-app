@@ -4,7 +4,7 @@ import { MIN_PASSWORD_LENGTH } from "./config.server";
 /**
  * メールアドレスのバリデーションスキーマ
  */
-export const emailSchema = z.string().email("Invalid email address");
+export const emailSchema = z.email({ message: "Invalid email address" });
 
 /**
  * パスワードのバリデーションスキーマ
