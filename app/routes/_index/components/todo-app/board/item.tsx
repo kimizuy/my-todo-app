@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CheckCircle, Trash2 } from "lucide-react";
-import { type KeyboardEvent, memo, useMemo } from "react";
+import type { KeyboardEvent } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -13,8 +13,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
+import type { Task } from "~/db/schema";
 import { cn, formatDate } from "~/lib/utils";
-import type { Task } from "../types";
 import { parseTaskContent } from "../utils";
 
 interface Props {
@@ -24,12 +24,7 @@ interface Props {
   onComplete: (taskId: string) => void;
 }
 
-export const Item = memo(function Item({
-  task,
-  columnTitle,
-  onDelete,
-  onComplete,
-}: Props) {
+export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
   const {
     attributes,
     listeners,
@@ -124,16 +119,14 @@ export const Item = memo(function Item({
       </div>
     </article>
   );
-});
+}
 
 interface TaskContentProps {
   task: Task;
 }
 
 export function TaskContent({ task }: TaskContentProps) {
-  const parsedContent = useMemo(() => {
-    return parseTaskContent(task.content);
-  }, [task.content]);
+  const parsedContent = parseTaskContent(task.content);
 
   return (
     <div className="flex flex-col gap-2">

@@ -1,5 +1,5 @@
 /// <reference types="user-agent-data-types" />
-import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
@@ -33,11 +33,11 @@ export function InputForm({ onAddTask }: Props) {
     }
   }, []);
 
-  const addTask = useCallback(() => {
+  const addTask = () => {
     if (!todoInput.trim()) return;
     onAddTask(todoInput.trim());
     setTodoInput("");
-  }, [todoInput, onAddTask]);
+  };
 
   const handleAddTask = (event: FormEvent) => {
     event.preventDefault();

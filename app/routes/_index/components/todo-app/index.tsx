@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -10,31 +10,40 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
+import type { Task } from "~/db/schema";
 import { Board } from "./board";
 import { Filter } from "./filter";
 import { useTasks } from "./hooks";
 import { InputForm } from "./input-form";
-import type { Task } from "./types";
 
 export function TodoApp() {
-  const { tasks, setTasks } = useTasks();
+  const { tasks, setTasks, fetcher } = useTasks();
   const [filterText, setFilterText] = useState<string>("");
 
-  const handleAddTaskFromForm = useCallback(
-    (content: string) => {
-      const newTask: Task = {
-        id: `task-${Date.now()}`,
-        content,
-        columnId: "uncategorized", // 初期カラムは未分類
-        createdAt: new Date().toISOString(),
-      };
+  const handleAddTaskFromForm = (content: string) => {
+    // 最大のorder値を取得
+    const maxOrder = tasks.reduce((max, task) => Math.max(max, task.order), -1);
 
-      setTasks((prev) => [newTask, ...prev]);
-    },
-    [setTasks],
-  );
+    const newTask: Task = {
+      id: `task-${Date.now()}`,
+      userId: 0, // サーバーからの応答で正しいuserIdに更新される
+      content,
+      columnId: "uncategorized",
+      order: maxOrder + 1,
+      createdAt: new Date().toISOString(),
+    };
 
-  const handleResetTasks = useCallback(() => {
+    // 楽観的更新
+    setTasks((prev) => [newTask, ...prev]);
+
+    // サーバーに送信
+    const formData = new FormData();
+    formData.append("intent", "create");
+    formData.append("content", content);
+    fetcher.submit(formData, { method: "post" });
+  };
+
+  const handleResetTasks = () => {
     setTasks((prevTasks) => {
       // 今日やる/やらないのタスクを分類
       const doTodayTasks = prevTasks.filter(
@@ -48,7 +57,7 @@ export function TodoApp() {
           task.columnId !== "do-today" && task.columnId !== "do-not-today",
       );
 
-      // リセット対象のタスクを未分類に変更し、指定された順序で配置
+      // リセット対象のタスクを未分類に変更
       const resetDoTodayTasks = doTodayTasks.map((task) => ({
         ...task,
         columnId: "uncategorized" as const,
@@ -67,78 +76,109 @@ export function TodoApp() {
       );
 
       // 最終的な順序: 非未分類 + 今日やる + 今日やらない + 既存の未分類
-      return [
-        ...nonUncategorizedTasks,
+      const updatedUncategorizedTasks = [
         ...resetDoTodayTasks,
         ...resetDoNotTodayTasks,
         ...uncategorizedTasks,
       ];
-    });
-  }, [setTasks]);
 
-  const handleDeleteTask = useCallback(
-    (taskId: string) => {
-      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
-    },
-    [setTasks],
-  );
-
-  const handleCompleteTask = useCallback(
-    (taskId: string) => {
-      setTasks((prevTasks) => {
-        const taskToComplete = prevTasks.find((task) => task.id === taskId);
-        if (!taskToComplete) return prevTasks;
-
-        const tasksWithoutCompleted = prevTasks.filter(
-          (task) => task.id !== taskId,
-        );
-
-        const completedTask: Task = { ...taskToComplete, columnId: "done" };
-
-        // 完了タスクを先頭に追加（新しい完了タスクが上に表示される）
-        return [completedTask, ...tasksWithoutCompleted];
-      });
-    },
-    [setTasks],
-  );
-
-  const handleArchiveAll = useCallback(() => {
-    setTasks((prevTasks) => {
-      const doneTasks = prevTasks.filter((task) => task.columnId === "done");
-      if (doneTasks.length === 0) return prevTasks;
-
-      const archivedTasks: Task[] = doneTasks.map((task) => ({
+      // 未分類タスクにorderを設定
+      const tasksWithOrder = updatedUncategorizedTasks.map((task, index) => ({
         ...task,
-        archivedAt: new Date().toISOString(),
+        order: index,
       }));
 
-      try {
-        const existingArchivedTasks = localStorage.getItem("archivedTasks");
-        const currentArchivedTasks: Task[] = existingArchivedTasks
-          ? JSON.parse(existingArchivedTasks)
-          : [];
+      const allTasks = [...nonUncategorizedTasks, ...tasksWithOrder];
 
-        localStorage.setItem(
-          "archivedTasks",
-          JSON.stringify([...currentArchivedTasks, ...archivedTasks]),
-        );
+      // サーバーに送信（batch-update）
+      const formData = new FormData();
+      formData.append("intent", "batch-update");
+      formData.append("tasks", JSON.stringify(allTasks));
+      fetcher.submit(formData, { method: "post" });
 
-        return prevTasks.filter((task) => task.columnId !== "done");
-      } catch (error) {
-        console.error("アーカイブに失敗しました:", error);
-        return prevTasks;
-      }
+      return allTasks;
     });
-  }, [setTasks]);
+  };
 
-  const filteredTasks = useMemo(() => {
-    if (!filterText.trim()) {
-      return tasks;
-    }
-    return tasks.filter((task) =>
-      task.content.toLowerCase().includes(filterText.toLowerCase()),
+  const handleDeleteTask = (taskId: string) => {
+    // 楽観的更新
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+
+    // サーバーに送信
+    const formData = new FormData();
+    formData.append("intent", "delete");
+    formData.append("taskId", taskId);
+    fetcher.submit(formData, { method: "post" });
+  };
+
+  const handleCompleteTask = (taskId: string) => {
+    let newOrder = 0;
+
+    // 楽観的更新
+    setTasks((prevTasks) => {
+      const taskToComplete = prevTasks.find((task) => task.id === taskId);
+      if (!taskToComplete) return prevTasks;
+
+      const tasksWithoutCompleted = prevTasks.filter(
+        (task) => task.id !== taskId,
+      );
+
+      // 完了カラムの最小のorder値を取得して、それより小さい値を設定
+      const doneColumnTasks = prevTasks.filter(
+        (task) => task.columnId === "done",
+      );
+      const minOrder = doneColumnTasks.reduce(
+        (min, task) => Math.min(min, task.order),
+        0,
+      );
+
+      newOrder = minOrder - 1;
+
+      const completedTask: Task = {
+        ...taskToComplete,
+        columnId: "done",
+        order: newOrder,
+      };
+      return [completedTask, ...tasksWithoutCompleted];
+    });
+
+    // サーバーに送信
+    const formData = new FormData();
+    formData.append("intent", "update");
+    formData.append("taskId", taskId);
+    formData.append("columnId", "done");
+    formData.append("order", newOrder.toString());
+    fetcher.submit(formData, { method: "post" });
+  };
+
+  const handleArchiveAll = () => {
+    // 楽観的更新
+    setTasks((prevTasks) =>
+      prevTasks.filter((task) => task.columnId !== "done"),
     );
-  }, [tasks, filterText]);
+
+    // サーバーに送信
+    const formData = new FormData();
+    formData.append("intent", "archive");
+    fetcher.submit(formData, { method: "post" });
+  };
+
+  const handleTaskUpdate = (updatedTasks: Task[]) => {
+    // 楽観的更新
+    setTasks(updatedTasks);
+
+    // サーバーに送信（batch-update）
+    const formData = new FormData();
+    formData.append("intent", "batch-update");
+    formData.append("tasks", JSON.stringify(updatedTasks));
+    fetcher.submit(formData, { method: "post" });
+  };
+
+  const filteredTasks = !filterText.trim()
+    ? tasks
+    : tasks.filter((task) =>
+        task.content.toLowerCase().includes(filterText.toLowerCase()),
+      );
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -175,7 +215,7 @@ export function TodoApp() {
         <Board
           allTasks={tasks}
           tasks={filteredTasks}
-          onTaskUpdate={setTasks}
+          onTaskUpdate={handleTaskUpdate}
           onDeleteTask={handleDeleteTask}
           onCompleteTask={handleCompleteTask}
           onArchiveAll={handleArchiveAll}

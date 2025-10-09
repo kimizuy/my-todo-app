@@ -10,6 +10,14 @@
   "vars": {
     "VALUE_FROM_CLOUDFLARE": "Hello from Cloudflare",
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "my-todo-db",
+      "database_id": "68fe50bc-dbfb-488d-b289-7d3a02fd848c",
+      "migrations_dir": "migrations",
+    },
+  ],
   "observability": {
     "enabled": true,
   },

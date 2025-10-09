@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useLoaderData } from "react-router";
+import type { ArchivedTask } from "~/db/schema";
+import { requireAuth } from "~/lib/auth.server";
+import { createUserDb } from "~/lib/db.server";
 import { formatDate } from "~/lib/utils";
-import type { Task } from "../_index/components/todo-app/types";
-import {
-  parseTaskContent,
-  updateTasksWithCreatedAt,
-} from "../_index/components/todo-app/utils";
+import { parseTaskContent } from "../_index/components/todo-app/utils";
 import type { Route } from "./+types/route";
 
 export function meta(_: Route.MetaArgs) {
@@ -14,42 +14,46 @@ export function meta(_: Route.MetaArgs) {
   ];
 }
 
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const user = await requireAuth(request, context);
+  const userDb = createUserDb(context.cloudflare.env.DB, user.id);
+
+  // UserScopedDbで自動的にuserIdでフィルタリング＆ソート
+  const userArchivedTasks = await userDb.getArchivedTasks();
+
+  return { archivedTasks: userArchivedTasks };
+}
+
 export default function Archives() {
-  const archivedTasks = useArchivedTasks();
+  const { archivedTasks } = useLoaderData<typeof loader>();
 
   // アーカイブ日付でグループ化
-  const tasksByArchivedDate = useMemo(() => {
-    const groups = archivedTasks.reduce(
-      (groups, task) => {
-        if (!task.archivedAt) return groups;
+  const groups = archivedTasks.reduce(
+    (groups, task) => {
+      if (!task.archivedAt) return groups;
 
-        const archiveDate = formatDateOnly(task.archivedAt);
-        if (!groups[archiveDate]) {
-          groups[archiveDate] = [];
-        }
-        groups[archiveDate].push(task);
-        return groups;
-      },
-      {} as Record<string, Task[]>,
-    );
+      const archiveDate = formatDateOnly(task.archivedAt);
+      if (!groups[archiveDate]) {
+        groups[archiveDate] = [];
+      }
+      groups[archiveDate].push(task);
+      return groups;
+    },
+    {} as Record<string, ArchivedTask[]>,
+  );
 
-    // 各グループ内のタスクをcreatedAtの降順（新しいタスクが上）でソート
-    for (const date in groups) {
-      groups[date] = sortTasksByCreatedAt(groups[date]);
-    }
+  // 各グループ内のタスクをcreatedAtの降順（新しいタスクが上）でソート
+  for (const date in groups) {
+    groups[date] = sortTasksByCreatedAt(groups[date]);
+  }
 
-    return groups;
-  }, [archivedTasks]);
+  const tasksByArchivedDate = groups;
 
   const { expandedArchives, toggle, expandAll, collapseAll } =
     useExpandedArchives(tasksByArchivedDate);
 
-  const sortedArchiveEntries = useMemo(
-    () =>
-      Object.entries(tasksByArchivedDate).sort(
-        ([a], [b]) => new Date(b).getTime() - new Date(a).getTime(),
-      ),
-    [tasksByArchivedDate],
+  const sortedArchiveEntries = Object.entries(tasksByArchivedDate).sort(
+    ([a], [b]) => new Date(b).getTime() - new Date(a).getTime(),
   );
 
   return (
@@ -127,13 +131,11 @@ export default function Archives() {
 }
 
 interface ArchivedTaskContentProps {
-  task: Task;
+  task: ArchivedTask;
 }
 
 function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
-  const parsedContent = useMemo(() => {
-    return parseTaskContent(task.content);
-  }, [task.content]);
+  const parsedContent = parseTaskContent(task.content);
 
   return (
     <div
@@ -144,7 +146,7 @@ function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
   );
 }
 
-function sortTasksByCreatedAt(tasks: Task[]): Task[] {
+function sortTasksByCreatedAt(tasks: ArchivedTask[]): ArchivedTask[] {
   return tasks.sort((a, b) => {
     // createdAtの降順（新しいタスクが上）でソート
     const aCreatedAt = new Date(a.createdAt || 0).getTime();
@@ -168,43 +170,7 @@ const formatDateOnly = (dateString: string) => {
   });
 };
 
-function useArchivedTasks() {
-  const [archivedTasks, setArchivedTasks] = useState<Task[]>([]);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(function initializeClient() {
-    setIsClient(true);
-  }, []);
-
-  useEffect(
-    function loadArchivedTasksFromLocalStorage() {
-      if (!isClient) return;
-
-      const storedArchivedTasks = localStorage.getItem("archivedTasks");
-      if (storedArchivedTasks) {
-        try {
-          const parsedTasks: Task[] = JSON.parse(storedArchivedTasks);
-          const tasksWithCreatedAt = updateTasksWithCreatedAt(
-            parsedTasks,
-            "archivedTasks",
-          );
-          setArchivedTasks(tasksWithCreatedAt.reverse()); // 最新のものを上に表示
-        } catch (error) {
-          console.error(
-            "アーカイブされたタスクの読み込みに失敗しました:",
-            error,
-          );
-          setArchivedTasks([]);
-        }
-      }
-    },
-    [isClient],
-  );
-
-  return archivedTasks;
-}
-
-function useExpandedArchives(groupedTasks: Record<string, Task[]>) {
+function useExpandedArchives(groupedTasks: Record<string, ArchivedTask[]>) {
   const [expandedArchives, setExpandedArchives] = useState<Set<string>>(
     new Set(),
   );
@@ -229,7 +195,7 @@ function useExpandedArchives(groupedTasks: Record<string, Task[]>) {
     [groupedTasks, isInitialized],
   );
 
-  const toggle = useCallback((archiveDate: string) => {
+  const toggle = (archiveDate: string) => {
     setExpandedArchives((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(archiveDate)) {
@@ -239,15 +205,15 @@ function useExpandedArchives(groupedTasks: Record<string, Task[]>) {
       }
       return newSet;
     });
-  }, []);
+  };
 
-  const expandAll = useCallback(() => {
+  const expandAll = () => {
     setExpandedArchives(new Set(Object.keys(groupedTasks)));
-  }, [groupedTasks]);
+  };
 
-  const collapseAll = useCallback(() => {
+  const collapseAll = () => {
     setExpandedArchives(new Set());
-  }, []);
+  };
 
   return { expandedArchives, toggle, expandAll, collapseAll };
 }
