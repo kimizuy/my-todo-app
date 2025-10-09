@@ -8,9 +8,9 @@ import * as schema from "~/db/schema";
  */
 export class UserScopedDb {
   private db: DrizzleD1Database<typeof schema>;
-  private userId: number;
+  private userId: schema.User["id"];
 
-  constructor(d1: D1Database, userId: number) {
+  constructor(d1: D1Database, userId: schema.User["id"]) {
     this.db = drizzle(d1);
     this.userId = userId;
   }
@@ -34,13 +34,7 @@ export class UserScopedDb {
   /**
    * ユーザーのタスクを作成
    */
-  async createTask(data: {
-    id: string;
-    content: string;
-    columnId: "uncategorized" | "do-today" | "do-not-today" | "done";
-    createdAt: string;
-    order?: number;
-  }) {
+  async createTask(data: Omit<schema.NewTask, "userId">) {
     // orderが指定されていない場合、最大値+1を設定
     let order = data.order;
     if (order === undefined) {
@@ -64,40 +58,28 @@ export class UserScopedDb {
 
   /**
    * ユーザーのタスクを更新
-   * ⚠️ 重要: 他のユーザーのタスクは更新できません
    */
   async updateTask(
-    taskId: string,
-    data: {
-      columnId?: "uncategorized" | "do-today" | "do-not-today" | "done";
-      content?: string;
-      order?: number;
-    },
+    taskId: schema.Task["id"],
+    data: Partial<Omit<schema.NewTask, "userId" | "id" | "createdAt">>,
   ) {
     return this.db
       .update(schema.tasks)
       .set(data)
       .where(
-        and(
-          eq(schema.tasks.id, taskId),
-          eq(schema.tasks.userId, this.userId), // ✅ 常にuserIdでフィルタ
-        ),
+        and(eq(schema.tasks.id, taskId), eq(schema.tasks.userId, this.userId)),
       )
       .returning();
   }
 
   /**
    * ユーザーのタスクを削除
-   * ⚠️ 重要: 他のユーザーのタスクは削除できません
    */
-  async deleteTask(taskId: string) {
+  async deleteTask(taskId: schema.Task["id"]) {
     return this.db
       .delete(schema.tasks)
       .where(
-        and(
-          eq(schema.tasks.id, taskId),
-          eq(schema.tasks.userId, this.userId), // ✅ 常にuserIdでフィルタ
-        ),
+        and(eq(schema.tasks.id, taskId), eq(schema.tasks.userId, this.userId)),
       )
       .returning();
   }
@@ -116,7 +98,6 @@ export class UserScopedDb {
 
   /**
    * 完了したタスクをアーカイブ
-   * ⚠️ 重要: 自分のタスクのみアーカイブできます
    */
   async archiveDoneTasks() {
     // 完了タスクを取得
@@ -136,15 +117,12 @@ export class UserScopedDb {
 
       // アーカイブテーブルに挿入
       await this.db.insert(schema.archivedTasks).values(
-        doneTasks.map((task) => ({
-          id: task.id,
-          userId: task.userId,
-          content: task.content,
-          columnId: task.columnId,
-          order: task.order,
-          createdAt: task.createdAt,
-          archivedAt,
-        })),
+        doneTasks.map(
+          (task): schema.NewArchivedTask => ({
+            ...task,
+            archivedAt,
+          }),
+        ),
       );
 
       // 完了タスクを削除
@@ -163,14 +141,11 @@ export class UserScopedDb {
 
   /**
    * 複数のタスクを一括更新
-   * ⚠️ 重要: 自分のタスクのみ更新できます
    */
   async batchUpdateTasks(
-    tasksData: Array<{
-      id: string;
-      columnId: "uncategorized" | "do-today" | "do-not-today" | "done";
-      order?: number;
-    }>,
+    tasksData: Array<
+      Pick<schema.Task, "id" | "columnId"> & Partial<Pick<schema.Task, "order">>
+    >,
   ) {
     for (const task of tasksData) {
       await this.updateTask(task.id, {
@@ -199,6 +174,6 @@ export class UserScopedDb {
 /**
  * ユーザースコープ付きデータベースクライアントを作成
  */
-export function createUserDb(d1: D1Database, userId: number) {
+export function createUserDb(d1: D1Database, userId: schema.User["id"]) {
   return new UserScopedDb(d1, userId);
 }
