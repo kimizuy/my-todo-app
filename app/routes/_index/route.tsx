@@ -1,3 +1,4 @@
+import type { ColumnId } from "~/db/schema";
 import { requireAuth } from "~/lib/auth.server";
 import { createUserDb } from "~/lib/db.server";
 import type { Route } from "./+types/route";
@@ -45,11 +46,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     case "update": {
       const taskId = formData.get("taskId") as string;
-      const columnId = formData.get("columnId") as
-        | "uncategorized"
-        | "do-today"
-        | "do-not-today"
-        | "done";
+      const columnId = formData.get("columnId") as ColumnId;
       const orderStr = formData.get("order") as string | null;
       const order = orderStr ? Number.parseInt(orderStr, 10) : undefined;
 
