@@ -15,6 +15,7 @@ describe("verifyEmailToken", () => {
     };
 
     await expect(
+      // biome-ignore lint/suspicious/noExplicitAny: mock type for testing
       verifyEmailToken("invalid-token", mockDb as any),
     ).rejects.toThrow(InvalidTokenError);
   });
@@ -41,6 +42,7 @@ describe("verifyEmailToken", () => {
     };
 
     await expect(
+      // biome-ignore lint/suspicious/noExplicitAny: mock type for testing
       verifyEmailToken("valid-token", mockDb as any),
     ).rejects.toThrow(InvalidTokenError);
   });
@@ -66,6 +68,7 @@ describe("verifyEmailToken", () => {
       }),
     };
 
+    // biome-ignore lint/suspicious/noExplicitAny: mock type for testing
     const result = await verifyEmailToken("valid-token", mockDb as any);
     expect(result).toEqual(mockUser);
   });
@@ -82,6 +85,7 @@ describe("markEmailAsVerified", () => {
       }),
     };
 
+    // biome-ignore lint/suspicious/noExplicitAny: mock type for testing
     await markEmailAsVerified(1, mockDb as any);
     expect(mockUpdate).toHaveBeenCalled();
   });

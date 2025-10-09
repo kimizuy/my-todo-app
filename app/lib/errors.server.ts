@@ -94,7 +94,7 @@ export class InvalidTokenError extends AppError {
 /**
  * Zodのバリデーションエラーを整形
  */
-export function formatZodError(error: ZodError<any>): ValidationError {
+export function formatZodError(error: ZodError): ValidationError {
   const firstError = error.issues[0];
   const message = firstError?.message || "Validation failed";
   return new ValidationError(message, error.issues);
