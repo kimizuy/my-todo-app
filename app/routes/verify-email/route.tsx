@@ -1,10 +1,12 @@
-import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { redirect, useLoaderData } from "react-router";
+import { useLoaderData } from "react-router";
 import { Button } from "~/components/ui/button";
-import { users } from "~/db/schema";
 import { getAuthUser } from "~/lib/auth.server";
-import { isTokenExpired } from "~/lib/token.server";
+import { InvalidTokenError } from "~/lib/errors.server";
+import {
+  markEmailAsVerified,
+  verifyEmailToken,
+} from "~/lib/verification.server";
 import type { Route } from "./+types/route";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -21,45 +23,35 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  // トークンでユーザーを検索
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.verificationToken, token))
-    .get();
+  try {
+    // トークン検証
+    const user = await verifyEmailToken(token, db);
 
-  if (!user) {
+    // メール認証完了
+    await markEmailAsVerified(user.id, db);
+
+    // セッションがあるかチェック
+    const authUser = await getAuthUser(request, context);
+    const isLoggedIn = !!authUser;
+
+    return { success: true, error: null, isLoggedIn };
+  } catch (error) {
+    let errorMessage = "認証に失敗しました";
+
+    if (error instanceof InvalidTokenError) {
+      if (error.message.includes("expired")) {
+        errorMessage = "認証トークンの有効期限が切れています";
+      } else {
+        errorMessage = "無効な認証トークンです";
+      }
+    }
+
     return {
       success: false,
-      error: "無効な認証トークンです",
+      error: errorMessage,
       isLoggedIn: false,
     };
   }
-
-  // トークンの有効期限チェック
-  if (isTokenExpired(user.verificationTokenExpiry)) {
-    return {
-      success: false,
-      error: "認証トークンの有効期限が切れています",
-      isLoggedIn: false,
-    };
-  }
-
-  // メール認証完了
-  await db
-    .update(users)
-    .set({
-      emailVerified: true,
-      verificationToken: null,
-      verificationTokenExpiry: null,
-    })
-    .where(eq(users.id, user.id));
-
-  // セッションがあるかチェック
-  const authUser = await getAuthUser(request, context);
-  const isLoggedIn = !!authUser;
-
-  return { success: true, error: null, isLoggedIn };
 }
 
 export default function VerifyEmail() {

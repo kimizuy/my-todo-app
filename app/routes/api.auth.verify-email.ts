@@ -1,47 +1,39 @@
-import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import type { ActionFunctionArgs } from "react-router";
-import { users } from "~/db/schema";
-import { isTokenExpired } from "~/lib/token.server";
+import { errorResponse, formatZodError } from "~/lib/errors.server";
+import { verifyEmailSchema } from "~/lib/validation.server";
+import {
+  markEmailAsVerified,
+  verifyEmailToken,
+} from "~/lib/verification.server";
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const token = formData.get("token") as string;
+  try {
+    const formData = await request.formData();
+    const rawData = {
+      token: formData.get("token"),
+    };
 
-  if (!token) {
-    return Response.json({ error: "Token is required" }, { status: 400 });
+    // バリデーション
+    const validation = verifyEmailSchema.safeParse(rawData);
+    if (!validation.success) {
+      throw formatZodError(validation.error);
+    }
+
+    const { token } = validation.data;
+    const db = drizzle(context.cloudflare.env.DB);
+
+    // トークン検証
+    const user = await verifyEmailToken(token, db);
+
+    // メール認証完了
+    await markEmailAsVerified(user.id, db);
+
+    return Response.json({
+      success: true,
+      message: "Email verified successfully",
+    });
+  } catch (error) {
+    return errorResponse(error);
   }
-
-  const db = drizzle(context.cloudflare.env.DB);
-
-  // トークンでユーザーを検索
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.verificationToken, token))
-    .get();
-
-  if (!user) {
-    return Response.json({ error: "Invalid token" }, { status: 400 });
-  }
-
-  // トークンの有効期限チェック
-  if (isTokenExpired(user.verificationTokenExpiry)) {
-    return Response.json({ error: "Token has expired" }, { status: 400 });
-  }
-
-  // メール認証完了
-  await db
-    .update(users)
-    .set({
-      emailVerified: true,
-      verificationToken: null,
-      verificationTokenExpiry: null,
-    })
-    .where(eq(users.id, user.id));
-
-  return Response.json({
-    success: true,
-    message: "Email verified successfully",
-  });
 }

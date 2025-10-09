@@ -1,3 +1,5 @@
+import { VERIFICATION_TOKEN_EXPIRY_MS } from "./config.server";
+
 /**
  * トークン生成と検証のユーティリティ
  */
@@ -14,11 +16,10 @@ export function generateVerificationToken(): string {
 }
 
 /**
- * トークンの有効期限を生成（24時間後）
+ * トークンの有効期限を生成（デフォルト: 24時間後）
  */
 export function generateTokenExpiry(): string {
-  const expiry = new Date();
-  expiry.setHours(expiry.getHours() + 24);
+  const expiry = new Date(Date.now() + VERIFICATION_TOKEN_EXPIRY_MS);
   return expiry.toISOString();
 }
 
