@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/d1";
-import { useLoaderData } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import { Button } from "~/components/ui/button";
 import { getAuthUser } from "~/lib/auth.server";
 import { InvalidTokenError } from "~/lib/errors.server";
@@ -86,9 +86,9 @@ export default function VerifyEmail() {
                 : "ログインしてサービスをご利用ください。"}
             </p>
             <Button asChild className="w-full">
-              <a href={data.isLoggedIn ? "/" : "/login"}>
+              <Link to={data.isLoggedIn ? "/" : "/login"}>
                 {data.isLoggedIn ? "メイン画面へ" : "ログインする"}
-              </a>
+              </Link>
             </Button>
           </>
         ) : (
@@ -111,7 +111,7 @@ export default function VerifyEmail() {
             <h1 className="text-2xl font-bold">認証に失敗しました</h1>
             <p className="text-muted-foreground">{data.error}</p>
             <Button asChild className="w-full">
-              <a href="/register">登録ページへ戻る</a>
+              <Link to="/register">登録ページへ戻る</Link>
             </Button>
           </>
         )}

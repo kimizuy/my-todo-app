@@ -1,7 +1,13 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { useId } from "react";
-import { Form, redirect, useActionData, useNavigation } from "react-router";
+import {
+  Form,
+  Link,
+  redirect,
+  useActionData,
+  useNavigation,
+} from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -163,14 +169,14 @@ export default function Register() {
         <div className="space-y-2 text-center text-sm">
           <div>
             既にアカウントをお持ちの方は{" "}
-            <a href="/login" className="underline">
+            <Link to="/login" className="underline">
               ログイン
-            </a>
+            </Link>
           </div>
           <div>
-            <a href="/auth" className="text-muted-foreground underline">
+            <Link to="/auth" className="text-muted-foreground underline">
               ← 戻る
-            </a>
+            </Link>
           </div>
         </div>
       </div>

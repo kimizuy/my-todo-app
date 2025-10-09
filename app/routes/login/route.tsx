@@ -1,7 +1,13 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { useId } from "react";
-import { Form, redirect, useActionData, useNavigation } from "react-router";
+import {
+  Form,
+  Link,
+  redirect,
+  useActionData,
+  useNavigation,
+} from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -117,14 +123,14 @@ export default function Login() {
         <div className="space-y-2 text-center text-sm">
           <div>
             アカウントをお持ちでない方は{" "}
-            <a href="/register" className="underline">
+            <Link to="/register" className="underline">
               登録
-            </a>
+            </Link>
           </div>
           <div>
-            <a href="/auth" className="text-muted-foreground underline">
+            <Link to="/auth" className="text-muted-foreground underline">
               ← 戻る
-            </a>
+            </Link>
           </div>
         </div>
       </div>
