@@ -114,11 +114,18 @@ export default function Login() {
           </Button>
         </Form>
 
-        <div className="text-center text-sm">
-          アカウントをお持ちでない方は{" "}
-          <a href="/register" className="underline">
-            登録
-          </a>
+        <div className="space-y-2 text-center text-sm">
+          <div>
+            アカウントをお持ちでない方は{" "}
+            <a href="/register" className="underline">
+              登録
+            </a>
+          </div>
+          <div>
+            <a href="/auth" className="text-muted-foreground underline">
+              ← 戻る
+            </a>
+          </div>
         </div>
       </div>
     </div>

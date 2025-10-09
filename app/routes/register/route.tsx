@@ -160,11 +160,18 @@ export default function Register() {
           </Button>
         </Form>
 
-        <div className="text-center text-sm">
-          既にアカウントをお持ちの方は{" "}
-          <a href="/login" className="underline">
-            ログイン
-          </a>
+        <div className="space-y-2 text-center text-sm">
+          <div>
+            既にアカウントをお持ちの方は{" "}
+            <a href="/login" className="underline">
+              ログイン
+            </a>
+          </div>
+          <div>
+            <a href="/auth" className="text-muted-foreground underline">
+              ← 戻る
+            </a>
+          </div>
         </div>
       </div>
     </div>

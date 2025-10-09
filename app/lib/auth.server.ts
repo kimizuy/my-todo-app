@@ -36,7 +36,7 @@ class JWTAuthService implements AuthService {
   async requireUser(request: Request): Promise<AuthUser> {
     const user = await this.getUser(request);
     if (!user) {
-      throw redirect("/login");
+      throw redirect("/auth");
     }
     return user;
   }
