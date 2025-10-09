@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { MIN_PASSWORD_LENGTH } from "./config.server";
 
 /**
