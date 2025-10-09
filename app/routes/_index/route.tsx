@@ -1,8 +1,7 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { redirect } from "react-router";
-import type { ColumnId } from "~/db/schema";
-import { users } from "~/db/schema";
+import { type ColumnId, users } from "~/db/schema";
 import { requireAuth } from "~/lib/auth.server";
 import { createUserDb } from "~/lib/db.server";
 import type { Route } from "./+types/route";
