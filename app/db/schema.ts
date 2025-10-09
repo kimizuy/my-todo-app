@@ -28,8 +28,8 @@ export const tasks = sqliteTable("tasks", {
   columnId: text("column_id", {
     enum: COLUMN_IDS,
   }).notNull(),
-  order: integer("order").notNull().default(0),
   createdAt: text("created_at").notNull(),
+  order: integer("order").notNull().default(0),
 });
 
 // アーカイブテーブル
@@ -42,9 +42,9 @@ export const archivedTasks = sqliteTable("archived_tasks", {
   columnId: text("column_id", {
     enum: COLUMN_IDS,
   }).notNull(),
-  order: integer("order").notNull().default(0),
   createdAt: text("created_at").notNull(),
   archivedAt: text("archived_at").notNull(),
+  order: integer("order").notNull().default(0),
 });
 
 // TypeScript 型をエクスポート
