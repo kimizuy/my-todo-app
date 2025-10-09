@@ -11,7 +11,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 import type { ColumnId, Task } from "~/db/schema";
 import { Column } from "./column";
 import { TaskContent } from "./item";
@@ -55,144 +55,127 @@ export function Board({
     }),
   );
 
-  const handleDragStart = useCallback(
-    (event: DragStartEvent) => {
-      const { active } = event;
-      const id = active.id as string;
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const id = active.id as string;
 
-      const foundTask = findTaskById(allTasks, id);
-      if (foundTask) {
-        setActiveTask(foundTask);
-      }
-    },
-    [allTasks],
-  );
+    const foundTask = findTaskById(allTasks, id);
+    if (foundTask) {
+      setActiveTask(foundTask);
+    }
+  };
 
-  const handleDragOver = useCallback(
-    (event: DragOverEvent) => {
-      const { active, over } = event;
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
 
-      if (!over) return;
+    if (!over) return;
 
-      const activeId = active.id as string;
-      const overId = over.id;
+    const activeId = active.id as string;
+    const overId = over.id;
 
-      const draggedTask = findTaskById(allTasks, activeId);
-      if (!draggedTask) return;
+    const draggedTask = findTaskById(allTasks, activeId);
+    if (!draggedTask) return;
 
-      // ドロップ先のカラムIDを決定
-      let targetColumnId: ColumnId;
+    // ドロップ先のカラムIDを決定
+    let targetColumnId: ColumnId;
 
-      if (isColumnId(overId)) {
-        // カラムに直接ドロップ
-        targetColumnId = overId;
-      } else {
-        // 他のタスクの上にドロップ
-        const targetTask = findTaskById(allTasks, overId as string);
-        if (!targetTask) return;
-        targetColumnId = targetTask.columnId;
-      }
-
-      // カラムが変わる場合のみ更新
-      if (draggedTask.columnId !== targetColumnId) {
-        const updatedTasks = moveTaskToColumn(
-          allTasks,
-          activeId,
-          targetColumnId,
-        );
-        onTaskUpdate(updatedTasks);
-      }
-    },
-    [allTasks, onTaskUpdate],
-  );
-
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-
-      // ドラッグ先がない場合は処理を終了
-      if (!over) {
-        setActiveTask(null);
-        return;
-      }
-
-      const activeId = active.id as string;
-      const overId = over.id as string;
-
-      // 同じアイテム上でドラッグが終了した場合は処理しない
-      if (activeId === overId) {
-        setActiveTask(null);
-        return;
-      }
-
-      const draggedTask = findTaskById(allTasks, activeId);
-
-      // ドラッグされたタスクが見つからない場合は処理を終了
-      if (!draggedTask) {
-        setActiveTask(null);
-        return;
-      }
-
-      // 同じカラム内での並び替え処理
-      const columnTasks = getTasksByColumn(allTasks, draggedTask.columnId);
-      const oldIndex = columnTasks.findIndex((task) => task.id === activeId);
-      const newIndex = columnTasks.findIndex((task) => task.id === overId);
-
-      // インデックスが有効な場合のみ処理
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const tasksWithUpdatedOrder = reorderTasksInColumn(
-          columnTasks,
-          oldIndex,
-          newIndex,
-        );
-
-        // 他のカラムのタスクと結合して新しいタスク配列を作成
-        const updatedTasks = [
-          ...allTasks.filter((task) => task.columnId !== draggedTask.columnId),
-          ...tasksWithUpdatedOrder,
-        ];
-        onTaskUpdate(updatedTasks);
-      }
-
-      setActiveTask(null);
-    },
-    [allTasks, onTaskUpdate],
-  );
-
-  const tasksByColumn = useMemo(() => {
-    const grouped: Record<ColumnId, Task[]> = {
-      uncategorized: [],
-      "do-today": [],
-      "do-not-today": [],
-      done: [],
-    };
-
-    tasks.forEach((task) => {
-      grouped[task.columnId].push(task);
-    });
-
-    // 各カラムのタスクをorderでソート
-    for (const columnId in grouped) {
-      grouped[columnId as ColumnId].sort((a, b) => a.order - b.order);
+    if (isColumnId(overId)) {
+      // カラムに直接ドロップ
+      targetColumnId = overId;
+    } else {
+      // 他のタスクの上にドロップ
+      const targetTask = findTaskById(allTasks, overId as string);
+      if (!targetTask) return;
+      targetColumnId = targetTask.columnId;
     }
 
-    return grouped;
-  }, [tasks]);
+    // カラムが変わる場合のみ更新
+    if (draggedTask.columnId !== targetColumnId) {
+      const updatedTasks = moveTaskToColumn(allTasks, activeId, targetColumnId);
+      onTaskUpdate(updatedTasks);
+    }
+  };
 
-  const totalTaskCountByColumn = useMemo(() => {
-    const counts: Record<ColumnId, number> = {
-      uncategorized: 0,
-      "do-today": 0,
-      "do-not-today": 0,
-      done: 0,
-    };
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-    allTasks.forEach((task) => {
-      counts[task.columnId]++;
-    });
+    // ドラッグ先がない場合は処理を終了
+    if (!over) {
+      setActiveTask(null);
+      return;
+    }
 
-    return counts;
-  }, [allTasks]);
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // 同じアイテム上でドラッグが終了した場合は処理しない
+    if (activeId === overId) {
+      setActiveTask(null);
+      return;
+    }
+
+    const draggedTask = findTaskById(allTasks, activeId);
+
+    // ドラッグされたタスクが見つからない場合は処理を終了
+    if (!draggedTask) {
+      setActiveTask(null);
+      return;
+    }
+
+    // 同じカラム内での並び替え処理
+    const columnTasks = getTasksByColumn(allTasks, draggedTask.columnId);
+    const oldIndex = columnTasks.findIndex((task) => task.id === activeId);
+    const newIndex = columnTasks.findIndex((task) => task.id === overId);
+
+    // インデックスが有効な場合のみ処理
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const tasksWithUpdatedOrder = reorderTasksInColumn(
+        columnTasks,
+        oldIndex,
+        newIndex,
+      );
+
+      // 他のカラムのタスクと結合して新しいタスク配列を作成
+      const updatedTasks = [
+        ...allTasks.filter((task) => task.columnId !== draggedTask.columnId),
+        ...tasksWithUpdatedOrder,
+      ];
+      onTaskUpdate(updatedTasks);
+    }
+
+    setActiveTask(null);
+  };
+
+  const grouped: Record<ColumnId, Task[]> = {
+    uncategorized: [],
+    "do-today": [],
+    "do-not-today": [],
+    done: [],
+  };
+
+  tasks.forEach((task) => {
+    grouped[task.columnId].push(task);
+  });
+
+  // 各カラムのタスクをorderでソート
+  for (const columnId in grouped) {
+    grouped[columnId as ColumnId].sort((a, b) => a.order - b.order);
+  }
+
+  const tasksByColumn = grouped;
+
+  const counts: Record<ColumnId, number> = {
+    uncategorized: 0,
+    "do-today": 0,
+    "do-not-today": 0,
+    done: 0,
+  };
+
+  allTasks.forEach((task) => {
+    counts[task.columnId]++;
+  });
+
+  const totalTaskCountByColumn = counts;
 
   return (
     <div className="h-full">

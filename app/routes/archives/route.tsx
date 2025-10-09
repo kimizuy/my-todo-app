@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
 import type { ArchivedTask } from "~/db/schema";
 import { requireAuth } from "~/lib/auth.server";
@@ -28,38 +28,32 @@ export default function Archives() {
   const { archivedTasks } = useLoaderData<typeof loader>();
 
   // アーカイブ日付でグループ化
-  const tasksByArchivedDate = useMemo(() => {
-    const groups = archivedTasks.reduce(
-      (groups, task) => {
-        if (!task.archivedAt) return groups;
+  const groups = archivedTasks.reduce(
+    (groups, task) => {
+      if (!task.archivedAt) return groups;
 
-        const archiveDate = formatDateOnly(task.archivedAt);
-        if (!groups[archiveDate]) {
-          groups[archiveDate] = [];
-        }
-        groups[archiveDate].push(task);
-        return groups;
-      },
-      {} as Record<string, ArchivedTask[]>,
-    );
+      const archiveDate = formatDateOnly(task.archivedAt);
+      if (!groups[archiveDate]) {
+        groups[archiveDate] = [];
+      }
+      groups[archiveDate].push(task);
+      return groups;
+    },
+    {} as Record<string, ArchivedTask[]>,
+  );
 
-    // 各グループ内のタスクをcreatedAtの降順（新しいタスクが上）でソート
-    for (const date in groups) {
-      groups[date] = sortTasksByCreatedAt(groups[date]);
-    }
+  // 各グループ内のタスクをcreatedAtの降順（新しいタスクが上）でソート
+  for (const date in groups) {
+    groups[date] = sortTasksByCreatedAt(groups[date]);
+  }
 
-    return groups;
-  }, [archivedTasks]);
+  const tasksByArchivedDate = groups;
 
   const { expandedArchives, toggle, expandAll, collapseAll } =
     useExpandedArchives(tasksByArchivedDate);
 
-  const sortedArchiveEntries = useMemo(
-    () =>
-      Object.entries(tasksByArchivedDate).sort(
-        ([a], [b]) => new Date(b).getTime() - new Date(a).getTime(),
-      ),
-    [tasksByArchivedDate],
+  const sortedArchiveEntries = Object.entries(tasksByArchivedDate).sort(
+    ([a], [b]) => new Date(b).getTime() - new Date(a).getTime(),
   );
 
   return (
@@ -141,9 +135,7 @@ interface ArchivedTaskContentProps {
 }
 
 function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
-  const parsedContent = useMemo(() => {
-    return parseTaskContent(task.content);
-  }, [task.content]);
+  const parsedContent = parseTaskContent(task.content);
 
   return (
     <div
@@ -203,7 +195,7 @@ function useExpandedArchives(groupedTasks: Record<string, ArchivedTask[]>) {
     [groupedTasks, isInitialized],
   );
 
-  const toggle = useCallback((archiveDate: string) => {
+  const toggle = (archiveDate: string) => {
     setExpandedArchives((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(archiveDate)) {
@@ -213,15 +205,15 @@ function useExpandedArchives(groupedTasks: Record<string, ArchivedTask[]>) {
       }
       return newSet;
     });
-  }, []);
+  };
 
-  const expandAll = useCallback(() => {
+  const expandAll = () => {
     setExpandedArchives(new Set(Object.keys(groupedTasks)));
-  }, [groupedTasks]);
+  };
 
-  const collapseAll = useCallback(() => {
+  const collapseAll = () => {
     setExpandedArchives(new Set());
-  }, []);
+  };
 
   return { expandedArchives, toggle, expandAll, collapseAll };
 }

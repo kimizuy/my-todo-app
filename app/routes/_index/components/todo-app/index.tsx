@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -20,36 +20,30 @@ export function TodoApp() {
   const { tasks, setTasks, fetcher } = useTasks();
   const [filterText, setFilterText] = useState<string>("");
 
-  const handleAddTaskFromForm = useCallback(
-    (content: string) => {
-      // 最大のorder値を取得
-      const maxOrder = tasks.reduce(
-        (max, task) => Math.max(max, task.order),
-        -1,
-      );
+  const handleAddTaskFromForm = (content: string) => {
+    // 最大のorder値を取得
+    const maxOrder = tasks.reduce((max, task) => Math.max(max, task.order), -1);
 
-      const newTask: Task = {
-        id: `task-${Date.now()}`,
-        userId: 0, // サーバーからの応答で正しいuserIdに更新される
-        content,
-        columnId: "uncategorized",
-        order: maxOrder + 1,
-        createdAt: new Date().toISOString(),
-      };
+    const newTask: Task = {
+      id: `task-${Date.now()}`,
+      userId: 0, // サーバーからの応答で正しいuserIdに更新される
+      content,
+      columnId: "uncategorized",
+      order: maxOrder + 1,
+      createdAt: new Date().toISOString(),
+    };
 
-      // 楽観的更新
-      setTasks((prev) => [newTask, ...prev]);
+    // 楽観的更新
+    setTasks((prev) => [newTask, ...prev]);
 
-      // サーバーに送信
-      const formData = new FormData();
-      formData.append("intent", "create");
-      formData.append("content", content);
-      fetcher.submit(formData, { method: "post" });
-    },
-    [tasks, setTasks, fetcher],
-  );
+    // サーバーに送信
+    const formData = new FormData();
+    formData.append("intent", "create");
+    formData.append("content", content);
+    fetcher.submit(formData, { method: "post" });
+  };
 
-  const handleResetTasks = useCallback(() => {
+  const handleResetTasks = () => {
     setTasks((prevTasks) => {
       // 今日やる/やらないのタスクを分類
       const doTodayTasks = prevTasks.filter(
@@ -104,66 +98,60 @@ export function TodoApp() {
 
       return allTasks;
     });
-  }, [setTasks, fetcher]);
+  };
 
-  const handleDeleteTask = useCallback(
-    (taskId: string) => {
-      // 楽観的更新
-      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+  const handleDeleteTask = (taskId: string) => {
+    // 楽観的更新
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
 
-      // サーバーに送信
-      const formData = new FormData();
-      formData.append("intent", "delete");
-      formData.append("taskId", taskId);
-      fetcher.submit(formData, { method: "post" });
-    },
-    [setTasks, fetcher],
-  );
+    // サーバーに送信
+    const formData = new FormData();
+    formData.append("intent", "delete");
+    formData.append("taskId", taskId);
+    fetcher.submit(formData, { method: "post" });
+  };
 
-  const handleCompleteTask = useCallback(
-    (taskId: string) => {
-      let newOrder = 0;
+  const handleCompleteTask = (taskId: string) => {
+    let newOrder = 0;
 
-      // 楽観的更新
-      setTasks((prevTasks) => {
-        const taskToComplete = prevTasks.find((task) => task.id === taskId);
-        if (!taskToComplete) return prevTasks;
+    // 楽観的更新
+    setTasks((prevTasks) => {
+      const taskToComplete = prevTasks.find((task) => task.id === taskId);
+      if (!taskToComplete) return prevTasks;
 
-        const tasksWithoutCompleted = prevTasks.filter(
-          (task) => task.id !== taskId,
-        );
+      const tasksWithoutCompleted = prevTasks.filter(
+        (task) => task.id !== taskId,
+      );
 
-        // 完了カラムの最小のorder値を取得して、それより小さい値を設定
-        const doneColumnTasks = prevTasks.filter(
-          (task) => task.columnId === "done",
-        );
-        const minOrder = doneColumnTasks.reduce(
-          (min, task) => Math.min(min, task.order),
-          0,
-        );
+      // 完了カラムの最小のorder値を取得して、それより小さい値を設定
+      const doneColumnTasks = prevTasks.filter(
+        (task) => task.columnId === "done",
+      );
+      const minOrder = doneColumnTasks.reduce(
+        (min, task) => Math.min(min, task.order),
+        0,
+      );
 
-        newOrder = minOrder - 1;
+      newOrder = minOrder - 1;
 
-        const completedTask: Task = {
-          ...taskToComplete,
-          columnId: "done",
-          order: newOrder,
-        };
-        return [completedTask, ...tasksWithoutCompleted];
-      });
+      const completedTask: Task = {
+        ...taskToComplete,
+        columnId: "done",
+        order: newOrder,
+      };
+      return [completedTask, ...tasksWithoutCompleted];
+    });
 
-      // サーバーに送信
-      const formData = new FormData();
-      formData.append("intent", "update");
-      formData.append("taskId", taskId);
-      formData.append("columnId", "done");
-      formData.append("order", newOrder.toString());
-      fetcher.submit(formData, { method: "post" });
-    },
-    [setTasks, fetcher],
-  );
+    // サーバーに送信
+    const formData = new FormData();
+    formData.append("intent", "update");
+    formData.append("taskId", taskId);
+    formData.append("columnId", "done");
+    formData.append("order", newOrder.toString());
+    fetcher.submit(formData, { method: "post" });
+  };
 
-  const handleArchiveAll = useCallback(() => {
+  const handleArchiveAll = () => {
     // 楽観的更新
     setTasks((prevTasks) =>
       prevTasks.filter((task) => task.columnId !== "done"),
@@ -173,30 +161,24 @@ export function TodoApp() {
     const formData = new FormData();
     formData.append("intent", "archive");
     fetcher.submit(formData, { method: "post" });
-  }, [setTasks, fetcher]);
+  };
 
-  const handleTaskUpdate = useCallback(
-    (updatedTasks: Task[]) => {
-      // 楽観的更新
-      setTasks(updatedTasks);
+  const handleTaskUpdate = (updatedTasks: Task[]) => {
+    // 楽観的更新
+    setTasks(updatedTasks);
 
-      // サーバーに送信（batch-update）
-      const formData = new FormData();
-      formData.append("intent", "batch-update");
-      formData.append("tasks", JSON.stringify(updatedTasks));
-      fetcher.submit(formData, { method: "post" });
-    },
-    [setTasks, fetcher],
-  );
+    // サーバーに送信（batch-update）
+    const formData = new FormData();
+    formData.append("intent", "batch-update");
+    formData.append("tasks", JSON.stringify(updatedTasks));
+    fetcher.submit(formData, { method: "post" });
+  };
 
-  const filteredTasks = useMemo(() => {
-    if (!filterText.trim()) {
-      return tasks;
-    }
-    return tasks.filter((task) =>
-      task.content.toLowerCase().includes(filterText.toLowerCase()),
-    );
-  }, [tasks, filterText]);
+  const filteredTasks = !filterText.trim()
+    ? tasks
+    : tasks.filter((task) =>
+        task.content.toLowerCase().includes(filterText.toLowerCase()),
+      );
 
   return (
     <div className="flex h-full flex-col gap-4">

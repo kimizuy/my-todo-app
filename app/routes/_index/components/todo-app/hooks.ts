@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFetcher, useLoaderData } from "react-router";
 import type { Task } from "~/db/schema";
 import type { loader } from "../../route";
@@ -15,13 +15,11 @@ export function useTasks() {
     setOptimisticTasks(serverTasks);
   }, [serverTasks]);
 
-  const tasks = useMemo(() => {
-    // fetcherが実行中で楽観的更新がある場合はそれを使用
-    if (fetcher.state === "submitting" || fetcher.state === "loading") {
-      return optimisticTasks;
-    }
-    return serverTasks;
-  }, [serverTasks, optimisticTasks, fetcher.state]);
+  // fetcherが実行中で楽観的更新がある場合はそれを使用
+  const tasks =
+    fetcher.state === "submitting" || fetcher.state === "loading"
+      ? optimisticTasks
+      : serverTasks;
 
   return {
     tasks,
