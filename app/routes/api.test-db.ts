@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/d1";
 import type { LoaderFunctionArgs } from "react-router";
-import { users } from "~/db/schema";
+import { users } from "~/features/auth/schema";
 
 export async function loader({ context }: LoaderFunctionArgs) {
   try {

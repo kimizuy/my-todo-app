@@ -1,11 +1,11 @@
 import { drizzle } from "drizzle-orm/d1";
 import type { ActionFunctionArgs } from "react-router";
-import { errorResponse, formatZodError } from "~/lib/errors.server";
-import { verifyEmailSchema } from "~/lib/validation.server";
 import {
   markEmailAsVerified,
   verifyEmailToken,
-} from "~/lib/verification.server";
+} from "~/features/auth/lib/verification";
+import { verifyEmailSchema } from "~/features/auth/validation";
+import { errorResponse, formatZodError } from "~/shared/lib/errors";
 
 export async function action({ request, context }: ActionFunctionArgs) {
   try {

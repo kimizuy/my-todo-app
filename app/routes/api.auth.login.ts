@@ -1,17 +1,17 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import type { ActionFunctionArgs } from "react-router";
-import { users } from "~/db/schema";
-import { createAuthService } from "~/lib/auth.server";
-import { setCookie } from "~/lib/cookies.server";
+import { createAuthService } from "~/features/auth/lib/auth-service";
+import { verifyPassword } from "~/features/auth/lib/password";
+import { users } from "~/features/auth/schema";
+import { loginSchema } from "~/features/auth/validation";
+import { setCookie } from "~/shared/lib/cookies";
 import {
   AuthenticationError,
   EmailNotVerifiedError,
   errorResponse,
   formatZodError,
-} from "~/lib/errors.server";
-import { verifyPassword } from "~/lib/password.server";
-import { loginSchema } from "~/lib/validation.server";
+} from "~/shared/lib/errors";
 
 export async function action({ request, context }: ActionFunctionArgs) {
   try {

@@ -8,9 +8,10 @@
 import { env } from "cloudflare:test";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { tasks, users } from "~/db/schema";
-import { createUserDb } from "~/lib/db.server";
-import { hashPassword } from "~/lib/password.server";
+import { hashPassword } from "~/features/auth/lib/password";
+import { users } from "~/features/auth/schema";
+import { createUserDb } from "~/features/todo/lib/todo-service";
+import { tasks } from "~/features/todo/schema";
 
 describe("ユーザーデータ分離", () => {
   let db: ReturnType<typeof drizzle>;

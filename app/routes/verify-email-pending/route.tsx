@@ -1,4 +1,5 @@
-import { Button } from "~/components/ui/button";
+import { Link } from "react-router";
+import { Button } from "~/shared/components/ui/button";
 
 export default function VerifyEmailPending() {
   return (
@@ -42,7 +43,7 @@ export default function VerifyEmailPending() {
             認証リンクは24時間有効です。
           </p>
           <Button asChild variant="outline" className="w-full">
-            <a href="/login">ログインページへ戻る</a>
+            <Link to="/login">ログインページへ戻る</Link>
           </Button>
         </div>
       </div>

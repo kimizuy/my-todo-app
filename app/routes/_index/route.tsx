@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { redirect } from "react-router";
-import type { ColumnId } from "~/db/schema";
-import { users } from "~/db/schema";
-import { requireAuth } from "~/lib/auth.server";
-import { createUserDb } from "~/lib/db.server";
+import { requireAuth } from "~/features/auth/lib/auth-service";
+import { users } from "~/features/auth/schema";
+import { TodoApp } from "~/features/todo/components/todo-app";
+import { createUserDb } from "~/features/todo/lib/todo-service";
+import type { ColumnId } from "~/features/todo/schema";
 import type { Route } from "./+types/route";
-import { TodoApp } from "./components/todo-app";
 
 export function meta(_: Route.MetaArgs) {
   return [

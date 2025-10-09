@@ -1,6 +1,6 @@
-import { redirect } from "react-router";
-import { Button } from "~/components/ui/button";
-import { getAuthUser } from "~/lib/auth.server";
+import { Link, redirect } from "react-router";
+import { getAuthUser } from "~/features/auth/lib/auth-service";
+import { Button } from "~/shared/components/ui/button";
 import type { Route } from "./+types/route";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -22,11 +22,11 @@ export default function Auth() {
 
         <div className="space-y-4">
           <Button asChild className="w-full" size="lg">
-            <a href="/login">ログイン</a>
+            <Link to="/login">ログイン</Link>
           </Button>
 
           <Button asChild variant="outline" className="w-full" size="lg">
-            <a href="/register">新規登録</a>
+            <Link to="/register">新規登録</Link>
           </Button>
         </div>
 

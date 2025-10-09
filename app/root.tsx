@@ -11,12 +11,12 @@ import {
   ScrollRestoration,
   useRouteLoaderData,
 } from "react-router";
-import { TopNav } from "./components/layout/top-nav";
-import { ThemeProvider } from "./components/theme-provider";
-import { ThemeSwitch } from "./components/theme-switch";
-import { Button } from "./components/ui/button";
-import { SkipLink } from "./components/ui/skip-link";
-import { getAuthUser } from "./lib/auth.server";
+import { getAuthUser } from "~/features/auth/lib/auth-service";
+import { ThemeProvider } from "~/features/theme/components/theme-provider";
+import { ThemeSwitch } from "~/features/theme/components/theme-switch";
+import { TopNav } from "~/shared/components/top-nav";
+import { Button } from "~/shared/components/ui/button";
+import { SkipLink } from "~/shared/components/ui/skip-link";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await getAuthUser(request, context);

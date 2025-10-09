@@ -1,14 +1,23 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { useId } from "react";
-import { Form, redirect, useActionData, useNavigation } from "react-router";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { users } from "~/db/schema";
-import { createAuthService, getAuthUser } from "~/lib/auth.server";
-import { setCookie } from "~/lib/cookies.server";
-import { verifyPassword } from "~/lib/password.server";
+import {
+  Form,
+  Link,
+  redirect,
+  useActionData,
+  useNavigation,
+} from "react-router";
+import {
+  createAuthService,
+  getAuthUser,
+} from "~/features/auth/lib/auth-service";
+import { verifyPassword } from "~/features/auth/lib/password";
+import { users } from "~/features/auth/schema";
+import { Button } from "~/shared/components/ui/button";
+import { Input } from "~/shared/components/ui/input";
+import { Label } from "~/shared/components/ui/label";
+import { setCookie } from "~/shared/lib/cookies";
 import type { Route } from "./+types/route";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -75,7 +84,7 @@ export default function Login() {
   const passwordId = useId();
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="grid h-full place-items-center">
       <div className="w-full max-w-md space-y-8 rounded-lg border p-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">ログイン</h1>
@@ -117,14 +126,14 @@ export default function Login() {
         <div className="space-y-2 text-center text-sm">
           <div>
             アカウントをお持ちでない方は{" "}
-            <a href="/register" className="underline">
+            <Link to="/register" className="underline">
               登録
-            </a>
+            </Link>
           </div>
           <div>
-            <a href="/auth" className="text-muted-foreground underline">
+            <Link to="/auth" className="text-muted-foreground underline">
               ← 戻る
-            </a>
+            </Link>
           </div>
         </div>
       </div>

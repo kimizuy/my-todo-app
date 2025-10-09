@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
-import type { ArchivedTask } from "~/db/schema";
-import { requireAuth } from "~/lib/auth.server";
-import { createUserDb } from "~/lib/db.server";
-import { formatDate } from "~/lib/utils";
-import { parseTaskContent } from "../_index/components/todo-app/utils";
+import type { ArchivedTask } from "~/features/archive/schema";
+import { requireAuth } from "~/features/auth/lib/auth-service";
+import { parseTaskContent } from "~/features/todo/components/todo-app/utils";
+import { createUserDb } from "~/features/todo/lib/todo-service";
+import { formatDate } from "~/shared/lib/utils";
 import type { Route } from "./+types/route";
 
 export function meta(_: Route.MetaArgs) {

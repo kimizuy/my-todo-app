@@ -1,15 +1,15 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import type { ActionFunctionArgs } from "react-router";
-import { users } from "~/db/schema";
-import { sendVerificationEmail } from "~/lib/email.server";
-import { AppError, errorResponse, formatZodError } from "~/lib/errors.server";
+import { sendVerificationEmail } from "~/features/auth/lib/email";
 import {
   generateTokenExpiry,
   generateVerificationToken,
-} from "~/lib/token.server";
-import { resendVerificationSchema } from "~/lib/validation.server";
-import { regenerateVerificationToken } from "~/lib/verification.server";
+} from "~/features/auth/lib/token";
+import { regenerateVerificationToken } from "~/features/auth/lib/verification";
+import { users } from "~/features/auth/schema";
+import { resendVerificationSchema } from "~/features/auth/validation";
+import { AppError, errorResponse, formatZodError } from "~/shared/lib/errors";
 
 export async function action({ request, context }: ActionFunctionArgs) {
   try {
