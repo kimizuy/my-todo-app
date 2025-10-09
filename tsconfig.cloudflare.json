@@ -17,6 +17,7 @@
     "types": [
       "vite/client",
       "vitest/globals",
+      "vitest/importMeta",
       "@cloudflare/vitest-pool-workers"
     ],
     "target": "ES2022",

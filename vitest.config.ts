@@ -13,6 +13,7 @@ export default defineWorkersProject(async () => {
     plugins: [tsconfigPaths()],
     test: {
       globals: true,
+      includeSource: ["app/**/*.{ts,tsx}"],
       setupFiles: ["./test/setup.ts"],
       poolOptions: {
         workers: {
