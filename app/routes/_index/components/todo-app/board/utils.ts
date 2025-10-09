@@ -20,11 +20,6 @@ export function getTasksByColumn(tasks: Task[], columnId: ColumnId): Task[] {
   return tasks.filter((task) => task.columnId === columnId);
 }
 
-export function getMaxOrderInColumn(tasks: Task[], columnId: ColumnId): number {
-  const columnTasks = getTasksByColumn(tasks, columnId);
-  return columnTasks.reduce((max, task) => Math.max(max, task.order), -1);
-}
-
 export function reorderTasksInColumn(
   tasks: Task[],
   oldIndex: number,
@@ -49,11 +44,32 @@ export function moveTaskToColumn(
   taskId: string,
   targetColumnId: ColumnId,
 ): Task[] {
-  const maxOrder = getMaxOrderInColumn(tasks, targetColumnId);
+  let maxOrder = -1;
+  let targetTaskIndex = -1;
 
-  return tasks.map((task) =>
-    task.id === taskId
-      ? { ...task, columnId: targetColumnId, order: maxOrder + 1 }
-      : task,
-  );
+  // 1回のループでmaxOrderの計算と対象タスクの検索を同時に行う
+  for (let i = 0; i < tasks.length; i++) {
+    const task = tasks[i];
+    if (task.columnId === targetColumnId && task.order > maxOrder) {
+      maxOrder = task.order;
+    }
+    if (task.id === taskId) {
+      targetTaskIndex = i;
+    }
+  }
+
+  // 対象タスクが見つからない場合は元の配列を返す
+  if (targetTaskIndex === -1) {
+    return tasks;
+  }
+
+  // 配列をコピーして、該当タスクのみ更新
+  const result = [...tasks];
+  result[targetTaskIndex] = {
+    ...tasks[targetTaskIndex],
+    columnId: targetColumnId,
+    order: maxOrder + 1,
+  };
+
+  return result;
 }

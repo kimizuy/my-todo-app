@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import type { Task } from "~/db/schema";
 import {
   findTaskById,
-  getMaxOrderInColumn,
   getTasksByColumn,
   isColumnId,
   moveTaskToColumn,
@@ -222,48 +221,6 @@ describe("getTasksByColumn", () => {
     expect(result).toHaveLength(2);
     expect(result[0].id).toBe("task-2");
     expect(result[1].id).toBe("task-3");
-  });
-});
-
-describe("getMaxOrderInColumn", () => {
-  it("指定されたカラムの最大order値を返す", () => {
-    const tasks: Task[] = [
-      {
-        id: "task-1",
-        userId: 1,
-        content: "Task 1",
-        columnId: "do-today",
-        order: 0,
-        createdAt: "2025-01-01",
-      },
-      {
-        id: "task-2",
-        userId: 1,
-        content: "Task 2",
-        columnId: "do-today",
-        order: 3,
-        createdAt: "2025-01-01",
-      },
-      {
-        id: "task-3",
-        userId: 1,
-        content: "Task 3",
-        columnId: "uncategorized",
-        order: 5,
-        createdAt: "2025-01-01",
-      },
-    ];
-
-    const result = getMaxOrderInColumn(tasks, "do-today");
-
-    expect(result).toBe(3);
-  });
-
-  it("カラムにタスクがない場合は-1を返す", () => {
-    const tasks: Task[] = [];
-    const result = getMaxOrderInColumn(tasks, "do-today");
-
-    expect(result).toBe(-1);
   });
 });
 
