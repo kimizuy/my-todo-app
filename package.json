@@ -37,6 +37,7 @@
     "dompurify": "^3.2.7",
     "drizzle-kit": "^0.31.5",
     "drizzle-orm": "^0.44.6",
+    "drizzle-zod": "^0.8.3",
     "isbot": "^5.1.31",
     "lucide-react": "^0.545.0",
     "marked": "^16.4.0",
