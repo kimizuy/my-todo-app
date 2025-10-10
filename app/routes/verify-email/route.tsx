@@ -1,4 +1,5 @@
 import { drizzle } from "drizzle-orm/d1";
+import { Check, X } from "lucide-react";
 import { Link, useLoaderData } from "react-router";
 import { getAuthUser } from "~/features/auth/lib/auth-service";
 import {
@@ -63,19 +64,10 @@ export default function VerifyEmail() {
         {data.success ? (
           <>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-              <svg
+              <Check
                 className="h-6 w-6 text-green-600"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
                 aria-label="成功アイコン"
-              >
-                <title>成功</title>
-                <path d="M5 13l4 4L19 7" />
-              </svg>
+              />
             </div>
             <h1 className="text-2xl font-bold">メール認証完了</h1>
             <p className="text-muted-foreground">
@@ -94,19 +86,7 @@ export default function VerifyEmail() {
         ) : (
           <>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-              <svg
-                className="h-6 w-6 text-red-600"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-label="エラーアイコン"
-              >
-                <title>エラー</title>
-                <path d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="h-6 w-6 text-red-600" aria-label="エラーアイコン" />
             </div>
             <h1 className="text-2xl font-bold">認証に失敗しました</h1>
             <p className="text-muted-foreground">{data.error}</p>

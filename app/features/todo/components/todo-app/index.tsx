@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Task } from "~/features/todo/schema";
+import type { ColumnId, Task } from "~/features/todo/schema";
 import { Button } from "~/shared/components/ui/button";
 import {
   Dialog,
@@ -14,13 +14,12 @@ import {
 import { Board } from "./board";
 import { Filter } from "./filter";
 import { useTasks } from "./hooks";
-import { InputForm } from "./input-form";
 
 export function TodoApp() {
   const { tasks, setTasks, fetcher } = useTasks();
   const [filterText, setFilterText] = useState<string>("");
 
-  const handleAddTaskFromForm = (content: string) => {
+  const handleAddTaskFromForm = (content: string, columnId: ColumnId) => {
     // 最大のorder値を取得
     const maxOrder = tasks.reduce(
       (max: number, task: Task) => Math.max(max, task.order),
@@ -31,7 +30,7 @@ export function TodoApp() {
       id: `task-${Date.now()}`,
       userId: 0, // サーバーからの応答で正しいuserIdに更新される
       content,
-      columnId: "uncategorized",
+      columnId,
       order: maxOrder + 1,
       createdAt: new Date().toISOString(),
     };
@@ -43,6 +42,7 @@ export function TodoApp() {
     const formData = new FormData();
     formData.append("intent", "create");
     formData.append("content", content);
+    formData.append("columnId", columnId);
     fetcher.submit(formData, { method: "post" });
   };
 
@@ -185,15 +185,16 @@ export function TodoApp() {
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <InputForm onAddTask={handleAddTaskFromForm} />
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
         <div className="flex-1">
           <Filter value={filterText} onChange={setFilterText} />
         </div>
         <div className="self-end text-sm sm:self-auto">
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline">今日のタスクをリセット</Button>
+              <Button variant="outline" className="text-xs">
+                今日のタスクをリセット
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -222,6 +223,7 @@ export function TodoApp() {
           onDeleteTask={handleDeleteTask}
           onCompleteTask={handleCompleteTask}
           onArchiveAll={handleArchiveAll}
+          onAddTask={handleAddTaskFromForm}
         />
       </div>
     </div>

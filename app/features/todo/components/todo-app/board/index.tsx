@@ -30,6 +30,7 @@ interface Props {
   onDeleteTask: (taskId: string) => void;
   onCompleteTask: (taskId: string) => void;
   onArchiveAll: () => void;
+  onAddTask: (content: string, columnId: ColumnId) => void;
 }
 
 const EMPTY_TASKS: Task[] = [];
@@ -41,6 +42,7 @@ export function Board({
   onDeleteTask,
   onCompleteTask,
   onArchiveAll,
+  onAddTask,
 }: Props) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
@@ -200,6 +202,7 @@ export function Board({
               onDeleteTask={onDeleteTask}
               onCompleteTask={onCompleteTask}
               onArchiveAll={column.id === "done" ? onArchiveAll : undefined}
+              onAddTask={(content) => onAddTask(content, column.id)}
             />
           ))}
         </div>
