@@ -1,3 +1,4 @@
+import { RotateCcw } from "lucide-react";
 import { useState } from "react";
 import type { ColumnId, Task } from "~/features/todo/schema";
 import { Button } from "~/shared/components/ui/button";
@@ -185,35 +186,38 @@ export function TodoApp() {
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+      <div className="flex items-center gap-4 sm:gap-6">
         <div className="flex-1">
           <Filter value={filterText} onChange={setFilterText} />
         </div>
-        <div className="self-end text-sm sm:self-auto">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="text-xs">
-                今日のタスクをリセット
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>タスクをリセットしますか？</DialogTitle>
-                <DialogDescription>
-                  今日やる/やらないのタスクを未分類に戻します。
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">キャンセル</Button>
-                </DialogClose>
-                <DialogClose asChild>
-                  <Button onClick={handleResetTasks}>リセット</Button>
-                </DialogClose>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Dialog>
+          <DialogTrigger asChild className="sm:hidden">
+            <Button variant="outline" size="icon">
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+          <DialogTrigger asChild className="hidden sm:inline-flex">
+            <Button variant="outline" className="text-xs">
+              今日のタスクをリセット
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>タスクをリセットしますか？</DialogTitle>
+              <DialogDescription>
+                今日やる/やらないのタスクを未分類に戻します。
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">キャンセル</Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button onClick={handleResetTasks}>リセット</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
       <div className="-mx-4 flex-1 overflow-hidden">
         <Board
