@@ -58,7 +58,7 @@ export default function VerifyEmail() {
   const data = useLoaderData<typeof loader>();
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="grid h-full place-items-center">
       <div className="w-full max-w-md space-y-6 rounded-lg border p-8 text-center">
         {data.success ? (
           <>

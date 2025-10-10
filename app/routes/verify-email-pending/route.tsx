@@ -3,7 +3,7 @@ import { Button } from "~/shared/components/ui/button";
 
 export default function VerifyEmailPending() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="grid h-full place-items-center">
       <div className="w-full max-w-md space-y-6 rounded-lg border p-8">
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
