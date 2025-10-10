@@ -67,7 +67,11 @@ export function Column({
         <div className="flex items-center gap-2">
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label={`${title}にタスクを追加`}
+              >
                 <Plus className="size-4" />
               </Button>
             </DialogTrigger>
@@ -86,12 +90,15 @@ export function Column({
                 onChange={(e) => setInputValue(e.target.value)}
                 className="min-h-[100px]"
                 autoFocus
+                aria-label="タスクの内容"
               />
               <DialogFooter>
                 <DialogClose asChild>
                   <Button variant="outline">キャンセル</Button>
                 </DialogClose>
-                <Button onClick={handleAddTask}>追加</Button>
+                <Button onClick={handleAddTask} aria-label="タスクを追加">
+                  追加
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
