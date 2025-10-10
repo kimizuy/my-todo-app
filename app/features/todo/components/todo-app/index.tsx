@@ -185,14 +185,16 @@ export function TodoApp() {
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
         <div className="flex-1">
           <Filter value={filterText} onChange={setFilterText} />
         </div>
         <div className="self-end text-sm sm:self-auto">
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline">今日のタスクをリセット</Button>
+              <Button variant="outline" className="text-xs">
+                今日のタスクをリセット
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
