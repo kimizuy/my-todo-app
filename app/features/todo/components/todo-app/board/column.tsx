@@ -56,7 +56,7 @@ export function Column({
   };
 
   return (
-    <div className="bg-background flex h-full min-w-80 flex-1 flex-col rounded-md border">
+    <div className="bg-background relative flex h-full min-w-80 flex-1 flex-col rounded-md border">
       <div className="flex items-center justify-between border-b p-3">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">{title}</span>
@@ -95,33 +95,6 @@ export function Column({
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          {id === "done" && tasks.length > 0 && onArchiveAll && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="destructive" size="sm" className="text-xs">
-                  完了したタスクをアーカイブ
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>タスクをアーカイブしますか？</DialogTitle>
-                  <DialogDescription>
-                    完了したタスクをすべてアーカイブします。この操作は取り消せません。
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline">キャンセル</Button>
-                  </DialogClose>
-                  <DialogClose asChild>
-                    <Button variant="destructive" onClick={onArchiveAll}>
-                      アーカイブ
-                    </Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )}
         </div>
       </div>
       <div
@@ -150,6 +123,38 @@ export function Column({
           </div>
         )}
       </div>
+      {id === "done" && onArchiveAll && (
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={tasks.length === 0}
+              className="absolute right-3 bottom-3 text-xs opacity-50 transition-opacity hover:opacity-100"
+            >
+              完了したタスクをアーカイブ
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>タスクをアーカイブしますか？</DialogTitle>
+              <DialogDescription>
+                完了したタスクをすべてアーカイブします。この操作は取り消せません。
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">キャンセル</Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button variant="destructive" onClick={onArchiveAll}>
+                  アーカイブ
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
