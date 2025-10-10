@@ -96,7 +96,9 @@ export function InputForm({ onAddTask }: Props) {
           aria-label="新しいタスクを入力"
         />
         <div className="flex items-center gap-2">
-          <Button type="submit">追加</Button>
+          <Button type="submit" aria-label="タスクを追加">
+            追加
+          </Button>
           <RadioGroup
             value={submitMode}
             onValueChange={handleSubmitModeChange}
