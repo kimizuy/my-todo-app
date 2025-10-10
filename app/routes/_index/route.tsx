@@ -51,11 +51,13 @@ export async function action({ request, context }: Route.ActionArgs) {
   switch (intent) {
     case "create": {
       const content = formData.get("content") as string;
+      const columnId =
+        (formData.get("columnId") as ColumnId) || "uncategorized";
 
       await userDb.createTask({
         id: `task-${Date.now()}`,
         content,
-        columnId: "uncategorized",
+        columnId,
         createdAt: new Date().toISOString(),
       });
 

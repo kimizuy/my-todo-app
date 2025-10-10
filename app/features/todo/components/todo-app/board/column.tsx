@@ -3,7 +3,8 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { PartyPopper } from "lucide-react";
+import { PartyPopper, Plus } from "lucide-react";
+import { useState } from "react";
 import type { ColumnId, Task } from "~/features/todo/schema";
 import { Button } from "~/shared/components/ui/button";
 import {
@@ -16,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/shared/components/ui/dialog";
+import { Textarea } from "~/shared/components/ui/textarea";
 import { Item } from "./item";
 
 interface Props {
@@ -26,6 +28,7 @@ interface Props {
   onDeleteTask: (taskId: string) => void;
   onCompleteTask: (taskId: string) => void;
   onArchiveAll?: () => void;
+  onAddTask: (content: string) => void;
 }
 
 export function Column({
@@ -36,10 +39,21 @@ export function Column({
   onDeleteTask,
   onCompleteTask,
   onArchiveAll,
+  onAddTask,
 }: Props) {
   const { setNodeRef } = useDroppable({
     id,
   });
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+
+  const handleAddTask = () => {
+    if (!inputValue.trim()) return;
+    onAddTask(inputValue.trim());
+    setInputValue("");
+    setIsOpen(false);
+  };
 
   return (
     <div className="bg-background flex h-full min-w-80 flex-1 flex-col rounded-md border">
@@ -50,33 +64,65 @@ export function Column({
             {totalCount ?? tasks.length}
           </span>
         </div>
-        {id === "done" && tasks.length > 0 && onArchiveAll && (
-          <Dialog>
+        <div className="flex items-center gap-2">
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <Button variant="destructive" size="sm" className="text-xs">
-                完了したタスクをアーカイブ
+              <Button variant="ghost" size="sm">
+                <Plus className="size-4" />
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>タスクをアーカイブしますか？</DialogTitle>
-                <DialogDescription>
-                  完了したタスクをすべてアーカイブします。この操作は取り消せません。
-                </DialogDescription>
+                <DialogTitle className="flex items-center gap-2">
+                  <span className="bg-primary text-primary-foreground rounded px-3 py-1 text-sm font-bold">
+                    {title}
+                  </span>
+                  <span>にタスクを追加</span>
+                </DialogTitle>
               </DialogHeader>
+              <Textarea
+                placeholder="タスクを入力（マークダウン対応）"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                className="min-h-[100px]"
+                autoFocus
+              />
               <DialogFooter>
                 <DialogClose asChild>
                   <Button variant="outline">キャンセル</Button>
                 </DialogClose>
-                <DialogClose asChild>
-                  <Button variant="destructive" onClick={onArchiveAll}>
-                    アーカイブ
-                  </Button>
-                </DialogClose>
+                <Button onClick={handleAddTask}>追加</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        )}
+          {id === "done" && tasks.length > 0 && onArchiveAll && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="destructive" size="sm" className="text-xs">
+                  完了したタスクをアーカイブ
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>タスクをアーカイブしますか？</DialogTitle>
+                  <DialogDescription>
+                    完了したタスクをすべてアーカイブします。この操作は取り消せません。
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button variant="outline">キャンセル</Button>
+                  </DialogClose>
+                  <DialogClose asChild>
+                    <Button variant="destructive" onClick={onArchiveAll}>
+                      アーカイブ
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
       </div>
       <div
         ref={setNodeRef}
