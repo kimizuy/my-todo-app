@@ -13,7 +13,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export default function Auth() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="grid h-full place-items-center">
       <div className="w-full max-w-md space-y-8 rounded-lg border p-8">
         <div className="text-center">
           <h1 className="mb-2 text-3xl font-bold">Daily Tasks</h1>
