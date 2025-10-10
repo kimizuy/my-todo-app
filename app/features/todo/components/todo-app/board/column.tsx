@@ -6,6 +6,16 @@ import {
 import { PartyPopper } from "lucide-react";
 import type { ColumnId, Task } from "~/features/todo/schema";
 import { Button } from "~/shared/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/shared/components/ui/dialog";
 import { Item } from "./item";
 
 interface Props {
@@ -41,14 +51,31 @@ export function Column({
           </span>
         </div>
         {id === "done" && tasks.length > 0 && onArchiveAll && (
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={onArchiveAll}
-            className="text-xs"
-          >
-            完了したタスクをアーカイブ
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="destructive" size="sm" className="text-xs">
+                完了したタスクをアーカイブ
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>タスクをアーカイブしますか？</DialogTitle>
+                <DialogDescription>
+                  完了したタスクをすべてアーカイブします。この操作は取り消せません。
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">キャンセル</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button variant="destructive" onClick={onArchiveAll}>
+                    アーカイブ
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
       <div
