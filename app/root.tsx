@@ -2,10 +2,10 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { ListTodo } from "lucide-react";
 import {
-  Form,
   isRouteErrorResponse,
   Links,
   Meta,
+  NavLink,
   Outlet,
   Scripts,
   ScrollRestoration,
@@ -14,9 +14,8 @@ import {
 import { getAuthUser } from "~/features/auth/lib/auth-service";
 import { ThemeProvider } from "~/features/theme/components/theme-provider";
 import { ThemeSwitch } from "~/features/theme/components/theme-switch";
-import { TopNav } from "~/shared/components/top-nav";
-import { Button } from "~/shared/components/ui/button";
 import { SkipLink } from "~/shared/components/ui/skip-link";
+import { UserMenu } from "~/shared/components/user-menu";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await getAuthUser(request, context);
@@ -52,34 +51,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <ThemeProvider attribute="data-theme">
           <SkipLink href="#task-board">ボードへスキップ</SkipLink>
           <div className="flex h-screen flex-col overflow-hidden">
-            <header className="bg-background flex items-center gap-3 border-b px-4 py-3 sm:gap-4">
-              <TopNav
-                links={[
-                  {
-                    title: (
-                      <div className="flex items-center gap-1">
-                        <ListTodo />
-                        Daily Tasks
-                      </div>
-                    ),
-                    href: "/",
-                  },
-                  { title: "Archives", href: "/archives" },
-                ]}
-              />
-              <div className="ml-auto flex items-center space-x-4">
-                {user && (
-                  <>
-                    <span className="text-muted-foreground text-sm">
-                      {user.email}
-                    </span>
-                    <Form method="post" action="/api/auth/logout">
-                      <Button type="submit" variant="outline" size="sm">
-                        ログアウト
-                      </Button>
-                    </Form>
-                  </>
-                )}
+            <header className="bg-background flex items-center border-b px-4 py-3">
+              <NavLink
+                to="/"
+                className="text-foreground hover:text-primary flex items-center gap-2 transition-colors"
+              >
+                <ListTodo />
+                Daily Tasks
+              </NavLink>
+              <div className="ml-auto flex items-center gap-2">
+                <UserMenu user={user} />
                 <ThemeSwitch />
               </div>
             </header>
