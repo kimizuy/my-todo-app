@@ -1,5 +1,5 @@
 import { Menu } from "lucide-react";
-import { Form, NavLink } from "react-router";
+import { Form, Link } from "react-router";
 import { Button } from "~/shared/components/ui/button";
 import {
   DropdownMenu,
@@ -25,7 +25,7 @@ export function UserMenu({ user }: UserMenuProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent side="bottom" align="end">
         <DropdownMenuItem asChild>
-          <NavLink to="/archives">Archives</NavLink>
+          <Link to="/archives">アーカイブページへ</Link>
         </DropdownMenuItem>
         {user && (
           <>
