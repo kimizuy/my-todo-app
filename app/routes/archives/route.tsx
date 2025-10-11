@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
 import type { ArchivedTask } from "~/features/archive/schema";
-import { requireAuth } from "~/features/auth/lib/auth-service";
-import { parseTaskContent } from "~/features/todo/components/todo-app/utils";
+import { requireEmailVerified } from "~/features/auth/lib/auth-service";
 import { createUserDb } from "~/features/todo/lib/todo-service";
+import { parseContent } from "~/shared/lib/parse-content";
 import { formatDate } from "~/shared/lib/utils";
 import type { Route } from "./+types/route";
 
@@ -15,7 +15,7 @@ export function meta(_: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const user = await requireAuth(request, context);
+  const user = await requireEmailVerified(request, context);
   const userDb = createUserDb(context.cloudflare.env.DB, user.id);
 
   // UserScopedDbで自動的にuserIdでフィルタリング＆ソート
@@ -135,7 +135,7 @@ interface ArchivedTaskContentProps {
 }
 
 function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
-  const parsedContent = parseTaskContent(task.content);
+  const parsedContent = parseContent(task.content);
 
   return (
     <div

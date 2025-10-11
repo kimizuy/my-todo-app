@@ -17,7 +17,7 @@ renderer.link = ({ href, title, tokens }) => {
 };
 
 // タスクのコンテンツをマークダウンからHTMLにパースする関数
-export function parseTaskContent(content: string): string {
+export function parseContent(content: string): string {
   const html = marked.parse(content, {
     breaks: true,
     async: false,

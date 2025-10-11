@@ -18,6 +18,9 @@
     "db:migrate:local": "wrangler d1 migrations apply my-todo-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply my-todo-db --remote",
     "db:studio": "drizzle-kit studio",
+    "db:check-user": "wrangler d1 execute my-todo-db --local --command \"SELECT * FROM users WHERE email = 'kimizuyamasaki@gmail.com'\"",
+    "db:list-users": "wrangler d1 execute my-todo-db --local --command \"SELECT id, email, email_verified, created_at FROM users\"",
+    "db:delete-user": "wrangler d1 execute my-todo-db --local --command \"DELETE FROM users WHERE email = 'kimizuyamasaki@gmail.com'\"",
     "cf-typegen": "wrangler types",
     "postinstall": "npm run cf-typegen"
   },

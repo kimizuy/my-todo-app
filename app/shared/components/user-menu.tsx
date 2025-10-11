@@ -35,7 +35,7 @@ export function UserMenu({ user }: UserMenuProps) {
             </div>
             <div className="flex justify-end">
               <DropdownMenuItem asChild>
-                <Form method="post" action="/api/auth/logout">
+                <Form method="post" action="/logout">
                   <Button type="submit" variant="default" size="sm">
                     ログアウト
                   </Button>

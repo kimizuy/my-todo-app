@@ -1,12 +1,19 @@
+import { eq } from "drizzle-orm";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
+import { drizzle } from "drizzle-orm/d1";
 import type { AppLoadContext } from "react-router";
 import { redirect } from "react-router";
 import { getCookie } from "~/shared/lib/cookies";
+import { users } from "../schema";
 import type { AuthService, AuthUser } from "../types";
 import { createJWT, verifyJWT } from "./jwt";
 
 // JWT 実装
 class JWTAuthService implements AuthService {
-  constructor(private secret: string) {}
+  constructor(
+    private secret: string,
+    private db: DrizzleD1Database,
+  ) {}
 
   async createSession(user: AuthUser): Promise<string> {
     return createJWT({ userId: user.id, email: user.email }, this.secret);
@@ -19,7 +26,23 @@ class JWTAuthService implements AuthService {
     const payload = await verifyJWT(token, this.secret);
     if (!payload) return null;
 
-    return { id: payload.userId, email: payload.email };
+    // DBでユーザーの存在を確認
+    const user = await this.db
+      .select()
+      .from(users)
+      .where(eq(users.id, payload.userId))
+      .get();
+
+    // ユーザーが存在しない場合は無効
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      emailVerified: !!user.emailVerified,
+    };
   }
 
   async requireUser(request: Request): Promise<AuthUser> {
@@ -44,7 +67,9 @@ export function createAuthService(context: AppLoadContext): AuthService {
     throw new Error("JWT_SECRET is not set");
   }
 
-  return new JWTAuthService(secret);
+  const db = drizzle(context.cloudflare.env.DB);
+
+  return new JWTAuthService(secret, db);
 }
 
 // 便利な関数
@@ -54,6 +79,17 @@ export async function requireAuth(
 ): Promise<AuthUser> {
   const auth = createAuthService(context);
   return auth.requireUser(request);
+}
+
+export async function requireEmailVerified(
+  request: Request,
+  context: AppLoadContext,
+): Promise<AuthUser> {
+  const user = await requireAuth(request, context);
+  if (!user.emailVerified) {
+    throw redirect("/verify-email-pending");
+  }
+  return user;
 }
 
 export async function getAuthUser(
