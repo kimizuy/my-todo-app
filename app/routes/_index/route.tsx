@@ -1,5 +1,5 @@
 import { requireEmailVerified } from "~/features/auth/lib/auth-service";
-import { TodoApp } from "~/features/todo/components/todo-app";
+import { TodoApp } from "~/features/todo/components";
 import { createUserDb } from "~/features/todo/lib/todo-service";
 import type { ColumnId } from "~/features/todo/schema";
 import type { Route } from "./+types/route";
