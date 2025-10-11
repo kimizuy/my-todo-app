@@ -19,6 +19,7 @@ import {
   generateVerificationToken,
 } from "~/features/auth/lib/token";
 import { users } from "~/features/auth/schema";
+import { registerSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/ui/button";
 import { Input } from "~/shared/components/ui/input";
 import { Label } from "~/shared/components/ui/label";
@@ -36,18 +37,19 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export async function action({ request, context }: Route.ActionArgs) {
   console.log("=== Register action called ===");
   const formData = await request.formData();
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const rawData = {
+    email: formData.get("email"),
+    password: formData.get("password"),
+  };
 
   // バリデーション
-  if (!email || !password) {
-    return { error: "Email and password are required" };
+  const validation = registerSchema.safeParse(rawData);
+  if (!validation.success) {
+    const firstError = validation.error.issues[0];
+    return { error: firstError.message };
   }
 
-  if (password.length < 8) {
-    return { error: "Password must be at least 8 characters" };
-  }
-
+  const { email, password } = validation.data;
   const db = drizzle(context.cloudflare.env.DB);
 
   // 既存ユーザーチェック
@@ -108,6 +110,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   const token = await auth.createSession({
     id: newUser.id,
     email: newUser.email,
+    emailVerified: false,
   });
 
   // Cookie 設定

@@ -14,6 +14,7 @@ import {
 } from "~/features/auth/lib/auth-service";
 import { verifyPassword } from "~/features/auth/lib/password";
 import { users } from "~/features/auth/schema";
+import { loginSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/ui/button";
 import { Input } from "~/shared/components/ui/input";
 import { Label } from "~/shared/components/ui/label";
@@ -30,13 +31,19 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
   const formData = await request.formData();
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const rawData = {
+    email: formData.get("email"),
+    password: formData.get("password"),
+  };
 
-  if (!email || !password) {
-    return { error: "Email and password are required" };
+  // バリデーション
+  const validation = loginSchema.safeParse(rawData);
+  if (!validation.success) {
+    const firstError = validation.error.issues[0];
+    return { error: firstError.message };
   }
 
+  const { email, password } = validation.data;
   const db = drizzle(context.cloudflare.env.DB);
 
   // ユーザー検索
@@ -66,7 +73,11 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   // セッション作成
   const auth = createAuthService(context);
-  const token = await auth.createSession({ id: user.id, email: user.email });
+  const token = await auth.createSession({
+    id: user.id,
+    email: user.email,
+    emailVerified: !!user.emailVerified,
+  });
 
   // Cookie 設定
   const cookie = setCookie("auth_token", token);

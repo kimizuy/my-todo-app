@@ -6,21 +6,29 @@ import {
   markEmailAsVerified,
   verifyEmailToken,
 } from "~/features/auth/lib/verification";
+import { verifyEmailSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/ui/button";
 import { InvalidTokenError } from "~/shared/lib/errors";
 import type { Route } from "./+types/route";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const url = new URL(request.url);
-  const token = url.searchParams.get("token");
+  const rawData = {
+    token: url.searchParams.get("token"),
+  };
 
-  if (!token) {
+  // バリデーション
+  const validation = verifyEmailSchema.safeParse(rawData);
+  if (!validation.success) {
+    const firstError = validation.error.issues[0];
     return {
       success: false,
-      error: "認証トークンが見つかりません",
+      error: firstError.message,
       isLoggedIn: false,
     };
   }
+
+  const { token } = validation.data;
 
   const db = drizzle(context.cloudflare.env.DB);
 

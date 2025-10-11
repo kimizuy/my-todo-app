@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
 import type { ArchivedTask } from "~/features/archive/schema";
-import { requireAuth } from "~/features/auth/lib/auth-service";
+import { requireEmailVerified } from "~/features/auth/lib/auth-service";
 import { parseTaskContent } from "~/features/todo/components/todo-app/utils";
 import { createUserDb } from "~/features/todo/lib/todo-service";
 import { formatDate } from "~/shared/lib/utils";
@@ -15,7 +15,7 @@ export function meta(_: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const user = await requireAuth(request, context);
+  const user = await requireEmailVerified(request, context);
   const userDb = createUserDb(context.cloudflare.env.DB, user.id);
 
   // UserScopedDbで自動的にuserIdでフィルタリング＆ソート

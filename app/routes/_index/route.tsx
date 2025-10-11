@@ -1,8 +1,4 @@
-import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/d1";
-import { redirect } from "react-router";
-import { requireAuth } from "~/features/auth/lib/auth-service";
-import { users } from "~/features/auth/schema";
+import { requireEmailVerified } from "~/features/auth/lib/auth-service";
 import { TodoApp } from "~/features/todo/components/todo-app";
 import { createUserDb } from "~/features/todo/lib/todo-service";
 import type { ColumnId } from "~/features/todo/schema";
@@ -17,20 +13,7 @@ export function meta(_: Route.MetaArgs) {
 
 // タスク一覧取得
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const user = await requireAuth(request, context);
-
-  // DBからユーザー情報を取得してメール認証状態を確認
-  const db = drizzle(context.cloudflare.env.DB);
-  const dbUser = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, user.id))
-    .get();
-
-  // メール未認証の場合は認証待ち画面にリダイレクト
-  if (dbUser && !dbUser.emailVerified) {
-    throw redirect("/verify-email-pending");
-  }
+  const user = await requireEmailVerified(request, context);
 
   const userDb = createUserDb(context.cloudflare.env.DB, user.id);
 
@@ -42,7 +25,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 // タスク作成・更新・削除・アーカイブ
 export async function action({ request, context }: Route.ActionArgs) {
-  const user = await requireAuth(request, context);
+  const user = await requireEmailVerified(request, context);
   const userDb = createUserDb(context.cloudflare.env.DB, user.id);
 
   const formData = await request.formData();

@@ -47,8 +47,8 @@ MISSING_AUTH_FILES=""
 for file in $ROUTE_FILES; do
   # loaderまたはaction関数があるかチェック
   if grep -q "export async function \(loader\|action\)" "$file"; then
-    # requireAuth または getAuthUser があるかチェック
-    if ! grep -q "requireAuth\|getAuthUser" "$file"; then
+    # requireAuth, requireEmailVerified, または getAuthUser があるかチェック
+    if ! grep -q "requireAuth\|requireEmailVerified\|getAuthUser" "$file"; then
       MISSING_AUTH_FILES="$MISSING_AUTH_FILES\n  - $file"
       ERRORS=$((ERRORS + 1))
     fi
@@ -58,7 +58,7 @@ done
 if [ -n "$MISSING_AUTH_FILES" ]; then
   echo -e "${RED}❌ エラー: 以下のファイルで認証チェックが見つかりません:${NC}"
   echo -e "${RED}$MISSING_AUTH_FILES${NC}"
-  echo -e "${RED}   → requireAuth() または getAuthUser() を呼び出してください${NC}"
+  echo -e "${RED}   → requireAuth(), requireEmailVerified(), または getAuthUser() を呼び出してください${NC}"
 else
   echo -e "${GREEN}✓ OK${NC}"
 fi
