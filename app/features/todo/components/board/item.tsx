@@ -14,8 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/shared/components/ui/dialog";
+import { parseContent } from "~/shared/lib/parse-content";
 import { cn, formatDate } from "~/shared/lib/utils";
-import { parseTaskContent } from "../utils";
 
 interface Props {
   task: Task;
@@ -126,7 +126,7 @@ interface TaskContentProps {
 }
 
 export function TaskContent({ task }: TaskContentProps) {
-  const parsedContent = parseTaskContent(task.content);
+  const parsedContent = parseContent(task.content);
 
   return (
     <div className="flex flex-col gap-2">

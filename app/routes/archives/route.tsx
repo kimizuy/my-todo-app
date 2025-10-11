@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
 import type { ArchivedTask } from "~/features/archive/schema";
 import { requireEmailVerified } from "~/features/auth/lib/auth-service";
-import { parseTaskContent } from "~/features/todo/components/utils";
 import { createUserDb } from "~/features/todo/lib/todo-service";
+import { parseContent } from "~/shared/lib/parse-content";
 import { formatDate } from "~/shared/lib/utils";
 import type { Route } from "./+types/route";
 
@@ -135,7 +135,7 @@ interface ArchivedTaskContentProps {
 }
 
 function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
-  const parsedContent = parseTaskContent(task.content);
+  const parsedContent = parseContent(task.content);
 
   return (
     <div
