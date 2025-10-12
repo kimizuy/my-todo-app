@@ -137,10 +137,6 @@ export async function generatePasskeyRegistrationOptions(
         ? (JSON.parse(passkey.transports) as AuthenticatorTransportFuture[])
         : undefined,
     })),
-    authenticatorSelection: {
-      residentKey: "preferred",
-      userVerification: "preferred",
-    },
   });
 
   // チャレンジをデータベースに保存
@@ -259,7 +255,6 @@ export async function generatePasskeyAuthenticationOptions(
               : undefined,
           }))
         : [],
-    userVerification: "preferred",
   });
 
   // チャレンジをデータベースに保存

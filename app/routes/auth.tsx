@@ -17,7 +17,9 @@ export default function Auth() {
       <div className="w-full max-w-md space-y-8 rounded-lg border p-8">
         <div className="text-center">
           <h1 className="mb-2 text-3xl font-bold">Daily Tasks</h1>
-          <p className="text-muted-foreground">タスク管理を始めましょう</p>
+          <p className="text-muted-foreground">
+            今日、本当にやりたいことをやりましょう
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -28,12 +30,6 @@ export default function Auth() {
           <Button asChild variant="outline" className="w-full" size="lg">
             <Link to="/register">新規登録</Link>
           </Button>
-        </div>
-
-        <div className="rounded-lg bg-blue-50 p-4">
-          <p className="text-sm text-blue-800">
-            アカウントを作成すると、すべてのデバイスでタスクを同期できます。
-          </p>
         </div>
       </div>
     </div>

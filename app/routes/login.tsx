@@ -241,7 +241,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={handleBackToEmail}
-                className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm"
+                className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-2 text-sm"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span>{email}</span>
@@ -268,7 +268,7 @@ export default function Login() {
 
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 className="w-full"
                 onClick={() => setStep("password")}
               >
@@ -323,7 +323,7 @@ export default function Login() {
           </Form>
         )}
 
-        <div className="space-y-2 text-center text-sm">
+        <div className="space-y-8 text-center text-sm">
           <div>
             アカウントをお持ちでない方は{" "}
             <Link to="/register" className="underline">
@@ -331,8 +331,12 @@ export default function Login() {
             </Link>
           </div>
           <div>
-            <Link to="/auth" className="text-muted-foreground underline">
-              ← 戻る
+            <Link
+              to="/auth"
+              className="text-muted-foreground flex items-center justify-center gap-1 underline"
+            >
+              <ArrowLeft className="size-4" />
+              戻る
             </Link>
           </div>
         </div>
