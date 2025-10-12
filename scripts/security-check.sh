@@ -46,6 +46,8 @@ ROUTE_FILES=$(find app/routes -name "*.ts" -o -name "*.tsx" | \
   grep -v "login/route.tsx" | \
   grep -v "register/route.tsx" | \
   grep -v "logout/route.tsx" | \
+  grep -v "forgot-password/route.tsx" | \
+  grep -v "reset-password/route.tsx" | \
   grep -v "api.passkey.check" | \
   grep -v "api.passkey.login-options" | \
   grep -v "api.passkey.login-verify")

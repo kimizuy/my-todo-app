@@ -64,6 +64,57 @@ export async function getVerificationEmailTemplate(
   };
 }
 
+interface PasswordResetEmailProps {
+  resetUrl: string;
+}
+
+function PasswordResetEmail({ resetUrl }: PasswordResetEmailProps) {
+  return (
+    <Html>
+      <Head />
+      <Body style={styles.main}>
+        <Container style={styles.container}>
+          <Heading style={styles.h1}>パスワードのリセット</Heading>
+          <Text style={styles.text}>
+            パスワードのリセットリクエストを受け付けました。
+          </Text>
+          <Text style={styles.text}>
+            以下のボタンをクリックして、新しいパスワードを設定してください:
+          </Text>
+          <Section style={styles.buttonContainer}>
+            <Link href={resetUrl} style={styles.button}>
+              パスワードをリセット
+            </Link>
+          </Section>
+          <Text style={styles.hint}>
+            ボタンが機能しない場合は、以下のURLをコピーしてブラウザに貼り付けてください:
+          </Text>
+          <Text style={styles.urlText}>{resetUrl}</Text>
+          <Text style={styles.hint}>このリンクは1時間有効です。</Text>
+          <Hr style={styles.hr} />
+          <Text style={styles.footer}>
+            このメールに心当たりがない場合は、無視してください。パスワードは変更されません。
+          </Text>
+        </Container>
+      </Body>
+    </Html>
+  );
+}
+
+export async function getPasswordResetEmailTemplate(
+  params: PasswordResetEmailProps,
+): Promise<{
+  subject: string;
+  html: string;
+}> {
+  const html = await render(<PasswordResetEmail {...params} />);
+
+  return {
+    subject: "パスワードのリセット",
+    html,
+  };
+}
+
 const styles: Record<string, CSSProperties> = {
   main: {
     fontFamily: "sans-serif",

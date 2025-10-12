@@ -11,6 +11,12 @@ import * as z from "zod";
 export const VERIFICATION_TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000;
 
 /**
+ * パスワードリセットトークンの有効期限（ミリ秒）
+ * デフォルト: 1時間
+ */
+export const PASSWORD_RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000;
+
+/**
  * パスワードの最小文字数
  */
 export const MIN_PASSWORD_LENGTH = 8;

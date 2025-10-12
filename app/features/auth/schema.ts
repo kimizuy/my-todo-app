@@ -56,3 +56,19 @@ export const webauthnChallenges = sqliteTable("webauthn_challenges", {
 
 export type WebauthnChallenge = typeof webauthnChallenges.$inferSelect;
 export type NewWebauthnChallenge = typeof webauthnChallenges.$inferInsert;
+
+// パスワードリセットトークンテーブル
+export const passwordResetTokens = sqliteTable("password_reset_tokens", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: text("expires_at").notNull(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type NewPasswordResetToken = typeof passwordResetTokens.$inferInsert;

@@ -293,7 +293,15 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor={passwordId}>パスワード</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor={passwordId}>パスワード</Label>
+                <Link
+                  to="/forgot-password"
+                  className="text-muted-foreground hover:text-foreground text-sm underline"
+                >
+                  パスワードを忘れた方
+                </Link>
+              </div>
               <Input
                 id={passwordId}
                 name="password"
