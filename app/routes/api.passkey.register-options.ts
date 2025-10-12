@@ -20,10 +20,14 @@ export async function loader({
 
     const db = drizzle(context.cloudflare.env.DB);
 
+    // リクエストのoriginを取得
+    const origin = new URL(request.url).origin;
+
     // パスキー登録オプションを生成
     const options = await generatePasskeyRegistrationOptions(
       user.id,
       user.email,
+      origin,
       db,
     );
 

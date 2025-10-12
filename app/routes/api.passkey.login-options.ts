@@ -20,9 +20,14 @@ export async function loader({
     // クエリパラメータからメールアドレスを取得（オプション）
     const url = new URL(request.url);
     const email = url.searchParams.get("email");
+    const origin = url.origin;
 
     // パスキーログインオプションを生成
-    const options = await generatePasskeyAuthenticationOptions(email, db);
+    const options = await generatePasskeyAuthenticationOptions(
+      email,
+      origin,
+      db,
+    );
 
     return Response.json(options);
   } catch (error) {
