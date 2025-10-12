@@ -5,7 +5,7 @@ import {
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import {
   Form,
   Link,
@@ -146,7 +146,7 @@ export default function Login() {
       } else {
         setStep("password");
       }
-    } catch (error) {
+    } catch (_error) {
       setStep("password");
     } finally {
       setCheckingPasskey(false);

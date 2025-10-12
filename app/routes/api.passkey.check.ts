@@ -46,7 +46,7 @@ export async function loader({
     return Response.json({
       hasPasskey: !!userPasskey,
     });
-  } catch (error) {
+  } catch (_error) {
     return Response.json({ hasPasskey: false }, { status: 500 });
   }
 }

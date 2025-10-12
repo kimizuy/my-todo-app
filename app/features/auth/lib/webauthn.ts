@@ -9,7 +9,12 @@ import {
 } from "@simplewebauthn/server";
 import { desc, eq } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { passkeys, users, webauthnChallenges } from "../schema";
+import {
+  passkeys,
+  users,
+  type WebauthnChallenge,
+  webauthnChallenges,
+} from "../schema";
 
 // Relying Party (RP) の設定
 export const RP_NAME = "Daily Tasks";
@@ -17,6 +22,76 @@ export const RP_ID = "localhost"; // 本番環境では実際のドメインに�
 
 // チャレンジの有効期限（5分）
 const CHALLENGE_EXPIRY_MS = 5 * 60 * 1000;
+
+interface ChallengeValidationOptions {
+  userId?: number | null;
+  type: "registration" | "authentication";
+}
+
+/**
+ * チャレンジを取得・検証し、使用済みとしてマークする
+ * @returns 有効なチャレンジ文字列
+ * @throws チャレンジが無効な場合
+ */
+async function validateAndConsumeChallenge(
+  options: ChallengeValidationOptions,
+  db: DrizzleD1Database,
+): Promise<string> {
+  const { userId, type } = options;
+
+  // チャレンジ取得クエリを構築
+  let challengeRecord: WebauthnChallenge | undefined;
+
+  if (type === "registration") {
+    // 登録時はuserIdで絞り込む
+    challengeRecord = await db
+      .select()
+      .from(webauthnChallenges)
+      .where(eq(webauthnChallenges.userId, userId ?? 0))
+      .orderBy(desc(webauthnChallenges.createdAt))
+      .limit(1)
+      .get();
+  } else {
+    // 認証時は最新のauthenticationチャレンジを取得
+    challengeRecord = await db
+      .select()
+      .from(webauthnChallenges)
+      .where(eq(webauthnChallenges.type, "authentication"))
+      .orderBy(desc(webauthnChallenges.createdAt))
+      .limit(1)
+      .get();
+
+    // ユーザーIDが指定されている場合、そのユーザーのチャレンジか確認
+    if (
+      challengeRecord &&
+      challengeRecord.userId !== null &&
+      challengeRecord.userId !== userId
+    ) {
+      throw new Error(
+        "チャレンジが見つかりません（別のユーザーのチャレンジです）",
+      );
+    }
+  }
+
+  if (!challengeRecord) {
+    throw new Error("チャレンジが見つかりません");
+  }
+
+  // 有効期限チェック
+  if (new Date(challengeRecord.expiresAt) < new Date()) {
+    await db
+      .delete(webauthnChallenges)
+      .where(eq(webauthnChallenges.id, challengeRecord.id));
+    throw new Error("チャレンジの有効期限が切れています");
+  }
+
+  // チャレンジを削除（使用済み）
+  await db
+    .delete(webauthnChallenges)
+    .where(eq(webauthnChallenges.id, challengeRecord.id));
+
+  return challengeRecord.challenge;
+}
 
 /**
  * パスキー登録のためのオプションを生成
@@ -73,39 +148,19 @@ export async function verifyPasskeyRegistration(
   origin: string,
   db: DrizzleD1Database,
 ) {
-  // データベースから最新のチャレンジを取得
-  const challengeRecord = await db
-    .select()
-    .from(webauthnChallenges)
-    .where(eq(webauthnChallenges.userId, userId))
-    .orderBy(desc(webauthnChallenges.createdAt))
-    .limit(1)
-    .get();
-
-  if (!challengeRecord) {
-    throw new Error("チャレンジが見つかりません");
-  }
-
-  // チャレンジの有効期限をチェック
-  if (new Date(challengeRecord.expiresAt) < new Date()) {
-    await db
-      .delete(webauthnChallenges)
-      .where(eq(webauthnChallenges.id, challengeRecord.id));
-    throw new Error("チャレンジの有効期限が切れています");
-  }
+  // チャレンジを検証して取得
+  const challenge = await validateAndConsumeChallenge(
+    { userId, type: "registration" },
+    db,
+  );
 
   // 登録レスポンスを検証
   const verification = await verifyRegistrationResponse({
     response,
-    expectedChallenge: challengeRecord.challenge,
+    expectedChallenge: challenge,
     expectedOrigin: origin,
     expectedRPID: RP_ID,
   });
-
-  // チャレンジを削除（一度のみ使用可能）
-  await db
-    .delete(webauthnChallenges)
-    .where(eq(webauthnChallenges.id, challengeRecord.id));
 
   if (!verification.verified || !verification.registrationInfo) {
     throw new Error("パスキーの登録検証に失敗しました");
@@ -147,6 +202,7 @@ export async function generatePasskeyAuthenticationOptions(
     credentialId: string;
     transports: string | null;
   }[] = [];
+  let userId: number | null = null;
 
   if (userEmail) {
     const user = await db
@@ -158,6 +214,8 @@ export async function generatePasskeyAuthenticationOptions(
     if (!user) {
       throw new Error("ユーザーが見つかりません");
     }
+
+    userId = user.id;
 
     // 複数パスキー対応: ユーザーの全パスキーを取得
     allowedPasskeys = await db
@@ -187,10 +245,7 @@ export async function generatePasskeyAuthenticationOptions(
   const expiresAt = new Date(Date.now() + CHALLENGE_EXPIRY_MS).toISOString();
   await db.insert(webauthnChallenges).values({
     challenge: options.challenge,
-    userId: userEmail
-      ? (await db.select().from(users).where(eq(users.email, userEmail)).get())
-          ?.id
-      : null,
+    userId,
     type: "authentication",
     expiresAt,
   });
@@ -219,42 +274,16 @@ export async function verifyPasskeyAuthentication(
     throw new Error("パスキーが見つかりません");
   }
 
-  // 最新のauthenticationチャレンジを取得（後続の処理でユーザー所有権をチェック）
-  const challengeRecord = await db
-    .select()
-    .from(webauthnChallenges)
-    .where(eq(webauthnChallenges.type, "authentication"))
-    .orderBy(desc(webauthnChallenges.createdAt))
-    .limit(1)
-    .get();
-
-  // チャレンジが存在し、かつそのチャレンジがこのユーザーのものか確認
-  if (
-    challengeRecord &&
-    challengeRecord.userId !== null &&
-    challengeRecord.userId !== passkey.userId
-  ) {
-    throw new Error(
-      "チャレンジが見つかりません（別のユーザーのチャレンジです）",
-    );
-  }
-
-  if (!challengeRecord) {
-    throw new Error("チャレンジが見つかりません");
-  }
-
-  // チャレンジの有効期限をチェック
-  if (new Date(challengeRecord.expiresAt) < new Date()) {
-    await db
-      .delete(webauthnChallenges)
-      .where(eq(webauthnChallenges.id, challengeRecord.id));
-    throw new Error("チャレンジの有効期限が切れています");
-  }
+  // チャレンジを検証して取得
+  const challenge = await validateAndConsumeChallenge(
+    { userId: passkey.userId, type: "authentication" },
+    db,
+  );
 
   // 認証レスポンスを検証
   const verification = await verifyAuthenticationResponse({
     response,
-    expectedChallenge: challengeRecord.challenge,
+    expectedChallenge: challenge,
     expectedOrigin: origin,
     expectedRPID: RP_ID,
     credential: {
@@ -263,11 +292,6 @@ export async function verifyPasskeyAuthentication(
       counter: passkey.counter,
     },
   });
-
-  // チャレンジを削除
-  await db
-    .delete(webauthnChallenges)
-    .where(eq(webauthnChallenges.id, challengeRecord.id));
 
   if (!verification.verified) {
     throw new Error("パスキーの認証検証に失敗しました");

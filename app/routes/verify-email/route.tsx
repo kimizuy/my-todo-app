@@ -1,12 +1,8 @@
-import {
-  type PublicKeyCredentialCreationOptionsJSON,
-  startRegistration,
-} from "@simplewebauthn/browser";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Check, X } from "lucide-react";
-import { useState } from "react";
 import { Link, useLoaderData, useNavigate } from "react-router";
+import { usePasskeyRegistration } from "~/features/auth/hooks/usePasskeyRegistration";
 import { getAuthUser } from "~/features/auth/lib/auth-service";
 import {
   markEmailAsVerified,
@@ -84,57 +80,18 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export default function VerifyEmail() {
   const data = useLoaderData<typeof loader>();
   const navigate = useNavigate();
-  const [passkeyStatus, setPasskeyStatus] = useState<
-    "idle" | "registering" | "success" | "error"
-  >("idle");
-  const [error, setError] = useState<string | null>(null);
 
-  const handleRegisterPasskey = async () => {
-    try {
-      setPasskeyStatus("registering");
-      setError(null);
-
-      const optionsResponse = await fetch("/api/passkey/register-options");
-      if (!optionsResponse.ok) {
-        throw new Error("登録オプションの取得に失敗しました");
-      }
-      const options =
-        (await optionsResponse.json()) as PublicKeyCredentialCreationOptionsJSON;
-
-      const registrationResponse = await startRegistration({
-        optionsJSON: options,
-      });
-
-      const verifyResponse = await fetch("/api/passkey/register-verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(registrationResponse),
-      });
-
-      if (!verifyResponse.ok) {
-        const errorData = (await verifyResponse.json()) as { error?: string };
-        throw new Error(errorData.error || "パスキーの登録に失敗しました");
-      }
-
-      setPasskeyStatus("success");
+  const {
+    register: handleRegisterPasskey,
+    status: passkeyStatus,
+    error,
+  } = usePasskeyRegistration({
+    onSuccess: () => {
       setTimeout(() => {
         navigate("/");
       }, 2000);
-    } catch (err) {
-      // ユーザーがキャンセルした場合はエラー表示しない
-      if (err instanceof Error && err.name === "NotAllowedError") {
-        setPasskeyStatus("idle");
-        return;
-      }
-
-      setError(
-        err instanceof Error ? err.message : "パスキーの登録に失敗しました",
-      );
-      setPasskeyStatus("error");
-    }
-  };
+    },
+  });
 
   return (
     <div className="grid h-full place-items-center">

@@ -1,12 +1,9 @@
-import {
-  type PublicKeyCredentialCreationOptionsJSON,
-  startRegistration,
-} from "@simplewebauthn/browser";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLoaderData, useNavigate } from "react-router";
+import { usePasskeyRegistration } from "~/features/auth/hooks/usePasskeyRegistration";
 import { requireEmailVerified } from "~/features/auth/lib/auth-service";
 import { passkeys } from "~/features/auth/schema";
 import { Board } from "~/features/todo/components/board";
@@ -129,10 +126,18 @@ export default function Home() {
   const [filterText, setFilterText] = useState<string>("");
 
   const [showPasskeyDialog, setShowPasskeyDialog] = useState(false);
-  const [passkeyStatus, setPasskeyStatus] = useState<
-    "idle" | "registering" | "success" | "error"
-  >("idle");
-  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+
+  const {
+    register: handleRegisterPasskey,
+    status: passkeyStatus,
+    error: passkeyError,
+  } = usePasskeyRegistration({
+    onSuccess: () => {
+      setTimeout(() => {
+        setShowPasskeyDialog(false);
+      }, 2000);
+    },
+  });
 
   useEffect(() => {
     if (loaderData.promptPasskey && !loaderData.hasPasskey) {
@@ -141,54 +146,6 @@ export default function Home() {
       navigate("/", { replace: true });
     }
   }, [loaderData.promptPasskey, loaderData.hasPasskey, navigate]);
-
-  const handleRegisterPasskey = async () => {
-    try {
-      setPasskeyStatus("registering");
-      setPasskeyError(null);
-
-      const optionsResponse = await fetch("/api/passkey/register-options");
-      if (!optionsResponse.ok) {
-        throw new Error("登録オプションの取得に失敗しました");
-      }
-      const options =
-        (await optionsResponse.json()) as PublicKeyCredentialCreationOptionsJSON;
-
-      const registrationResponse = await startRegistration({
-        optionsJSON: options,
-      });
-
-      const verifyResponse = await fetch("/api/passkey/register-verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(registrationResponse),
-      });
-
-      if (!verifyResponse.ok) {
-        const errorData = (await verifyResponse.json()) as { error?: string };
-        throw new Error(errorData.error || "パスキーの登録に失敗しました");
-      }
-
-      setPasskeyStatus("success");
-      setTimeout(() => {
-        setShowPasskeyDialog(false);
-        setPasskeyStatus("idle");
-      }, 2000);
-    } catch (err) {
-      // ユーザーがキャンセルした場合はエラー表示しない
-      if (err instanceof Error && err.name === "NotAllowedError") {
-        setPasskeyStatus("idle");
-        return;
-      }
-
-      setPasskeyError(
-        err instanceof Error ? err.message : "パスキーの登録に失敗しました",
-      );
-      setPasskeyStatus("error");
-    }
-  };
 
   const handleAddTaskFromForm = (content: string, columnId: ColumnId) => {
     // 最大のorder値を取得
