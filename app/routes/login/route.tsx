@@ -4,7 +4,8 @@ import {
 } from "@simplewebauthn/browser";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { useId, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { useEffect, useId, useState } from "react";
 import {
   Form,
   Link,
@@ -119,10 +120,38 @@ export default function Login() {
   const emailId = useId();
   const passwordId = useId();
 
+  const [step, setStep] = useState<"email" | "password" | "passkey">("email");
+  const [email, setEmail] = useState("");
+  const [checkingPasskey, setCheckingPasskey] = useState(false);
   const [passkeyStatus, setPasskeyStatus] = useState<
     "idle" | "authenticating" | "error"
   >("idle");
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setCheckingPasskey(true);
+    try {
+      const response = await fetch(
+        `/api/passkey/check?email=${encodeURIComponent(email)}`,
+      );
+      const data = (await response.json()) as { hasPasskey: boolean };
+
+      if (data.hasPasskey) {
+        setStep("passkey");
+        // 自動的にパスキー認証を開始
+        setTimeout(() => handlePasskeyLogin(), 100);
+      } else {
+        setStep("password");
+      }
+    } catch (error) {
+      setStep("password");
+    } finally {
+      setCheckingPasskey(false);
+    }
+  };
 
   const handlePasskeyLogin = async () => {
     try {
@@ -168,6 +197,12 @@ export default function Login() {
     }
   };
 
+  const handleBackToEmail = () => {
+    setStep("email");
+    setPasskeyError(null);
+    setPasskeyStatus("idle");
+  };
+
   return (
     <div className="grid h-full place-items-center">
       <div className="w-full max-w-md space-y-8 rounded-lg border p-8">
@@ -175,67 +210,110 @@ export default function Login() {
           <h1 className="text-2xl font-bold">ログイン</h1>
         </div>
 
-        <Form method="post" className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor={emailId}>メールアドレス</Label>
-            <Input
-              id={emailId}
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-            />
-          </div>
+        {step === "email" && (
+          <form onSubmit={handleEmailSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor={emailId}>メールアドレス</Label>
+              <Input
+                id={emailId}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                autoFocus
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor={passwordId}>パスワード</Label>
-            <Input
-              id={passwordId}
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              minLength={8}
-            />
-          </div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={checkingPasskey || !email}
+            >
+              {checkingPasskey ? "確認中..." : "次へ"}
+            </Button>
+          </form>
+        )}
 
-          {actionData?.error && (
-            <div className="text-sm text-red-600">{actionData.error}</div>
-          )}
+        {step === "passkey" && (
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={handleBackToEmail}
+                className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>{email}</span>
+              </button>
+            </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "ログイン中..." : "ログイン"}
-          </Button>
-        </Form>
+            {passkeyError && (
+              <div className="rounded-lg bg-red-50 p-4">
+                <p className="text-sm text-red-800">{passkeyError}</p>
+              </div>
+            )}
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background text-muted-foreground px-2">
-              または
-            </span>
-          </div>
-        </div>
+            <div className="space-y-4">
+              <Button
+                type="button"
+                className="w-full"
+                onClick={handlePasskeyLogin}
+                disabled={passkeyStatus === "authenticating"}
+              >
+                {passkeyStatus === "authenticating"
+                  ? "認証中..."
+                  : "パスキーでログイン"}
+              </Button>
 
-        {passkeyError && (
-          <div className="rounded-lg bg-red-50 p-4">
-            <p className="text-sm text-red-800">{passkeyError}</p>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={() => setStep("password")}
+              >
+                別の方法でログイン
+              </Button>
+            </div>
           </div>
         )}
 
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={handlePasskeyLogin}
-          disabled={passkeyStatus === "authenticating"}
-        >
-          {passkeyStatus === "authenticating"
-            ? "認証中..."
-            : "パスキーでログイン"}
-        </Button>
+        {step === "password" && (
+          <Form method="post" className="space-y-6">
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={handleBackToEmail}
+                className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>{email}</span>
+              </button>
+              <input type="hidden" name="email" value={email} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor={passwordId}>パスワード</Label>
+              <Input
+                id={passwordId}
+                name="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                minLength={8}
+                autoFocus
+              />
+            </div>
+
+            {actionData?.error && (
+              <div className="text-sm text-red-600">{actionData.error}</div>
+            )}
+
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "ログイン中..." : "ログイン"}
+            </Button>
+          </Form>
+        )}
 
         <div className="space-y-2 text-center text-sm">
           <div>

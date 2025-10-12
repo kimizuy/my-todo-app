@@ -46,6 +46,7 @@ ROUTE_FILES=$(find app/routes -name "*.ts" -o -name "*.tsx" | \
   grep -v "login/route.tsx" | \
   grep -v "register/route.tsx" | \
   grep -v "logout/route.tsx" | \
+  grep -v "api.passkey.check" | \
   grep -v "api.passkey.login-options" | \
   grep -v "api.passkey.login-verify")
 MISSING_AUTH_FILES=""
