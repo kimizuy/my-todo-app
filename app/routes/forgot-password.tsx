@@ -13,7 +13,7 @@ import { forgotPasswordSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/ui/button";
 import { Input } from "~/shared/components/ui/input";
 import { Label } from "~/shared/components/ui/label";
-import type { Route } from "./+types/route";
+import type { Route } from "./+types/forgot-password";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await getAuthUser(request, context);

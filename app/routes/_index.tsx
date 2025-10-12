@@ -22,7 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/shared/components/ui/dialog";
-import type { Route } from "./+types/route";
+import type { Route } from "./+types/_index";
 
 export function meta(_: Route.MetaArgs) {
   return [

@@ -18,7 +18,7 @@ import { Button } from "~/shared/components/ui/button";
 import { Input } from "~/shared/components/ui/input";
 import { Label } from "~/shared/components/ui/label";
 import { InvalidTokenError } from "~/shared/lib/errors";
-import type { Route } from "./+types/route";
+import type { Route } from "./+types/reset-password";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   // ログイン済みの場合はホームにリダイレクト

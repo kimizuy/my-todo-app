@@ -14,7 +14,7 @@ import { users } from "~/features/auth/schema";
 import { resendVerificationSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/ui/button";
 import { AppError, errorResponse, formatZodError } from "~/shared/lib/errors";
-import type { Route } from "./+types/route";
+import type { Route } from "./+types/verify-email-pending";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await requireAuth(request, context);

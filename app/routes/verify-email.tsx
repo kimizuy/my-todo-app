@@ -12,7 +12,7 @@ import { passkeys } from "~/features/auth/schema";
 import { verifyEmailSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/ui/button";
 import { InvalidTokenError } from "~/shared/lib/errors";
-import type { Route } from "./+types/route";
+import type { Route } from "./+types/verify-email";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const url = new URL(request.url);

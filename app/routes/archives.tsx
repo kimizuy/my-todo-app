@@ -5,7 +5,7 @@ import { requireEmailVerified } from "~/features/auth/lib/auth-service";
 import { createUserDb } from "~/features/todo/lib/todo-service";
 import { parseContent } from "~/shared/lib/parse-content";
 import { formatDate } from "~/shared/lib/utils";
-import type { Route } from "./+types/route";
+import type { Route } from "./+types/archives";
 
 export function meta(_: Route.MetaArgs) {
   return [
