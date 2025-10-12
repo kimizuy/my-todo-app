@@ -1,4 +1,5 @@
 import { drizzle } from "drizzle-orm/d1";
+import { ArrowLeft } from "lucide-react";
 import { useId } from "react";
 import {
   Form,
@@ -122,8 +123,12 @@ export default function ForgotPassword() {
         </Form>
 
         <div className="text-center text-sm">
-          <Link to="/login" className="text-muted-foreground underline">
-            ← ログインに戻る
+          <Link
+            to="/login"
+            className="text-muted-foreground flex items-center justify-center gap-1 underline"
+          >
+            <ArrowLeft className="size-4" />
+            ログインに戻る
           </Link>
         </div>
       </div>

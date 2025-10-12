@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import { ArrowLeft } from "lucide-react";
 import { useId } from "react";
 import {
   Form,
@@ -172,7 +173,7 @@ export default function Register() {
           </Button>
         </Form>
 
-        <div className="space-y-2 text-center text-sm">
+        <div className="space-y-8 text-center text-sm">
           <div>
             既にアカウントをお持ちの方は{" "}
             <Link to="/login" className="underline">
@@ -180,8 +181,12 @@ export default function Register() {
             </Link>
           </div>
           <div>
-            <Link to="/auth" className="text-muted-foreground underline">
-              ← 戻る
+            <Link
+              to="/auth"
+              className="text-muted-foreground flex items-center justify-center gap-1 underline"
+            >
+              <ArrowLeft className="size-4" />
+              戻る
             </Link>
           </div>
         </div>
