@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
-import type { ArchivedTask } from "~/features/archive/schema";
 import { requireEmailVerified } from "~/features/auth/lib/auth-service";
 import { parseContent } from "~/features/todo/lib/parse-content";
 import { createUserDb } from "~/features/todo/lib/todo-service";
+import type { Task } from "~/features/todo/schema";
 import { formatDate } from "~/shared/utils/format-date";
 import type { Route } from "./+types/archives";
 
@@ -39,7 +39,7 @@ export default function Archives() {
       groups[archiveDate].push(task);
       return groups;
     },
-    {} as Record<string, ArchivedTask[]>,
+    {} as Record<string, Task[]>,
   );
 
   // 各グループ内のタスクをcreatedAtの降順（新しいタスクが上）でソート
@@ -131,7 +131,7 @@ export default function Archives() {
 }
 
 interface ArchivedTaskContentProps {
-  task: ArchivedTask;
+  task: Task;
 }
 
 function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
@@ -146,7 +146,7 @@ function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
   );
 }
 
-function sortTasksByCreatedAt(tasks: ArchivedTask[]): ArchivedTask[] {
+function sortTasksByCreatedAt(tasks: Task[]): Task[] {
   return tasks.sort((a, b) => {
     // createdAtの降順（新しいタスクが上）でソート
     const aCreatedAt = new Date(a.createdAt || 0).getTime();
@@ -170,7 +170,7 @@ const formatDateOnly = (dateString: string) => {
   });
 };
 
-function useExpandedArchives(groupedTasks: Record<string, ArchivedTask[]>) {
+function useExpandedArchives(groupedTasks: Record<string, Task[]>) {
   const [expandedArchives, setExpandedArchives] = useState<Set<string>>(
     new Set(),
   );

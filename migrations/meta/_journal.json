@@ -36,6 +36,13 @@
       "when": 1760253925483,
       "tag": "0004_reflective_lord_tyger",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1760265544799,
+      "tag": "0005_new_vargas",
+      "breakpoints": true
     }
   ]
 }

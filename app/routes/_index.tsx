@@ -161,6 +161,7 @@ export default function Home() {
       columnId,
       order: maxOrder + 1,
       createdAt: new Date().toISOString(),
+      archivedAt: null,
     };
 
     // 楽観的更新

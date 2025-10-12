@@ -19,6 +19,7 @@ export const tasks = sqliteTable("tasks", {
     enum: COLUMN_IDS,
   }).notNull(),
   createdAt: text("created_at").notNull(),
+  archivedAt: text("archived_at"),
   order: integer("order").notNull().default(0),
 });
 

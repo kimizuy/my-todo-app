@@ -79,6 +79,7 @@ if (import.meta.vitest) {
           columnId: "do-today",
           order: 0,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
         {
           id: "task-2",
@@ -87,6 +88,7 @@ if (import.meta.vitest) {
           columnId: "do-today",
           order: 1,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
         {
           id: "task-3",
@@ -95,6 +97,7 @@ if (import.meta.vitest) {
           columnId: "do-today",
           order: 2,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
       ];
 
@@ -121,6 +124,7 @@ if (import.meta.vitest) {
           columnId: "do-today",
           order: 0,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
         {
           id: "task-2",
@@ -129,6 +133,7 @@ if (import.meta.vitest) {
           columnId: "do-today",
           order: 1,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
         {
           id: "task-3",
@@ -137,6 +142,7 @@ if (import.meta.vitest) {
           columnId: "do-today",
           order: 2,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
       ];
 
@@ -160,6 +166,7 @@ if (import.meta.vitest) {
           columnId: "uncategorized",
           order: 0,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
         {
           id: "task-2",
@@ -168,6 +175,7 @@ if (import.meta.vitest) {
           columnId: "do-today",
           order: 0,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
         {
           id: "task-3",
@@ -176,6 +184,7 @@ if (import.meta.vitest) {
           columnId: "do-today",
           order: 1,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
       ];
 
@@ -200,6 +209,7 @@ if (import.meta.vitest) {
           columnId: "uncategorized",
           order: 0,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
       ];
 
@@ -223,6 +233,7 @@ if (import.meta.vitest) {
           columnId: "uncategorized",
           order: 0,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
         {
           id: "task-2",
@@ -231,6 +242,7 @@ if (import.meta.vitest) {
           columnId: "do-today",
           order: 0,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
       ];
 
@@ -258,6 +270,7 @@ if (import.meta.vitest) {
           columnId: "uncategorized",
           order: 0,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
         {
           id: "task-2",
@@ -266,6 +279,7 @@ if (import.meta.vitest) {
           columnId: "do-today",
           order: 0,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
         {
           id: "task-3",
@@ -274,6 +288,7 @@ if (import.meta.vitest) {
           columnId: "do-today",
           order: 1,
           createdAt: "2025-01-01",
+          archivedAt: null,
         },
       ];
 
