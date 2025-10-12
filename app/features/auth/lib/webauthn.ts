@@ -18,10 +18,23 @@ import {
 
 // Relying Party (RP) の設定
 export const RP_NAME = "Daily Tasks";
-export const RP_ID = "localhost"; // 本番環境では実際のドメインに変更
 
 // チャレンジの有効期限（5分）
 const CHALLENGE_EXPIRY_MS = 5 * 60 * 1000;
+
+/**
+ * URLからRP IDを取得する
+ * localhostの場合は "localhost"、本番環境の場合はドメインを返す
+ */
+function getRpIdFromOrigin(origin: string): string {
+  const url = new URL(origin);
+  // localhostの場合はそのまま返す
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+    return "localhost";
+  }
+  // 本番環境の場合はホスト名を返す
+  return url.hostname;
+}
 
 interface ChallengeValidationOptions {
   userId?: number | null;
@@ -99,8 +112,11 @@ async function validateAndConsumeChallenge(
 export async function generatePasskeyRegistrationOptions(
   userId: number,
   userEmail: string,
+  origin: string,
   db: DrizzleD1Database,
 ) {
+  const rpId = getRpIdFromOrigin(origin);
+
   // 既存のパスキーを取得（除外リストのため）
   const userPasskeys = await db
     .select()
@@ -110,7 +126,7 @@ export async function generatePasskeyRegistrationOptions(
 
   const options = await generateRegistrationOptions({
     rpName: RP_NAME,
-    rpID: RP_ID,
+    rpID: rpId,
     userID: new Uint8Array(Buffer.from(userId.toString())),
     userName: userEmail,
     userDisplayName: userEmail,
@@ -148,6 +164,8 @@ export async function verifyPasskeyRegistration(
   origin: string,
   db: DrizzleD1Database,
 ) {
+  const rpId = getRpIdFromOrigin(origin);
+
   // チャレンジを検証して取得
   const challenge = await validateAndConsumeChallenge(
     { userId, type: "registration" },
@@ -159,7 +177,7 @@ export async function verifyPasskeyRegistration(
     response,
     expectedChallenge: challenge,
     expectedOrigin: origin,
-    expectedRPID: RP_ID,
+    expectedRPID: rpId,
   });
 
   if (!verification.verified || !verification.registrationInfo) {
@@ -195,8 +213,11 @@ export async function verifyPasskeyRegistration(
  */
 export async function generatePasskeyAuthenticationOptions(
   userEmail: string | null,
+  origin: string,
   db: DrizzleD1Database,
 ) {
+  const rpId = getRpIdFromOrigin(origin);
+
   // メールアドレスが指定されている場合、そのユーザーのパスキーのみを許可
   let allowedPasskeys: {
     credentialId: string;
@@ -226,7 +247,7 @@ export async function generatePasskeyAuthenticationOptions(
   }
 
   const options = await generateAuthenticationOptions({
-    rpID: RP_ID,
+    rpID: rpId,
     allowCredentials:
       allowedPasskeys.length > 0
         ? allowedPasskeys.map((passkey) => ({
@@ -261,6 +282,8 @@ export async function verifyPasskeyAuthentication(
   origin: string,
   db: DrizzleD1Database,
 ) {
+  const rpId = getRpIdFromOrigin(origin);
+
   // credentialIdからパスキーを取得
   const credentialId = response.rawId;
 
@@ -285,7 +308,7 @@ export async function verifyPasskeyAuthentication(
     response,
     expectedChallenge: challenge,
     expectedOrigin: origin,
-    expectedRPID: RP_ID,
+    expectedRPID: rpId,
     credential: {
       id: passkey.credentialId,
       publicKey: new Uint8Array(Buffer.from(passkey.publicKey, "base64")),
