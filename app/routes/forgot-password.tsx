@@ -10,9 +10,9 @@ import {
 import { getAuthUser } from "~/features/auth/lib/auth-service";
 import { requestPasswordReset } from "~/features/auth/lib/password-reset";
 import { forgotPasswordSchema } from "~/features/auth/validation";
-import { Button } from "~/shared/components/ui/button";
-import { Input } from "~/shared/components/ui/input";
-import { Label } from "~/shared/components/ui/label";
+import { Button } from "~/shared/components/shadcn-ui/button";
+import { Input } from "~/shared/components/shadcn-ui/input";
+import { Label } from "~/shared/components/shadcn-ui/label";
 import type { Route } from "./+types/forgot-password";
 
 export async function loader({ request, context }: Route.LoaderArgs) {

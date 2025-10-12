@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { MIN_PASSWORD_LENGTH } from "~/shared/lib/config";
+import { MIN_PASSWORD_LENGTH } from "~/features/auth/lib/config";
 
 /**
  * メールアドレスのバリデーションスキーマ

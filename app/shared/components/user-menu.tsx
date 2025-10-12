@@ -1,13 +1,13 @@
 import { Menu } from "lucide-react";
 import { Form, Link } from "react-router";
-import { Button } from "~/shared/components/ui/button";
+import { Button } from "./shadcn-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "~/shared/components/ui/dropdown-menu";
+} from "./shadcn-ui/dropdown-menu";
 
 interface UserMenuProps {
   user?: {

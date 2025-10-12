@@ -1,6 +1,6 @@
 import { Link, redirect } from "react-router";
 import { getAuthUser } from "~/features/auth/lib/auth-service";
-import { Button } from "~/shared/components/ui/button";
+import { Button } from "~/shared/components/shadcn-ui/button";
 import type { Route } from "./+types/auth";
 
 export async function loader({ request, context }: Route.LoaderArgs) {

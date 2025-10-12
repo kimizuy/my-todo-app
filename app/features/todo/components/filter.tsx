@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
-import { Input } from "~/shared/components/ui/input";
-import { cn } from "~/shared/lib/cn";
+import { Input } from "~/shared/components/shadcn-ui/input";
+import { cn } from "~/shared/utils/cn";
 
 interface Props {
   value: string;

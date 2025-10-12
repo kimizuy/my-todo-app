@@ -20,10 +20,10 @@ import {
 } from "~/features/auth/lib/token";
 import { users } from "~/features/auth/schema";
 import { registerSchema } from "~/features/auth/validation";
-import { Button } from "~/shared/components/ui/button";
-import { Input } from "~/shared/components/ui/input";
-import { Label } from "~/shared/components/ui/label";
-import { setCookie } from "~/shared/lib/cookies";
+import { Button } from "~/shared/components/shadcn-ui/button";
+import { Input } from "~/shared/components/shadcn-ui/input";
+import { Label } from "~/shared/components/shadcn-ui/label";
+import { setCookie } from "~/shared/utils/cookies";
 import type { Route } from "./+types/register";
 
 export async function loader({ request, context }: Route.LoaderArgs) {

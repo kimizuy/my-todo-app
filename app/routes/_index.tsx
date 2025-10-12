@@ -11,7 +11,7 @@ import { Filter } from "~/features/todo/components/filter";
 import { useTasks } from "~/features/todo/components/hooks";
 import { createUserDb } from "~/features/todo/lib/todo-service";
 import type { ColumnId, Task } from "~/features/todo/schema";
-import { Button } from "~/shared/components/ui/button";
+import { Button } from "~/shared/components/shadcn-ui/button";
 import {
   Dialog,
   DialogClose,
@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "~/shared/components/ui/dialog";
+} from "~/shared/components/shadcn-ui/dialog";
 import type { Route } from "./+types/_index";
 
 export function meta(_: Route.MetaArgs) {

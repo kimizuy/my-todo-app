@@ -4,7 +4,7 @@ import type { AppLoadContext } from "react-router";
 import { redirect } from "react-router";
 import { createAuthService } from "~/features/auth/lib/auth-service";
 import { verifyPasskeyAuthentication } from "~/features/auth/lib/webauthn";
-import { setCookie } from "~/shared/lib/cookies";
+import { setCookie } from "~/shared/utils/cookies";
 
 /**
  * パスキーログインレスポンスを検証するAPI

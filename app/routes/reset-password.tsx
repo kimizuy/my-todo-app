@@ -14,10 +14,10 @@ import {
   verifyResetToken,
 } from "~/features/auth/lib/password-reset";
 import { resetPasswordSchema } from "~/features/auth/validation";
-import { Button } from "~/shared/components/ui/button";
-import { Input } from "~/shared/components/ui/input";
-import { Label } from "~/shared/components/ui/label";
-import { InvalidTokenError } from "~/shared/lib/errors";
+import { Button } from "~/shared/components/shadcn-ui/button";
+import { Input } from "~/shared/components/shadcn-ui/input";
+import { Label } from "~/shared/components/shadcn-ui/label";
+import { InvalidTokenError } from "~/shared/utils/errors";
 import type { Route } from "./+types/reset-password";
 
 export async function loader({ request, context }: Route.LoaderArgs) {

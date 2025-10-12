@@ -12,8 +12,8 @@ import {
 import { regenerateVerificationToken } from "~/features/auth/lib/verification";
 import { users } from "~/features/auth/schema";
 import { resendVerificationSchema } from "~/features/auth/validation";
-import { Button } from "~/shared/components/ui/button";
-import { AppError, errorResponse, formatZodError } from "~/shared/lib/errors";
+import { Button } from "~/shared/components/shadcn-ui/button";
+import { AppError, errorResponse, formatZodError } from "~/shared/utils/errors";
 import type { Route } from "./+types/verify-email-pending";
 
 export async function loader({ request, context }: Route.LoaderArgs) {

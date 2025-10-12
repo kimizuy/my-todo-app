@@ -2,8 +2,9 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CheckCircle, Trash2 } from "lucide-react";
 import type { KeyboardEvent } from "react";
+import { parseContent } from "~/features/todo/lib/parse-content";
 import type { Task } from "~/features/todo/schema";
-import { Button } from "~/shared/components/ui/button";
+import { Button } from "~/shared/components/shadcn-ui/button";
 import {
   Dialog,
   DialogClose,
@@ -13,10 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "~/shared/components/ui/dialog";
-import { cn } from "~/shared/lib/cn";
-import { formatDate } from "~/shared/lib/format-date";
-import { parseContent } from "~/shared/lib/parse-content";
+} from "~/shared/components/shadcn-ui/dialog";
+import { cn } from "~/shared/utils/cn";
+import { formatDate } from "~/shared/utils/format-date";
 
 interface Props {
   task: Task;

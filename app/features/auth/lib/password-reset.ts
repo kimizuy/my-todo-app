@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { PASSWORD_RESET_TOKEN_EXPIRY_MS } from "~/shared/lib/config";
-import { InvalidTokenError } from "~/shared/lib/errors";
+import { PASSWORD_RESET_TOKEN_EXPIRY_MS } from "~/features/auth/lib/config";
+import { InvalidTokenError } from "~/shared/utils/errors";
 import { passwordResetTokens, users } from "../schema";
 import { sendEmail } from "./email";
 import { getPasswordResetEmailTemplate } from "./email-templates";

@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
 import type { ArchivedTask } from "~/features/archive/schema";
 import { requireEmailVerified } from "~/features/auth/lib/auth-service";
+import { parseContent } from "~/features/todo/lib/parse-content";
 import { createUserDb } from "~/features/todo/lib/todo-service";
-import { formatDate } from "~/shared/lib/format-date";
-import { parseContent } from "~/shared/lib/parse-content";
+import { formatDate } from "~/shared/utils/format-date";
 import type { Route } from "./+types/archives";
 
 export function meta(_: Route.MetaArgs) {

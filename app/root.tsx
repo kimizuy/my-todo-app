@@ -14,16 +14,16 @@ import {
   useRouteLoaderData,
 } from "react-router";
 import { getAuthUser } from "~/features/auth/lib/auth-service";
-import { Button } from "~/shared/components/ui/button";
+import { Button } from "~/shared/components/shadcn-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "~/shared/components/ui/dropdown-menu";
-import { SkipLink } from "~/shared/components/ui/skip-link";
+} from "~/shared/components/shadcn-ui/dropdown-menu";
+import { SkipLink } from "~/shared/components/shadcn-ui/skip-link";
 import { UserMenu } from "~/shared/components/user-menu";
-import { cn } from "~/shared/lib/cn";
+import { cn } from "~/shared/utils/cn";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await getAuthUser(request, context);
