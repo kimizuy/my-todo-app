@@ -23,7 +23,7 @@ import {
 } from "~/shared/components/ui/dropdown-menu";
 import { SkipLink } from "~/shared/components/ui/skip-link";
 import { UserMenu } from "~/shared/components/user-menu";
-import { cn } from "~/shared/lib/utils";
+import { cn } from "~/shared/lib/cn";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await getAuthUser(request, context);

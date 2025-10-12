@@ -14,8 +14,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/shared/components/ui/dialog";
+import { cn } from "~/shared/lib/cn";
+import { formatDate } from "~/shared/lib/format-date";
 import { parseContent } from "~/shared/lib/parse-content";
-import { cn, formatDate } from "~/shared/lib/utils";
 
 interface Props {
   task: Task;
