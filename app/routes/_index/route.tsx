@@ -1,6 +1,14 @@
+import {
+  type PublicKeyCredentialCreationOptionsJSON,
+  startRegistration,
+} from "@simplewebauthn/browser";
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/d1";
 import { RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLoaderData, useNavigate } from "react-router";
 import { requireEmailVerified } from "~/features/auth/lib/auth-service";
+import { passkeys } from "~/features/auth/schema";
 import { Board } from "~/features/todo/components/board";
 import { Filter } from "~/features/todo/components/filter";
 import { useTasks } from "~/features/todo/components/hooks";
@@ -30,12 +38,26 @@ export function meta(_: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await requireEmailVerified(request, context);
 
+  const db = drizzle(context.cloudflare.env.DB);
   const userDb = createUserDb(context.cloudflare.env.DB, user.id);
 
   // UserScopedDbで自動的にuserIdでフィルタリング
   const userTasks = await userDb.getTasks();
 
-  return { tasks: userTasks, user };
+  // パスキーの有無をチェック
+  const userPasskey = await db
+    .select()
+    .from(passkeys)
+    .where(eq(passkeys.userId, user.id))
+    .limit(1)
+    .get();
+  const hasPasskey = !!userPasskey;
+
+  // クエリパラメータをチェック
+  const url = new URL(request.url);
+  const promptPasskey = url.searchParams.get("prompt_passkey") === "true";
+
+  return { tasks: userTasks, user, hasPasskey, promptPasskey };
 }
 
 // タスク作成・更新・削除・アーカイブ
@@ -101,8 +123,72 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function Home() {
+  const loaderData = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
   const { tasks, setTasks, fetcher } = useTasks();
   const [filterText, setFilterText] = useState<string>("");
+
+  const [showPasskeyDialog, setShowPasskeyDialog] = useState(false);
+  const [passkeyStatus, setPasskeyStatus] = useState<
+    "idle" | "registering" | "success" | "error"
+  >("idle");
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (loaderData.promptPasskey && !loaderData.hasPasskey) {
+      setShowPasskeyDialog(true);
+      // クエリパラメータをクリア
+      navigate("/", { replace: true });
+    }
+  }, [loaderData.promptPasskey, loaderData.hasPasskey, navigate]);
+
+  const handleRegisterPasskey = async () => {
+    try {
+      setPasskeyStatus("registering");
+      setPasskeyError(null);
+
+      const optionsResponse = await fetch("/api/passkey/register-options");
+      if (!optionsResponse.ok) {
+        throw new Error("登録オプションの取得に失敗しました");
+      }
+      const options =
+        (await optionsResponse.json()) as PublicKeyCredentialCreationOptionsJSON;
+
+      const registrationResponse = await startRegistration({
+        optionsJSON: options,
+      });
+
+      const verifyResponse = await fetch("/api/passkey/register-verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(registrationResponse),
+      });
+
+      if (!verifyResponse.ok) {
+        const errorData = (await verifyResponse.json()) as { error?: string };
+        throw new Error(errorData.error || "パスキーの登録に失敗しました");
+      }
+
+      setPasskeyStatus("success");
+      setTimeout(() => {
+        setShowPasskeyDialog(false);
+        setPasskeyStatus("idle");
+      }, 2000);
+    } catch (err) {
+      // ユーザーがキャンセルした場合はエラー表示しない
+      if (err instanceof Error && err.name === "NotAllowedError") {
+        setPasskeyStatus("idle");
+        return;
+      }
+
+      setPasskeyError(
+        err instanceof Error ? err.message : "パスキーの登録に失敗しました",
+      );
+      setPasskeyStatus("error");
+    }
+  };
 
   const handleAddTaskFromForm = (content: string, columnId: ColumnId) => {
     // 最大のorder値を取得
@@ -269,51 +355,113 @@ export default function Home() {
       );
 
   return (
-    <div className="flex h-full flex-col gap-4">
-      <div className="flex items-center gap-4 sm:gap-6">
-        <div className="flex-1">
-          <Filter value={filterText} onChange={setFilterText} />
+    <>
+      <div className="flex h-full flex-col gap-4">
+        <div className="flex items-center gap-4 sm:gap-6">
+          <div className="flex-1">
+            <Filter value={filterText} onChange={setFilterText} />
+          </div>
+          <Dialog>
+            <DialogTrigger asChild className="sm:hidden">
+              <Button variant="outline" size="icon">
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogTrigger asChild className="hidden sm:inline-flex">
+              <Button variant="outline" className="text-xs">
+                今日のタスクをリセット
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>タスクをリセットしますか？</DialogTitle>
+                <DialogDescription>
+                  今日やる/やらないのタスクを未分類に戻します。
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">キャンセル</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button onClick={handleResetTasks}>リセット</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
-        <Dialog>
-          <DialogTrigger asChild className="sm:hidden">
-            <Button variant="outline" size="icon">
-              <RotateCcw className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogTrigger asChild className="hidden sm:inline-flex">
-            <Button variant="outline" className="text-xs">
-              今日のタスクをリセット
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>タスクをリセットしますか？</DialogTitle>
-              <DialogDescription>
-                今日やる/やらないのタスクを未分類に戻します。
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">キャンセル</Button>
-              </DialogClose>
-              <DialogClose asChild>
-                <Button onClick={handleResetTasks}>リセット</Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <div className="-mx-4 flex-1 overflow-hidden">
+          <Board
+            allTasks={tasks}
+            tasks={filteredTasks}
+            onTaskUpdate={handleTaskUpdate}
+            onDeleteTask={handleDeleteTask}
+            onCompleteTask={handleCompleteTask}
+            onArchiveAll={handleArchiveAll}
+            onAddTask={handleAddTaskFromForm}
+          />
+        </div>
       </div>
-      <div className="-mx-4 flex-1 overflow-hidden">
-        <Board
-          allTasks={tasks}
-          tasks={filteredTasks}
-          onTaskUpdate={handleTaskUpdate}
-          onDeleteTask={handleDeleteTask}
-          onCompleteTask={handleCompleteTask}
-          onArchiveAll={handleArchiveAll}
-          onAddTask={handleAddTaskFromForm}
-        />
-      </div>
-    </div>
+
+      <Dialog open={showPasskeyDialog} onOpenChange={setShowPasskeyDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>パスキーを登録しますか？</DialogTitle>
+            <DialogDescription>
+              パスキーを登録すると、次回からパスワード入力なしで簡単にログインできます。
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="rounded-lg bg-blue-50 p-4">
+              <h3 className="mb-2 text-sm font-semibold text-blue-900">
+                パスキーのメリット
+              </h3>
+              <ul className="space-y-1 text-sm text-blue-800">
+                <li>• 生体認証やPINで簡単ログイン</li>
+                <li>• パスワード入力が不要</li>
+                <li>• より安全な認証方法</li>
+              </ul>
+            </div>
+
+            {passkeyError && (
+              <div className="rounded-lg bg-red-50 p-4">
+                <p className="text-sm text-red-800">{passkeyError}</p>
+              </div>
+            )}
+
+            {passkeyStatus === "success" && (
+              <div className="rounded-lg bg-green-50 p-4">
+                <p className="text-sm text-green-800">
+                  パスキーの登録が完了しました！
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowPasskeyDialog(false)}
+              disabled={passkeyStatus === "registering"}
+            >
+              後で登録
+            </Button>
+            <Button
+              onClick={handleRegisterPasskey}
+              disabled={
+                passkeyStatus === "registering" || passkeyStatus === "success"
+              }
+            >
+              {passkeyStatus === "registering"
+                ? "登録中..."
+                : passkeyStatus === "success"
+                  ? "登録完了"
+                  : "登録する"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

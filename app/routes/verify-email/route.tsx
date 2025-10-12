@@ -1,11 +1,18 @@
+import {
+  type PublicKeyCredentialCreationOptionsJSON,
+  startRegistration,
+} from "@simplewebauthn/browser";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Check, X } from "lucide-react";
-import { Link, useLoaderData } from "react-router";
+import { useState } from "react";
+import { Link, useLoaderData, useNavigate } from "react-router";
 import { getAuthUser } from "~/features/auth/lib/auth-service";
 import {
   markEmailAsVerified,
   verifyEmailToken,
 } from "~/features/auth/lib/verification";
+import { passkeys } from "~/features/auth/schema";
 import { verifyEmailSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/ui/button";
 import { InvalidTokenError } from "~/shared/lib/errors";
@@ -25,6 +32,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       success: false,
       error: firstError.message,
       isLoggedIn: false,
+      hasPasskey: false,
     };
   }
 
@@ -43,7 +51,16 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     const authUser = await getAuthUser(request, context);
     const isLoggedIn = !!authUser;
 
-    return { success: true, error: null, isLoggedIn };
+    // パスキーの有無をチェック
+    const userPasskey = await db
+      .select()
+      .from(passkeys)
+      .where(eq(passkeys.userId, user.id))
+      .limit(1)
+      .get();
+    const hasPasskey = !!userPasskey;
+
+    return { success: true, error: null, isLoggedIn, hasPasskey };
   } catch (error) {
     let errorMessage = "認証に失敗しました";
 
@@ -59,12 +76,65 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       success: false,
       error: errorMessage,
       isLoggedIn: false,
+      hasPasskey: false,
     };
   }
 }
 
 export default function VerifyEmail() {
   const data = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+  const [passkeyStatus, setPasskeyStatus] = useState<
+    "idle" | "registering" | "success" | "error"
+  >("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  const handleRegisterPasskey = async () => {
+    try {
+      setPasskeyStatus("registering");
+      setError(null);
+
+      const optionsResponse = await fetch("/api/passkey/register-options");
+      if (!optionsResponse.ok) {
+        throw new Error("登録オプションの取得に失敗しました");
+      }
+      const options =
+        (await optionsResponse.json()) as PublicKeyCredentialCreationOptionsJSON;
+
+      const registrationResponse = await startRegistration({
+        optionsJSON: options,
+      });
+
+      const verifyResponse = await fetch("/api/passkey/register-verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(registrationResponse),
+      });
+
+      if (!verifyResponse.ok) {
+        const errorData = (await verifyResponse.json()) as { error?: string };
+        throw new Error(errorData.error || "パスキーの登録に失敗しました");
+      }
+
+      setPasskeyStatus("success");
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
+    } catch (err) {
+      // ユーザーがキャンセルした場合はエラー表示しない
+      if (err instanceof Error && err.name === "NotAllowedError") {
+        setPasskeyStatus("idle");
+        return;
+      }
+
+      setError(
+        err instanceof Error ? err.message : "パスキーの登録に失敗しました",
+      );
+      setPasskeyStatus("error");
+    }
+  };
 
   return (
     <div className="grid h-full place-items-center">
@@ -80,16 +150,60 @@ export default function VerifyEmail() {
             <h1 className="text-2xl font-bold">メール認証完了</h1>
             <p className="text-muted-foreground">
               メールアドレスの認証が完了しました。
-              <br />
-              {data.isLoggedIn
-                ? "サービスをご利用いただけます。"
-                : "ログインしてサービスをご利用ください。"}
             </p>
-            <Button asChild className="w-full">
-              <Link to={data.isLoggedIn ? "/" : "/login"}>
-                {data.isLoggedIn ? "メイン画面へ" : "ログインする"}
-              </Link>
-            </Button>
+
+            {data.isLoggedIn &&
+            !data.hasPasskey &&
+            passkeyStatus !== "success" ? (
+              <>
+                <div className="space-y-4 text-left">
+                  <div className="rounded-lg bg-blue-50 p-4">
+                    <h3 className="mb-2 text-sm font-semibold text-blue-900">
+                      パスキーでもっと便利に
+                    </h3>
+                    <ul className="space-y-1 text-sm text-blue-800">
+                      <li>• 生体認証やPINで簡単ログイン</li>
+                      <li>• パスワード入力が不要</li>
+                      <li>• より安全な認証方法</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="rounded-lg bg-red-50 p-4">
+                    <p className="text-sm text-red-800">{error}</p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Button
+                    onClick={handleRegisterPasskey}
+                    disabled={passkeyStatus === "registering"}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {passkeyStatus === "registering"
+                      ? "登録中..."
+                      : "パスキーを登録する"}
+                  </Button>
+                  <Button asChild variant="ghost" className="w-full">
+                    <Link to="/">後で登録する</Link>
+                  </Button>
+                </div>
+              </>
+            ) : passkeyStatus === "success" ? (
+              <div className="rounded-lg bg-green-50 p-4">
+                <p className="text-sm text-green-800">
+                  パスキーの登録が完了しました！メイン画面へ移動します...
+                </p>
+              </div>
+            ) : (
+              <Button asChild className="w-full">
+                <Link to={data.isLoggedIn ? "/" : "/login"}>
+                  {data.isLoggedIn ? "メイン画面へ" : "ログインする"}
+                </Link>
+              </Button>
+            )}
           </>
         ) : (
           <>

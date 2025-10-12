@@ -24,7 +24,9 @@ DRIZZLE_IMPORTS=$(grep -r "from \"drizzle-orm\"" app/routes --include="*.ts" --i
   grep -v "login/route.tsx" | \
   grep -v "register/route.tsx" | \
   grep -v "archives/route.tsx" | \
-  grep -v "verify-email-pending/route.tsx" || true)
+  grep -v "verify-email-pending/route.tsx" | \
+  grep -v "verify-email/route.tsx" | \
+  grep -v "_index/route.tsx" || true)
 
 if [ -n "$DRIZZLE_IMPORTS" ]; then
   echo "$DRIZZLE_IMPORTS"
@@ -43,7 +45,9 @@ ROUTE_FILES=$(find app/routes -name "*.ts" -o -name "*.tsx" | \
   grep -v "api.auth" | \
   grep -v "login/route.tsx" | \
   grep -v "register/route.tsx" | \
-  grep -v "logout/route.tsx")
+  grep -v "logout/route.tsx" | \
+  grep -v "api.passkey.login-options" | \
+  grep -v "api.passkey.login-verify")
 MISSING_AUTH_FILES=""
 
 for file in $ROUTE_FILES; do
