@@ -227,8 +227,7 @@ export async function verifyPasskeyAuthentication(
     throw new Error("パスキーが見つかりません");
   }
 
-  // 最新のチャレンジを取得
-  // このユーザー専用のチャレンジ、または全ユーザー対象（userId=null）のチャレンジを探す
+  // 最新のauthenticationチャレンジを取得（後続の処理でユーザー所有権をチェック）
   const challengeRecord = await db
     .select()
     .from(webauthnChallenges)
