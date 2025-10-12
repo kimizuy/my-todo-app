@@ -1,4 +1,4 @@
-import { VERIFICATION_TOKEN_EXPIRY_MS } from "~/shared/lib/config";
+import { VERIFICATION_TOKEN_EXPIRY_MS } from "~/features/auth/lib/config";
 
 /**
  * トークン生成と検証のユーティリティ

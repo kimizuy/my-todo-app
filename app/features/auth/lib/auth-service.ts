@@ -3,7 +3,7 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { drizzle } from "drizzle-orm/d1";
 import type { AppLoadContext } from "react-router";
 import { redirect } from "react-router";
-import { getCookie } from "~/shared/lib/cookies";
+import { getCookie } from "~/shared/utils/cookies";
 import { users } from "../schema";
 import type { AuthService, AuthUser } from "../types";
 import { createJWT, verifyJWT } from "./jwt";

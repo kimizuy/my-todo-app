@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useFetcher, useLoaderData } from "react-router";
 import type { Task } from "~/features/todo/schema";
-import type { loader } from "~/routes/_index/route";
+import type { loader } from "~/routes/_index";
 
 export function useTasks() {
   const { tasks: serverTasks } = useLoaderData<typeof loader>();

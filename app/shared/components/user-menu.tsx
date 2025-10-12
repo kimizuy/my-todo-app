@@ -1,13 +1,13 @@
 import { Menu } from "lucide-react";
 import { Form, Link } from "react-router";
-import { Button } from "~/shared/components/ui/button";
+import { Button } from "./shadcn-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "~/shared/components/ui/dropdown-menu";
+} from "./shadcn-ui/dropdown-menu";
 
 interface UserMenuProps {
   user?: {
@@ -35,7 +35,7 @@ export function UserMenu({ user }: UserMenuProps) {
             </div>
             <div className="flex justify-end">
               <DropdownMenuItem asChild>
-                <Form method="post" action="/logout">
+                <Form method="post" action="/api/auth/logout">
                   <Button type="submit" variant="default" size="sm">
                     ログアウト
                   </Button>

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { InvalidTokenError } from "~/shared/lib/errors";
+import { InvalidTokenError } from "~/shared/utils/errors";
 import type { User } from "../schema";
 import { users } from "../schema";
 import { isTokenExpired } from "./token";

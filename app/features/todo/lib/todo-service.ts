@@ -1,6 +1,5 @@
-import { and, desc, eq, type SQL } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, type SQL } from "drizzle-orm";
 import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1";
-import { archivedTasks, type NewArchivedTask } from "~/features/archive/schema";
 import type { User } from "~/features/auth/schema";
 import { type NewTask, type Task, tasks } from "~/features/todo/schema";
 
@@ -22,8 +21,12 @@ export class UserScopedDb {
    */
   async getTasks(additionalWhere?: SQL) {
     const conditions = additionalWhere
-      ? and(eq(tasks.userId, this.userId), additionalWhere)
-      : eq(tasks.userId, this.userId);
+      ? and(
+          eq(tasks.userId, this.userId),
+          isNull(tasks.archivedAt),
+          additionalWhere,
+        )
+      : and(eq(tasks.userId, this.userId), isNull(tasks.archivedAt));
 
     return this.db
       .select()
@@ -88,9 +91,9 @@ export class UserScopedDb {
   async getArchivedTasks() {
     return this.db
       .select()
-      .from(archivedTasks)
-      .where(eq(archivedTasks.userId, this.userId))
-      .orderBy(desc(archivedTasks.archivedAt))
+      .from(tasks)
+      .where(and(eq(tasks.userId, this.userId), isNotNull(tasks.archivedAt)))
+      .orderBy(desc(tasks.archivedAt))
       .all();
   }
 
@@ -98,33 +101,16 @@ export class UserScopedDb {
    * 完了したタスクをアーカイブ
    */
   async archiveDoneTasks() {
-    // 完了タスクを取得
-    const doneTasks = await this.db
-      .select()
-      .from(tasks)
+    const archivedAt = new Date().toISOString();
+
+    // 完了タスクをアーカイブ（archivedAtを設定）
+    const result = await this.db
+      .update(tasks)
+      .set({ archivedAt })
       .where(and(eq(tasks.columnId, "done"), eq(tasks.userId, this.userId)))
-      .all();
+      .returning();
 
-    if (doneTasks.length > 0) {
-      const archivedAt = new Date().toISOString();
-
-      // アーカイブテーブルに挿入
-      await this.db.insert(archivedTasks).values(
-        doneTasks.map(
-          (task): NewArchivedTask => ({
-            ...task,
-            archivedAt,
-          }),
-        ),
-      );
-
-      // 完了タスクを削除
-      await this.db
-        .delete(tasks)
-        .where(and(eq(tasks.columnId, "done"), eq(tasks.userId, this.userId)));
-    }
-
-    return { archived: doneTasks.length };
+    return { archived: result.length };
   }
 
   /**

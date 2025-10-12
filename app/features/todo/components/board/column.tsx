@@ -6,7 +6,7 @@ import {
 import { PartyPopper, Plus } from "lucide-react";
 import { useState } from "react";
 import type { ColumnId, Task } from "~/features/todo/schema";
-import { Button } from "~/shared/components/ui/button";
+import { Button } from "~/shared/components/shadcn-ui/button";
 import {
   Dialog,
   DialogClose,
@@ -16,8 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "~/shared/components/ui/dialog";
-import { Textarea } from "~/shared/components/ui/textarea";
+} from "~/shared/components/shadcn-ui/dialog";
+import { Textarea } from "~/shared/components/shadcn-ui/textarea";
 import { Item } from "./item";
 
 interface Props {

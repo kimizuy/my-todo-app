@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { MIN_PASSWORD_LENGTH } from "~/shared/lib/config";
+import { MIN_PASSWORD_LENGTH } from "~/features/auth/lib/config";
 
 /**
  * メールアドレスのバリデーションスキーマ
@@ -52,12 +52,35 @@ export const resendVerificationSchema = z.object({
 });
 
 /**
+ * パスワード忘れのバリデーションスキーマ
+ */
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+/**
+ * パスワードリセットのバリデーションスキーマ
+ */
+export const resetPasswordSchema = z
+  .object({
+    token: tokenSchema,
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, "Confirm password is required"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+/**
  * 型推論ヘルパー
  */
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 if (import.meta.vitest) {
   describe("emailSchema", () => {

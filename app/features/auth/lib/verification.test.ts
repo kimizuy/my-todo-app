@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { InvalidTokenError } from "~/shared/lib/errors";
+import { InvalidTokenError } from "~/shared/utils/errors";
 import { markEmailAsVerified, verifyEmailToken } from "./verification";
 
 describe("verifyEmailToken", () => {
