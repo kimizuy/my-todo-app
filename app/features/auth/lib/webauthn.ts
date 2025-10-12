@@ -113,10 +113,8 @@ export async function verifyPasskeyRegistration(
 
   const { credential } = verification.registrationInfo;
 
-  // 既存のパスキーを削除（1ユーザー1パスキーのみ許可）
-  await db.delete(passkeys).where(eq(passkeys.userId, userId));
-
   // パスキーをデータベースに保存
+  // 複数パスキー対応: 既存のパスキーを削除せず、新しいパスキーを追加
   const [newPasskey] = await db
     .insert(passkeys)
     .values({
@@ -161,18 +159,12 @@ export async function generatePasskeyAuthenticationOptions(
       throw new Error("ユーザーが見つかりません");
     }
 
-    // 最新のパスキーのみを取得（最後に使用された、または最新に作成されたもの）
-    const latestPasskey = await db
+    // 複数パスキー対応: ユーザーの全パスキーを取得
+    allowedPasskeys = await db
       .select()
       .from(passkeys)
       .where(eq(passkeys.userId, user.id))
-      .orderBy(desc(passkeys.lastUsedAt), desc(passkeys.createdAt))
-      .limit(1)
-      .get();
-
-    if (latestPasskey) {
-      allowedPasskeys = [latestPasskey];
-    }
+      .all();
   }
 
   const options = await generateAuthenticationOptions({
