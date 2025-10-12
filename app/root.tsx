@@ -27,7 +27,9 @@ import { cn } from "~/shared/utils/cn";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = await getAuthUser(request, context);
-  return { user };
+  const url = new URL(request.url);
+  const showMenu = url.pathname === "/" || url.pathname === "/archives";
+  return { user, showMenu };
 }
 
 export const links: Route.LinksFunction = () => [
@@ -46,6 +48,7 @@ export const links: Route.LinksFunction = () => [
 export function Layout({ children }: { children: React.ReactNode }) {
   const data = useRouteLoaderData<typeof loader>("root");
   const user = data?.user;
+  const showMenu = data?.showMenu ?? false;
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -68,7 +71,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 Daily Tasks
               </NavLink>
               <div className="ml-auto flex items-center gap-2">
-                <UserMenu user={user} />
+                {showMenu && <UserMenu user={user} />}
                 <ThemeSwitch />
               </div>
             </header>
