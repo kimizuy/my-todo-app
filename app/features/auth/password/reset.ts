@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { PASSWORD_RESET_TOKEN_EXPIRY_MS } from "~/features/auth/lib/config";
+import { PASSWORD_RESET_TOKEN_EXPIRY_MS } from "~/features/auth/config";
 import { InvalidTokenError } from "~/shared/utils/errors";
+import { sendEmail } from "../email/send";
+import { getPasswordResetEmailTemplate } from "../email/templates";
 import { passwordResetTokens, users } from "../schema";
-import { sendEmail } from "./email";
-import { getPasswordResetEmailTemplate } from "./email-templates";
-import { hashPassword } from "./password";
-import { generateVerificationToken, isTokenExpired } from "./token";
+import { generateVerificationToken, isTokenExpired } from "../session/token";
+import { hashPassword } from "./hash";
 
 /**
  * パスワードリセットトークンの有効期限を生成

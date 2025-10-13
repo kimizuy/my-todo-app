@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
-import { requireEmailVerified } from "~/features/auth/lib/auth-service";
+import { requireEmailVerified } from "~/features/auth/service";
 import { parseContent } from "~/features/todo/lib/parse-content";
 import { createUserDb } from "~/features/todo/lib/todo-service";
 import type { Task } from "~/features/todo/schema";

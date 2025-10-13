@@ -6,16 +6,13 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import {
-  createAuthService,
-  requireAuth,
-} from "~/features/auth/lib/auth-service";
-import {
   generatePasskeyAuthenticationOptions,
   generatePasskeyRegistrationOptions,
   verifyPasskeyAuthentication,
   verifyPasskeyRegistration,
-} from "~/features/auth/lib/webauthn";
+} from "~/features/auth/passkey/server";
 import { passkeys, users } from "~/features/auth/schema";
+import { createAuthService, requireAuth } from "~/features/auth/service";
 import { setCookie } from "~/shared/utils/cookies";
 import type { Env } from "~/types/cloudflare";
 

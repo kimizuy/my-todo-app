@@ -1,6 +1,6 @@
 import { Resend } from "resend";
-import { DEFAULT_EMAIL_FROM } from "~/features/auth/lib/config";
-import { getVerificationEmailTemplate } from "./email-templates";
+import { DEFAULT_EMAIL_FROM } from "~/features/auth/config";
+import { getVerificationEmailTemplate } from "./templates";
 
 interface SendVerificationEmailParams {
   email: string;

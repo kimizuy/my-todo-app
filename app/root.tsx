@@ -14,7 +14,7 @@ import {
   ScrollRestoration,
   useRouteLoaderData,
 } from "react-router";
-import { getAuthUser } from "~/features/auth/lib/auth-service";
+import { getAuthUser } from "~/features/auth/service";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import {
   DropdownMenu,

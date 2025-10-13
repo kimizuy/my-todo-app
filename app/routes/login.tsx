@@ -12,12 +12,9 @@ import {
   useNavigation,
 } from "react-router";
 import { passkeyApi } from "~/client/rpc";
-import {
-  createAuthService,
-  getAuthUser,
-} from "~/features/auth/lib/auth-service";
-import { verifyPassword } from "~/features/auth/lib/password";
+import { verifyPassword } from "~/features/auth/password/hash";
 import { passkeys, users } from "~/features/auth/schema";
+import { createAuthService, getAuthUser } from "~/features/auth/service";
 import { loginSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import { Input } from "~/shared/components/shadcn-ui/input";

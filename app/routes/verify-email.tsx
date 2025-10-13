@@ -3,13 +3,13 @@ import { drizzle } from "drizzle-orm/d1";
 import { Check, X } from "lucide-react";
 import { createSearchParamsCache, parseAsString } from "nuqs/server";
 import { Link, useLoaderData, useNavigate } from "react-router";
-import { usePasskeyRegistration } from "~/features/auth/hooks/usePasskeyRegistration";
-import { getAuthUser } from "~/features/auth/lib/auth-service";
 import {
   markEmailAsVerified,
   verifyEmailToken,
-} from "~/features/auth/lib/verification";
+} from "~/features/auth/email/verification";
+import { usePasskeyRegistration } from "~/features/auth/passkey/registration";
 import { passkeys } from "~/features/auth/schema";
+import { getAuthUser } from "~/features/auth/service";
 import { verifyEmailSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import { InvalidTokenError } from "~/shared/utils/errors";

@@ -9,17 +9,14 @@ import {
   useActionData,
   useNavigation,
 } from "react-router";
-import {
-  createAuthService,
-  getAuthUser,
-} from "~/features/auth/lib/auth-service";
-import { sendVerificationEmail } from "~/features/auth/lib/email";
-import { hashPassword } from "~/features/auth/lib/password";
+import { sendVerificationEmail } from "~/features/auth/email/send";
+import { hashPassword } from "~/features/auth/password/hash";
+import { users } from "~/features/auth/schema";
+import { createAuthService, getAuthUser } from "~/features/auth/service";
 import {
   generateTokenExpiry,
   generateVerificationToken,
-} from "~/features/auth/lib/token";
-import { users } from "~/features/auth/schema";
+} from "~/features/auth/session/token";
 import { registerSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import { Input } from "~/shared/components/shadcn-ui/input";

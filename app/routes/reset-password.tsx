@@ -10,11 +10,11 @@ import {
   useLoaderData,
   useNavigation,
 } from "react-router";
-import { getAuthUser } from "~/features/auth/lib/auth-service";
 import {
   resetPassword,
   verifyResetToken,
-} from "~/features/auth/lib/password-reset";
+} from "~/features/auth/password/reset";
+import { getAuthUser } from "~/features/auth/service";
 import { resetPasswordSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import { Input } from "~/shared/components/shadcn-ui/input";

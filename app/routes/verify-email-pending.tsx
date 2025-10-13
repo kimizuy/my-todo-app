@@ -3,14 +3,14 @@ import { drizzle } from "drizzle-orm/d1";
 import { Mail } from "lucide-react";
 import { useState } from "react";
 import { Link, useFetcher, useLoaderData } from "react-router";
-import { requireAuth } from "~/features/auth/lib/auth-service";
-import { sendVerificationEmail } from "~/features/auth/lib/email";
+import { sendVerificationEmail } from "~/features/auth/email/send";
+import { regenerateVerificationToken } from "~/features/auth/email/verification";
+import { users } from "~/features/auth/schema";
+import { requireAuth } from "~/features/auth/service";
 import {
   generateTokenExpiry,
   generateVerificationToken,
-} from "~/features/auth/lib/token";
-import { regenerateVerificationToken } from "~/features/auth/lib/verification";
-import { users } from "~/features/auth/schema";
+} from "~/features/auth/session/token";
 import { resendVerificationSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import { AppError, errorResponse, formatZodError } from "~/shared/utils/errors";
