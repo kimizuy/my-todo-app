@@ -1,4 +1,5 @@
 import { createRequestHandler } from "react-router";
+import { rpcApp } from "../app/server/rpc";
 
 declare module "react-router" {
   export interface AppLoadContext {
@@ -16,6 +17,14 @@ const requestHandler = createRequestHandler(
 
 export default {
   async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+
+    // /rpc/* へのリクエストはHonoで処理
+    if (url.pathname.startsWith("/rpc")) {
+      return rpcApp.fetch(request, env, ctx);
+    }
+
+    // その他のリクエストはReact Routerで処理
     return requestHandler(request, {
       cloudflare: { env, ctx },
     });
