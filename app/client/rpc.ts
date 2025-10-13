@@ -1,4 +1,7 @@
-import type { RegistrationResponseJSON } from "@simplewebauthn/browser";
+import type {
+  AuthenticationResponseJSON,
+  RegistrationResponseJSON,
+} from "@simplewebauthn/browser";
 import { hc } from "hono/client";
 import type { AppType } from "~/server/rpc";
 
@@ -22,6 +25,19 @@ export const rpcClient = hc<AppType>("/");
  * よく使うAPIをラップして使いやすくする
  */
 export const passkeyApi = {
+  /**
+   * メールアドレスでパスキーが登録されているかチェック
+   */
+  checkPasskey: async (email: string) => {
+    const res = await rpcClient.rpc.passkey.check.$get({
+      query: { email },
+    });
+    if (!res.ok) {
+      throw new Error("パスキーチェックに失敗しました");
+    }
+    return res.json();
+  },
+
   /**
    * パスキー登録オプションを取得
    */
@@ -49,6 +65,38 @@ export const passkeyApi = {
         "error" in error
           ? (error.error as string)
           : "パスキー登録の検証に失敗しました",
+      );
+    }
+    return res.json();
+  },
+
+  /**
+   * パスキーログインオプションを取得
+   */
+  getLoginOptions: async (email?: string) => {
+    const res = await rpcClient.rpc.passkey["login-options"].$get({
+      query: email ? { email } : {},
+    });
+    if (!res.ok) {
+      throw new Error("パスキーログインオプションの取得に失敗しました");
+    }
+    return res.json();
+  },
+
+  /**
+   * パスキーログインを検証
+   * @param authenticationResponse WebAuthn認証レスポンス
+   */
+  verifyLogin: async (authenticationResponse: AuthenticationResponseJSON) => {
+    const res = await rpcClient.rpc.passkey["login-verify"].$post({
+      json: authenticationResponse,
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(
+        "error" in error
+          ? (error.error as string)
+          : "パスキーログインの検証に失敗しました",
       );
     }
     return res.json();
