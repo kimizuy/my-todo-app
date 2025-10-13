@@ -40,7 +40,7 @@ export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
     transition,
   };
 
-  function handleDelete(e: React.MouseEvent) {
+  function handleDelete(e: React.SyntheticEvent) {
     e.stopPropagation();
     onDelete(task.id);
   }
@@ -55,6 +55,20 @@ export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
       e.stopPropagation();
       e.preventDefault();
       onComplete(task.id);
+    }
+  }
+
+  function handleDeleteKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.stopPropagation();
+      // DialogTriggerが自動的にダイアログを開くため、他の処理は不要
+    }
+  }
+
+  function handleDeleteConfirmKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.stopPropagation();
+      // onClickで削除処理が実行されるため、他の処理は不要
     }
   }
 
@@ -94,6 +108,7 @@ export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
               variant="ghost"
               size="sm"
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={handleDeleteKeyDown}
               title="削除する"
             >
               <Trash2 className="text-destructive" />
@@ -110,7 +125,11 @@ export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
                 <Button variant="outline">キャンセル</Button>
               </DialogClose>
               <DialogClose asChild>
-                <Button variant="destructive" onClick={handleDelete}>
+                <Button
+                  variant="destructive"
+                  onClick={handleDelete}
+                  onKeyDown={handleDeleteConfirmKeyDown}
+                >
                   削除
                 </Button>
               </DialogClose>
@@ -132,7 +151,7 @@ export function TaskContent({ task }: TaskContentProps) {
   return (
     <div className="flex flex-col gap-2">
       <div
-        className="prose dark:prose-invert text-primary prose-p:text-primary prose-headings:text-primary prose-li:text-primary prose-strong:text-primary prose-em:text-primary prose-a:text-primary wrap-anywhere"
+        className="prose dark:prose-invert wrap-anywhere"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized with DOMPurify
         dangerouslySetInnerHTML={{ __html: parsedContent }}
       />
