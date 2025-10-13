@@ -112,7 +112,7 @@ export default function Archives() {
                             <ArchivedTaskContent task={task} />
                           </div>
                           {task.createdAt && (
-                            <time className="text-muted-foreground text-xs whitespace-nowrap">
+                            <time className="text-muted-foreground h-7 pt-2 text-xs whitespace-nowrap">
                               {formatDate(task.createdAt)}
                             </time>
                           )}
@@ -139,7 +139,7 @@ function ArchivedTaskContent({ task }: ArchivedTaskContentProps) {
 
   return (
     <div
-      className="prose dark:prose-invert text-primary prose-p:text-primary prose-headings:text-primary prose-li:text-primary prose-strong:text-primary prose-em:text-primary prose-a:text-primary text-sm wrap-anywhere"
+      className="prose dark:prose-invert wrap-anywhere"
       // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized with DOMPurify
       dangerouslySetInnerHTML={{ __html: parsedContent }}
     />

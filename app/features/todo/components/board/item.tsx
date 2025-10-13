@@ -132,7 +132,7 @@ export function TaskContent({ task }: TaskContentProps) {
   return (
     <div className="flex flex-col gap-2">
       <div
-        className="prose dark:prose-invert text-primary prose-p:text-primary prose-headings:text-primary prose-li:text-primary prose-strong:text-primary prose-em:text-primary prose-a:text-primary wrap-anywhere"
+        className="prose dark:prose-invert wrap-anywhere"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized with DOMPurify
         dangerouslySetInnerHTML={{ __html: parsedContent }}
       />
