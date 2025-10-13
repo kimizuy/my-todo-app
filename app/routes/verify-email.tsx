@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Check, X } from "lucide-react";
+import { createSearchParamsCache, parseAsString } from "nuqs/server";
 import { Link, useLoaderData, useNavigate } from "react-router";
 import { usePasskeyRegistration } from "~/features/auth/hooks/usePasskeyRegistration";
 import { getAuthUser } from "~/features/auth/lib/auth-service";
@@ -14,14 +15,19 @@ import { Button } from "~/shared/components/shadcn-ui/button";
 import { InvalidTokenError } from "~/shared/utils/errors";
 import type { Route } from "./+types/verify-email";
 
+const searchParamsCache = createSearchParamsCache({
+  token: parseAsString,
+});
+
 export async function loader({ request, context }: Route.LoaderArgs) {
+  // URLパラメータからトークンを取得（nuqsで型安全に）
   const url = new URL(request.url);
-  const rawData = {
-    token: url.searchParams.get("token"),
-  };
+  const { token } = searchParamsCache.parse(
+    Object.fromEntries(url.searchParams),
+  );
 
   // バリデーション
-  const validation = verifyEmailSchema.safeParse(rawData);
+  const validation = verifyEmailSchema.safeParse({ token });
   if (!validation.success) {
     const firstError = validation.error.issues[0];
     return {
@@ -32,13 +38,13 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     };
   }
 
-  const { token } = validation.data;
+  const { token: validatedToken } = validation.data;
 
   const db = drizzle(context.cloudflare.env.DB);
 
   try {
     // トークン検証
-    const user = await verifyEmailToken(token, db);
+    const user = await verifyEmailToken(validatedToken, db);
 
     // メール認証完了
     await markEmailAsVerified(user.id, db);

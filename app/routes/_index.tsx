@@ -1,8 +1,9 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { RotateCcw } from "lucide-react";
+import { parseAsBoolean, useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
-import { useLoaderData, useNavigate } from "react-router";
+import { useLoaderData } from "react-router";
 import { usePasskeyRegistration } from "~/features/auth/hooks/usePasskeyRegistration";
 import { requireEmailVerified } from "~/features/auth/lib/auth-service";
 import { passkeys } from "~/features/auth/schema";
@@ -121,11 +122,13 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 export default function Home() {
   const loaderData = useLoaderData<typeof loader>();
-  const navigate = useNavigate();
   const { tasks, setTasks, fetcher } = useTasks();
   const [filterText, setFilterText] = useState<string>("");
-
   const [showPasskeyDialog, setShowPasskeyDialog] = useState(false);
+  const [promptPasskey, setPromptPasskey] = useQueryState(
+    "prompt_passkey",
+    parseAsBoolean,
+  );
 
   const {
     register: handleRegisterPasskey,
@@ -140,12 +143,12 @@ export default function Home() {
   });
 
   useEffect(() => {
-    if (loaderData.promptPasskey && !loaderData.hasPasskey) {
+    if (promptPasskey && !loaderData.hasPasskey) {
       setShowPasskeyDialog(true);
       // クエリパラメータをクリア
-      navigate("/", { replace: true });
+      setPromptPasskey(null);
     }
-  }, [loaderData.promptPasskey, loaderData.hasPasskey, navigate]);
+  }, [promptPasskey, loaderData.hasPasskey, setPromptPasskey]);
 
   const handleAddTaskFromForm = (content: string, columnId: ColumnId) => {
     // 最大のorder値を取得
