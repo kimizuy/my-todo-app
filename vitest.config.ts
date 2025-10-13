@@ -11,6 +11,14 @@ export default defineWorkersProject(async () => {
 
   return {
     plugins: [tsconfigPaths()],
+    resolve: {
+      alias: {
+        // Fix: @cloudflare/vitest-pool-workers cannot resolve tslib's complex exports field correctly.
+        // Force use of ESM version to avoid "does not provide an export named 'default'" error.
+        // This is required when using Hono with @hono/zod-validator which depends on tslib.
+        tslib: "tslib/tslib.es6.js",
+      },
+    },
     test: {
       globals: true,
       includeSource: ["app/**/*.{ts,tsx}"],

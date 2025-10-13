@@ -1,5 +1,5 @@
 import { redirect } from "react-router";
-import { getAuthUser } from "~/features/auth/lib/auth-service";
+import { getAuthUser } from "~/features/auth/service";
 import { deleteCookie } from "~/shared/utils/cookies";
 import type { Route } from "./+types/api.auth.logout";
 

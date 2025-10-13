@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/d1";
 import { ArrowLeft } from "lucide-react";
+import { createSearchParamsCache, parseAsString } from "nuqs/server";
 import { useId } from "react";
 import {
   Form,
@@ -9,17 +10,21 @@ import {
   useLoaderData,
   useNavigation,
 } from "react-router";
-import { getAuthUser } from "~/features/auth/lib/auth-service";
 import {
   resetPassword,
   verifyResetToken,
-} from "~/features/auth/lib/password-reset";
+} from "~/features/auth/password/reset";
+import { getAuthUser } from "~/features/auth/service";
 import { resetPasswordSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import { Input } from "~/shared/components/shadcn-ui/input";
 import { Label } from "~/shared/components/shadcn-ui/label";
 import { InvalidTokenError } from "~/shared/utils/errors";
 import type { Route } from "./+types/reset-password";
+
+const searchParamsCache = createSearchParamsCache({
+  token: parseAsString,
+});
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   // ログイン済みの場合はホームにリダイレクト
@@ -28,9 +33,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     throw redirect("/");
   }
 
-  // URLパラメータからトークンを取得
+  // URLパラメータからトークンを取得（nuqsで型安全に）
   const url = new URL(request.url);
-  const token = url.searchParams.get("token");
+  const { token } = searchParamsCache.parse(
+    Object.fromEntries(url.searchParams),
+  );
 
   if (!token) {
     return {

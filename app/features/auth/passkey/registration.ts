@@ -1,8 +1,6 @@
-import {
-  type PublicKeyCredentialCreationOptionsJSON,
-  startRegistration,
-} from "@simplewebauthn/browser";
+import { startRegistration } from "@simplewebauthn/browser";
 import { useState } from "react";
+import { passkeyApi } from "~/client/rpc";
 
 export type PasskeyRegistrationStatus =
   | "idle"
@@ -26,30 +24,18 @@ export function usePasskeyRegistration(
       setStatus("registering");
       setError(null);
 
-      // 1. 登録オプション取得
-      const optionsResponse = await fetch("/api/passkey/register-options");
-      if (!optionsResponse.ok) {
-        throw new Error("登録オプションの取得に失敗しました");
-      }
-      const registrationOptions =
-        (await optionsResponse.json()) as PublicKeyCredentialCreationOptionsJSON;
+      // 1. 登録オプション取得 (Hono RPC経由)
+      // 戻り値の型はHono RPCから自動推論される
+      const registrationOptions = await passkeyApi.getRegisterOptions();
 
       // 2. WebAuthn登録プロセス開始
       const registrationResponse = await startRegistration({
         optionsJSON: registrationOptions,
       });
 
-      // 3. 検証リクエスト送信
-      const verifyResponse = await fetch("/api/passkey/register-verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(registrationResponse),
-      });
-
-      if (!verifyResponse.ok) {
-        const errorData = (await verifyResponse.json()) as { error?: string };
-        throw new Error(errorData.error || "パスキーの登録に失敗しました");
-      }
+      // 3. 検証リクエスト送信 (Hono RPC経由)
+      // registrationResponseはRegistrationResponseJSON型なのでそのまま渡せる
+      await passkeyApi.verifyRegistration(registrationResponse);
 
       setStatus("success");
       options?.onSuccess?.();

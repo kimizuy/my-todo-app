@@ -1,5 +1,5 @@
 import { Link, redirect } from "react-router";
-import { getAuthUser } from "~/features/auth/lib/auth-service";
+import { getAuthUser } from "~/features/auth/service";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import type { Route } from "./+types/auth";
 

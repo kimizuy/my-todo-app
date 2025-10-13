@@ -4,7 +4,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { PartyPopper, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  clearDraft,
+  loadDraft,
+  saveDraft,
+} from "~/features/todo/lib/draft-storage";
 import type { ColumnId, Task } from "~/features/todo/schema";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import {
@@ -48,10 +53,28 @@ export function Column({
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
+  // Dialogが開いた時に下書きを読み込む
+  useEffect(() => {
+    if (isOpen) {
+      const draft = loadDraft(id);
+      if (draft) {
+        setInputValue(draft);
+      }
+    }
+  }, [isOpen, id]);
+
+  // Dialogが閉じた時に下書きを保存
+  useEffect(() => {
+    if (!isOpen && inputValue.trim()) {
+      saveDraft(id, inputValue);
+    }
+  }, [isOpen, id, inputValue]);
+
   const handleAddTask = () => {
     if (!inputValue.trim()) return;
     onAddTask(inputValue.trim());
     setInputValue("");
+    clearDraft(id); // タスク追加成功時に下書きをクリア
     setIsOpen(false);
   };
 

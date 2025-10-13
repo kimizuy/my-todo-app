@@ -1,7 +1,4 @@
-import {
-  type PublicKeyCredentialRequestOptionsJSON,
-  startAuthentication,
-} from "@simplewebauthn/browser";
+import { startAuthentication } from "@simplewebauthn/browser";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { ArrowLeft } from "lucide-react";
@@ -14,12 +11,10 @@ import {
   useNavigate,
   useNavigation,
 } from "react-router";
-import {
-  createAuthService,
-  getAuthUser,
-} from "~/features/auth/lib/auth-service";
-import { verifyPassword } from "~/features/auth/lib/password";
+import { passkeyApi } from "~/client/rpc";
+import { verifyPassword } from "~/features/auth/password/hash";
 import { passkeys, users } from "~/features/auth/schema";
+import { createAuthService, getAuthUser } from "~/features/auth/service";
 import { loginSchema } from "~/features/auth/validation";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import { Input } from "~/shared/components/shadcn-ui/input";
@@ -134,10 +129,7 @@ export default function Login() {
 
     setCheckingPasskey(true);
     try {
-      const response = await fetch(
-        `/api/passkey/check?email=${encodeURIComponent(email)}`,
-      );
-      const data = (await response.json()) as { hasPasskey: boolean };
+      const data = await passkeyApi.checkPasskey(email);
 
       if (data.hasPasskey) {
         setStep("passkey");
@@ -158,29 +150,13 @@ export default function Login() {
       setPasskeyStatus("authenticating");
       setPasskeyError(null);
 
-      const optionsResponse = await fetch("/api/passkey/login-options");
-      if (!optionsResponse.ok) {
-        throw new Error("ログインオプションの取得に失敗しました");
-      }
-      const options =
-        (await optionsResponse.json()) as PublicKeyCredentialRequestOptionsJSON;
+      const options = await passkeyApi.getLoginOptions();
 
       const authenticationResponse = await startAuthentication({
         optionsJSON: options,
       });
 
-      const verifyResponse = await fetch("/api/passkey/login-verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(authenticationResponse),
-      });
-
-      if (!verifyResponse.ok) {
-        const errorData = (await verifyResponse.json()) as { error?: string };
-        throw new Error(errorData.error || "パスキーログインに失敗しました");
-      }
+      await passkeyApi.verifyLogin(authenticationResponse);
 
       navigate("/");
     } catch (err) {

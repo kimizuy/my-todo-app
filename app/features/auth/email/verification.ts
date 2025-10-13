@@ -3,7 +3,7 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { InvalidTokenError } from "~/shared/utils/errors";
 import type { User } from "../schema";
 import { users } from "../schema";
-import { isTokenExpired } from "./token";
+import { isTokenExpired } from "../session/token";
 
 /**
  * トークンでユーザーを検証し、有効性をチェック

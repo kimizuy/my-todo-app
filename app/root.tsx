@@ -2,6 +2,7 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { Check, ListTodo, Moon, Sun } from "lucide-react";
 import { ThemeProvider, useTheme } from "next-themes";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { useEffect } from "react";
 import {
   isRouteErrorResponse,
@@ -13,7 +14,7 @@ import {
   ScrollRestoration,
   useRouteLoaderData,
 } from "react-router";
-import { getAuthUser } from "~/features/auth/lib/auth-service";
+import { getAuthUser } from "~/features/auth/service";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import {
   DropdownMenu,
@@ -86,7 +87,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <NuqsAdapter>
+      <Outlet />
+    </NuqsAdapter>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
