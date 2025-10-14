@@ -1,7 +1,7 @@
 import { startAuthentication } from "@simplewebauthn/browser";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   Form,
   Link,
@@ -113,6 +113,9 @@ export default function Login() {
   const isSubmitting = navigation.state === "submitting";
   const emailId = useId();
   const passwordId = useId();
+  const headingId = useId();
+  const descriptionId = useId();
+  const errorId = useId();
 
   const [passkeyStatus, setPasskeyStatus] = useState<
     "idle" | "authenticating" | "error"
@@ -121,6 +124,15 @@ export default function Login() {
   const [isConditionalUIAvailable, setIsConditionalUIAvailable] =
     useState(false);
   const [conditionalUIStarted, setConditionalUIStarted] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // エラー発生時にフォーカスを移動
+  useEffect(() => {
+    if (actionData?.error && errorRef.current) {
+      errorRef.current.focus();
+    }
+  }, [actionData?.error]);
 
   // Conditional UIの利用可能性をチェック
   useEffect(() => {
@@ -175,20 +187,25 @@ export default function Login() {
 
   const handleDirectPasskeyLogin = async () => {
     try {
+      setStatusMessage("パスキー認証を開始しています...");
       setPasskeyStatus("authenticating");
       setPasskeyError(null);
 
       // メールアドレスなしでパスキー認証を開始
       const options = await passkeyApi.getLoginOptions();
+      setStatusMessage("認証情報を確認しています...");
 
       const authenticationResponse = await startAuthentication({
         optionsJSON: options,
       });
 
+      setStatusMessage("認証を検証しています...");
       await passkeyApi.verifyLogin(authenticationResponse);
 
+      setStatusMessage("ログインに成功しました。リダイレクトしています...");
       navigate("/");
     } catch (err) {
+      setStatusMessage("");
       // ユーザーがキャンセルした場合はエラー表示しない
       if (err instanceof Error && err.name === "NotAllowedError") {
         setPasskeyStatus("idle");
@@ -204,12 +221,33 @@ export default function Login() {
 
   return (
     <div className="grid h-full place-items-center">
+      {/* ライブリージョン（スクリーンリーダー専用） */}
+      {/* biome-ignore lint/a11y/useSemanticElements: スクリーンリーダー専用の非表示要素 */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {statusMessage}
+      </div>
+
       <div className="w-full max-w-md space-y-8 rounded-lg border p-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">ログイン</h1>
+          <h1 id={headingId} className="text-2xl font-bold">
+            ログイン
+          </h1>
         </div>
 
-        <Form method="post" className="space-y-6">
+        <Form
+          method="post"
+          className="space-y-6"
+          aria-labelledby={headingId}
+          aria-describedby={descriptionId}
+        >
+          <div id={descriptionId} className="sr-only">
+            メールアドレスとパスワードを入力してログインしてください。パスキーまたはGoogleアカウントでもログインできます。
+          </div>
           <div className="space-y-2">
             <Label htmlFor={emailId}>メールアドレス</Label>
             <Input
@@ -219,6 +257,9 @@ export default function Login() {
               required
               autoComplete="username webauthn"
               autoFocus
+              aria-required="true"
+              aria-invalid={!!actionData?.error}
+              aria-describedby={actionData?.error ? errorId : undefined}
             />
           </div>
 
@@ -239,11 +280,24 @@ export default function Login() {
               required
               autoComplete="current-password"
               minLength={8}
+              aria-required="true"
+              aria-invalid={!!actionData?.error}
+              aria-describedby={actionData?.error ? errorId : undefined}
             />
           </div>
 
           {actionData?.error && (
-            <div className="text-sm text-red-600">{actionData.error}</div>
+            <div
+              id={errorId}
+              ref={errorRef}
+              tabIndex={-1}
+              role="alert"
+              aria-live="polite"
+              className="rounded p-2 text-sm text-red-600 focus:ring-2 focus:ring-red-500 focus:outline-none"
+            >
+              <span className="sr-only">エラー: </span>
+              {actionData.error}
+            </div>
           )}
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
@@ -264,8 +318,15 @@ export default function Login() {
           </div>
 
           {passkeyError && (
-            <div className="rounded-lg bg-red-50 p-4">
-              <p className="text-sm text-red-800">{passkeyError}</p>
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="rounded-lg bg-red-50 p-4"
+            >
+              <p className="text-sm text-red-800">
+                <span className="sr-only">エラー: </span>
+                {passkeyError}
+              </p>
             </div>
           )}
 
@@ -275,6 +336,7 @@ export default function Login() {
             className="w-full"
             onClick={handleDirectPasskeyLogin}
             disabled={passkeyStatus === "authenticating"}
+            aria-busy={passkeyStatus === "authenticating"}
           >
             {passkeyStatus === "authenticating"
               ? "認証中..."
