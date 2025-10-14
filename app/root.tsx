@@ -14,7 +14,7 @@ import {
   ScrollRestoration,
   useRouteLoaderData,
 } from "react-router";
-import { getAuthUser } from "~/features/auth/service";
+import { createAuthService } from "~/features/auth/service";
 import { Button } from "~/shared/components/shadcn-ui/button";
 import {
   DropdownMenu,
@@ -25,11 +25,22 @@ import {
 import { SkipLink } from "~/shared/components/shadcn-ui/skip-link";
 import { UserMenu } from "~/shared/components/user-menu";
 import { cn } from "~/shared/utils/cn";
+import { setCookie } from "~/shared/utils/cookies";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const user = await getAuthUser(request, context);
+  const auth = createAuthService(context);
+  const { user, newToken } = await auth.getUser(request);
+
   const url = new URL(request.url);
   const showMenu = url.pathname === "/" || url.pathname === "/archives";
+
+  // スライディングセッション: 新しいトークンがあればCookieを更新
+  if (newToken) {
+    const headers = new Headers();
+    headers.append("Set-Cookie", setCookie("auth_token", newToken));
+    return Response.json({ user, showMenu }, { headers });
+  }
+
   return { user, showMenu };
 }
 
@@ -71,7 +82,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <ListTodo />
                 Daily Tasks
               </NavLink>
-              <div className="ml-auto flex items-center gap-2">
+              <div className="ml-auto flex items-center gap-3">
                 {showMenu && <UserMenu user={user} />}
                 <ThemeSwitch />
               </div>

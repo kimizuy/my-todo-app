@@ -11,6 +11,9 @@ export const users = sqliteTable("users", {
     .default(false),
   verificationToken: text("verification_token"),
   verificationTokenExpiry: text("verification_token_expiry"),
+  // OAuth関連
+  googleId: text("google_id").unique(), // Google固有のユーザーID
+  provider: text("provider").notNull().default("password"), // "password" | "google" | "passkey"
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -72,3 +75,19 @@ export const passwordResetTokens = sqliteTable("password_reset_tokens", {
 
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type NewPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+
+// OAuth state管理テーブル
+export const oauthStates = sqliteTable("oauth_states", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  state: text("state").notNull().unique(),
+  codeVerifier: text("code_verifier").notNull(),
+  provider: text("provider").notNull(), // "google"
+  redirectTo: text("redirect_to"), // 認証後のリダイレクト先（オプション）
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  expiresAt: text("expires_at").notNull(),
+});
+
+export type OAuthState = typeof oauthStates.$inferSelect;
+export type NewOAuthState = typeof oauthStates.$inferInsert;

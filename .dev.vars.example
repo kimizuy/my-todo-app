@@ -1,0 +1,20 @@
+# ローカル開発用の環境変数設定例
+# このファイルをコピーして .dev.vars を作成し、実際の値に置き換えてください
+# cp .dev.vars.example .dev.vars
+
+# JWT認証用のシークレットキー
+# 以下のコマンドで生成できます: openssl rand -base64 48
+JWT_SECRET=your-jwt-secret-key-here
+
+# Resend API Key (メール送信用)
+# https://resend.com/api-keys で生成
+# パーミッション: sending (推奨)
+RESEND_API_KEY=your-resend-api-key-here
+
+# Google OAuth認証用のクライアントID
+# https://console.cloud.google.com/ で取得
+GOOGLE_CLIENT_ID=your-google-client-id-here
+
+# Google OAuth認証用のクライアントシークレット
+# https://console.cloud.google.com/ で取得
+GOOGLE_CLIENT_SECRET=your-google-client-secret-here

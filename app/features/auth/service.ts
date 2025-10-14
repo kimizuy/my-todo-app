@@ -6,7 +6,7 @@ import { redirect } from "react-router";
 import { getCookie } from "~/shared/utils/cookies";
 import { users } from "./schema";
 import { createJWT, verifyJWT } from "./session/jwt";
-import type { AuthService, AuthUser } from "./types";
+import type { AuthService, AuthSessionResult, AuthUser } from "./types";
 
 // JWT 実装
 class JWTAuthService implements AuthService {
@@ -19,12 +19,12 @@ class JWTAuthService implements AuthService {
     return createJWT({ userId: user.id, email: user.email }, this.secret);
   }
 
-  async getUser(request: Request): Promise<AuthUser | null> {
+  async getUser(request: Request): Promise<AuthSessionResult> {
     const token = getCookie(request, "auth_token");
-    if (!token) return null;
+    if (!token) return { user: null };
 
     const payload = await verifyJWT(token, this.secret);
-    if (!payload) return null;
+    if (!payload) return { user: null };
 
     // DBでユーザーの存在を確認
     const user = await this.db
@@ -35,22 +35,39 @@ class JWTAuthService implements AuthService {
 
     // ユーザーが存在しない場合は無効
     if (!user) {
-      return null;
+      return { user: null };
+    }
+
+    // スライディングセッション: 有効期限が残り3日以下なら新しいトークンを発行
+    const now = Math.floor(Date.now() / 1000);
+    const timeUntilExpiry = payload.exp - now;
+    const REFRESH_THRESHOLD = 60 * 60 * 24 * 3; // 残り3日
+
+    let newToken: string | undefined;
+    if (timeUntilExpiry > 0 && timeUntilExpiry < REFRESH_THRESHOLD) {
+      newToken = await createJWT(
+        { userId: user.id, email: user.email },
+        this.secret,
+        60 * 60 * 24 * 7, // 新たに7日間
+      );
     }
 
     return {
-      id: user.id,
-      email: user.email,
-      emailVerified: !!user.emailVerified,
+      user: {
+        id: user.id,
+        email: user.email,
+        emailVerified: !!user.emailVerified,
+      },
+      newToken,
     };
   }
 
   async requireUser(request: Request): Promise<AuthUser> {
-    const user = await this.getUser(request);
-    if (!user) {
+    const result = await this.getUser(request);
+    if (!result.user) {
       throw redirect("/auth");
     }
-    return user;
+    return result.user;
   }
 
   destroySession(): void {
@@ -97,5 +114,6 @@ export async function getAuthUser(
   context: AppLoadContext,
 ): Promise<AuthUser | null> {
   const auth = createAuthService(context);
-  return auth.getUser(request);
+  const result = await auth.getUser(request);
+  return result.user;
 }
