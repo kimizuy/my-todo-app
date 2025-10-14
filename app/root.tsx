@@ -82,7 +82,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <ListTodo />
                 Daily Tasks
               </NavLink>
-              <div className="ml-auto flex items-center gap-2">
+              <div className="ml-auto flex items-center gap-3">
                 {showMenu && <UserMenu user={user} />}
                 <ThemeSwitch />
               </div>
