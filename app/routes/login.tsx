@@ -1,7 +1,7 @@
 import { startAuthentication } from "@simplewebauthn/browser";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   Form,
   Link,
@@ -118,6 +118,60 @@ export default function Login() {
     "idle" | "authenticating" | "error"
   >("idle");
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
+  const [isConditionalUIAvailable, setIsConditionalUIAvailable] =
+    useState(false);
+  const [conditionalUIStarted, setConditionalUIStarted] = useState(false);
+
+  // Conditional UIの利用可能性をチェック
+  useEffect(() => {
+    const checkConditionalUI = async () => {
+      if (
+        window.PublicKeyCredential &&
+        typeof window.PublicKeyCredential.isConditionalMediationAvailable ===
+          "function"
+      ) {
+        const available =
+          await window.PublicKeyCredential.isConditionalMediationAvailable();
+        setIsConditionalUIAvailable(available);
+      }
+    };
+    checkConditionalUI();
+  }, []);
+
+  // Conditional UIを開始（ページロード時に1回のみ）
+  useEffect(() => {
+    if (!isConditionalUIAvailable || conditionalUIStarted) return;
+
+    const startConditionalUI = async () => {
+      try {
+        setConditionalUIStarted(true);
+        const options = await passkeyApi.getLoginOptions();
+
+        const authenticationResponse = await startAuthentication({
+          optionsJSON: options,
+          useBrowserAutofill: true, // Conditional UI有効化
+        });
+
+        await passkeyApi.verifyLogin(authenticationResponse);
+        navigate("/");
+      } catch (err) {
+        // Conditional UIのエラーは静かに無視（ユーザーが選択しなかっただけ）
+        // AbortErrorやNotAllowedErrorは正常な動作
+        if (
+          err instanceof Error &&
+          (err.name === "AbortError" ||
+            err.name === "NotAllowedError" ||
+            err.name === "InvalidStateError")
+        ) {
+          // 静かに無視
+          return;
+        }
+        console.error("Conditional UI error:", err);
+      }
+    };
+
+    startConditionalUI();
+  }, [isConditionalUIAvailable, conditionalUIStarted, navigate]);
 
   const handleDirectPasskeyLogin = async () => {
     try {
@@ -163,7 +217,7 @@ export default function Login() {
               name="email"
               type="email"
               required
-              autoComplete="email"
+              autoComplete="username webauthn"
               autoFocus
             />
           </div>
