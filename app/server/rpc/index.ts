@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { Env } from "../../types/cloudflare";
+import { googleOAuthRoutes } from "./routes/oauth-google";
 import { passkeyRoutes } from "./routes/passkey";
 
 /**
@@ -8,7 +9,8 @@ import { passkeyRoutes } from "./routes/passkey";
  */
 const app = new Hono<{ Bindings: Env }>()
   .basePath("/rpc")
-  .route("/passkey", passkeyRoutes);
+  .route("/passkey", passkeyRoutes)
+  .route("/oauth/google", googleOAuthRoutes);
 
 /**
  * 型定義をエクスポート

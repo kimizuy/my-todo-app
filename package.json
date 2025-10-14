@@ -40,6 +40,7 @@
     "@react-router/fs-routes": "^7.9.4",
     "@simplewebauthn/browser": "^13.2.2",
     "@simplewebauthn/server": "^13.2.2",
+    "arctic": "^3.7.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dompurify": "^3.2.7",
