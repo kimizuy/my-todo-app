@@ -6,9 +6,14 @@ import type { User } from "./schema";
  */
 export type AuthUser = Pick<User, "id" | "email" | "emailVerified">;
 
+export interface AuthSessionResult {
+  user: AuthUser | null;
+  newToken?: string;
+}
+
 export interface AuthService {
   createSession(user: AuthUser): Promise<string>;
-  getUser(request: Request): Promise<AuthUser | null>;
+  getUser(request: Request): Promise<AuthSessionResult>;
   requireUser(request: Request): Promise<AuthUser>;
   destroySession(): void;
 }
