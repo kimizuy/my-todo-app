@@ -160,7 +160,7 @@ export function Column({
               variant="destructive"
               size="sm"
               disabled={tasks.length === 0}
-              className="absolute right-3 bottom-3 text-xs opacity-50 transition-opacity hover:opacity-100"
+              className="absolute right-3 bottom-3 text-xs opacity-50 transition-opacity hover:opacity-100 focus-visible:opacity-100"
             >
               完了したタスクをアーカイブ
             </Button>
