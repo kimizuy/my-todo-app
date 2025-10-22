@@ -9,7 +9,7 @@ import {
   getGoogleUser,
   validateGoogleAuthorizationCode,
 } from "~/features/auth/oauth/google";
-import { oauthStates, users } from "~/features/auth/schema";
+import { oauthStates, passkeys, users } from "~/features/auth/schema";
 import { createAuthService } from "~/features/auth/service";
 import { setCookie } from "~/shared/utils/cookies";
 import type { Env } from "~/types/cloudflare";
@@ -197,14 +197,28 @@ export const googleOAuthRoutes = new Hono<{ Bindings: Env }>()
       });
 
       // Cookie設定してホームにリダイレクト
-      const cookie = setCookie("auth_token", token);
+      const authCookie = setCookie("auth_token", token);
 
-      // Cookieを設定してからリダイレクト
+      // パスキーの有無をチェック
+      const userPasskey = await db
+        .select()
+        .from(passkeys)
+        .where(eq(passkeys.userId, user.id))
+        .limit(1)
+        .get();
+
+      // パスキーがない場合は登録を促すクエリパラメータ付きでリダイレクト
+      // ログイン成功フラグも追加
+      const redirectUrl = userPasskey
+        ? "/?login_success=1"
+        : "/?prompt_passkey=true&login_success=1";
+
+      // Cookieを設定してリダイレクト
       const response = new Response(null, {
         status: 302,
         headers: {
-          Location: "/",
-          "Set-Cookie": cookie,
+          Location: redirectUrl,
+          "Set-Cookie": authCookie,
         },
       });
 

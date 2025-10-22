@@ -12,6 +12,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRevalidator,
   useRouteLoaderData,
 } from "react-router";
 import { createAuthService } from "~/features/auth/service";
@@ -23,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "~/shared/components/shadcn-ui/dropdown-menu";
 import { SkipLink } from "~/shared/components/shadcn-ui/skip-link";
+import { Toaster } from "~/shared/components/shadcn-ui/toaster";
 import { UserMenu } from "~/shared/components/user-menu";
 import { cn } from "~/shared/utils/cn";
 import { setCookie } from "~/shared/utils/cookies";
@@ -89,6 +91,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </header>
             <main className="flex-1 overflow-hidden p-4">{children}</main>
           </div>
+          <Toaster />
         </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
@@ -98,6 +101,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const revalidator = useRevalidator();
+
+  useEffect(() => {
+    let previousState = document.visibilityState;
+
+    function handleVisibilityChange() {
+      const currentState = document.visibilityState;
+
+      // 非表示から表示に変わったときのみ実行
+      if (previousState === "hidden" && currentState === "visible") {
+        revalidator.revalidate();
+      }
+
+      previousState = currentState;
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [revalidator]);
+
   return (
     <NuqsAdapter>
       <Outlet />
