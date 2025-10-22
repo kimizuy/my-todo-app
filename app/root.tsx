@@ -104,11 +104,17 @@ export default function App() {
   const revalidator = useRevalidator();
 
   useEffect(() => {
+    let previousState = document.visibilityState;
+
     function handleVisibilityChange() {
-      // ページが非表示から表示に変わったときにデータを再取得
-      if (document.visibilityState === "visible") {
+      const currentState = document.visibilityState;
+
+      // 非表示から表示に変わったときのみ実行
+      if (previousState === "hidden" && currentState === "visible") {
         revalidator.revalidate();
       }
+
+      previousState = currentState;
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
