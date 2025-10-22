@@ -16,17 +16,22 @@ WARNINGS=0
 echo "🔍 セキュリティチェックを実行中..."
 echo ""
 
-# 1. drizzle-ormの直接インポートをチェック（テストファイルと認証ルートを除外）
+# 1. drizzle-ormの直接インポートをチェック（テストファイルと認証関連ルートを除外）
 echo "📦 [CHECK 1] drizzle-ormの直接インポート"
-DRIZZLE_IMPORTS=$(grep -r "from \"drizzle-orm\"" app/routes --include="*.ts" --include="*.tsx" 2>/dev/null | \
+DRIZZLE_IMPORTS=$(grep -r "from \"drizzle-orm\"" app/routes app/server/rpc/routes --include="*.ts" --include="*.tsx" 2>/dev/null | \
   grep -v ".test.ts" | \
   grep -v "api.auth" | \
   grep -v "login.tsx" | \
   grep -v "register.tsx" | \
-  grep -v "archives.tsx" | \
   grep -v "verify-email-pending.tsx" | \
   grep -v "verify-email.tsx" | \
-  grep -v "_index.tsx" || true)
+  grep -v "forgot-password.tsx" | \
+  grep -v "reset-password.tsx" | \
+  grep -v "auth.tsx" | \
+  grep -v "_index.tsx" | \
+  grep -v "archives.tsx" | \
+  grep -v "oauth-google.ts" | \
+  grep -v "passkey.ts" || true)
 
 if [ -n "$DRIZZLE_IMPORTS" ]; then
   echo "$DRIZZLE_IMPORTS"
@@ -39,6 +44,7 @@ fi
 echo ""
 
 # 2. requireAuthの使用をチェック（認証不要のルートを除外）
+# 注: app/server/rpc/routes は認証ロジックが複雑なため、手動レビューを推奨
 echo "🔐 [CHECK 2] 保護されたroute/actionでの認証チェック"
 ROUTE_FILES=$(find app/routes -name "*.ts" -o -name "*.tsx" | \
   grep -v ".test" | \
@@ -70,9 +76,11 @@ else
 fi
 echo ""
 
-# 3. localStorageの使用をチェック（ユーザーデータ用）
+# 3. localStorageの使用をチェック（ユーザーデータ用、下書き保存を除外）
 echo "💾 [CHECK 3] localStorageの不適切な使用"
-LOCAL_STORAGE_USAGE=$(grep -r "localStorage.setItem.*tasks\|localStorage.setItem.*user" app --include="*.ts" --include="*.tsx" 2>/dev/null || true)
+LOCAL_STORAGE_USAGE=$(grep -r "localStorage.setItem" app --include="*.ts" --include="*.tsx" 2>/dev/null | \
+  grep -v "draft-storage.ts" | \
+  grep -v ".test.ts" || true)
 
 if [ -n "$LOCAL_STORAGE_USAGE" ]; then
   echo "$LOCAL_STORAGE_USAGE"
@@ -86,11 +94,13 @@ echo ""
 
 # 4. where(eq())のパターンをチェック（userIdフィルタの欠如、テストファイルを除外）
 echo "🔒 [CHECK 4] データベースクエリのuserIdフィルタ"
-WHERE_EQ_USAGE=$(grep -r "\.where(eq(" app/routes --include="*.ts" --include="*.tsx" 2>/dev/null | \
+WHERE_EQ_USAGE=$(grep -r "\.where(eq(" app/routes app/server/rpc/routes --include="*.ts" --include="*.tsx" 2>/dev/null | \
   grep -v ".test.ts" | \
   grep -v "userId" | \
   grep -v "email" | \
-  grep -v "columnId" || true)
+  grep -v "state" | \
+  grep -v "credentialID" | \
+  grep -v "users.id" || true)
 
 if [ -n "$WHERE_EQ_USAGE" ]; then
   echo "$WHERE_EQ_USAGE"
