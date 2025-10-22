@@ -1,9 +1,9 @@
 import type { Route } from "./+types/root";
 import "./app.css";
-import { Check, ListTodo, Moon, Sun } from "lucide-react";
+import { Check, ListTodo, Loader2, Moon, Sun } from "lucide-react";
 import { ThemeProvider, useTheme } from "next-themes";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -63,6 +63,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const data = useRouteLoaderData<typeof loader>("root");
   const user = data?.user;
   const showMenu = data?.showMenu ?? false;
+  const revalidator = useRevalidator();
+  const [showSpinner, setShowSpinner] = useState(false);
+
+  // revalidateが300ms以上続く場合のみスピナーを表示
+  useEffect(() => {
+    if (revalidator.state === "loading") {
+      const timer = setTimeout(() => {
+        setShowSpinner(true);
+      }, 100);
+
+      return () => {
+        clearTimeout(timer);
+        setShowSpinner(false);
+      };
+    }
+
+    setShowSpinner(false);
+  }, [revalidator.state]);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -85,6 +103,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 Daily Tasks
               </NavLink>
               <div className="ml-auto flex items-center gap-3">
+                <div className="h-4 w-4">
+                  {showSpinner && (
+                    <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
+                  )}
+                </div>
                 {showMenu && <UserMenu user={user} />}
                 <ThemeSwitch />
               </div>
