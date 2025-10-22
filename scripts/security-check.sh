@@ -21,12 +21,12 @@ echo "📦 [CHECK 1] drizzle-ormの直接インポート"
 DRIZZLE_IMPORTS=$(grep -r "from \"drizzle-orm\"" app/routes --include="*.ts" --include="*.tsx" 2>/dev/null | \
   grep -v ".test.ts" | \
   grep -v "api.auth" | \
-  grep -v "login/route.tsx" | \
-  grep -v "register/route.tsx" | \
-  grep -v "archives/route.tsx" | \
-  grep -v "verify-email-pending/route.tsx" | \
-  grep -v "verify-email/route.tsx" | \
-  grep -v "_index/route.tsx" || true)
+  grep -v "login.tsx" | \
+  grep -v "register.tsx" | \
+  grep -v "archives.tsx" | \
+  grep -v "verify-email-pending.tsx" | \
+  grep -v "verify-email.tsx" | \
+  grep -v "_index.tsx" || true)
 
 if [ -n "$DRIZZLE_IMPORTS" ]; then
   echo "$DRIZZLE_IMPORTS"
@@ -43,14 +43,11 @@ echo "🔐 [CHECK 2] 保護されたroute/actionでの認証チェック"
 ROUTE_FILES=$(find app/routes -name "*.ts" -o -name "*.tsx" | \
   grep -v ".test" | \
   grep -v "api.auth" | \
-  grep -v "login/route.tsx" | \
-  grep -v "register/route.tsx" | \
-  grep -v "logout/route.tsx" | \
-  grep -v "forgot-password/route.tsx" | \
-  grep -v "reset-password/route.tsx" | \
-  grep -v "api.passkey.check" | \
-  grep -v "api.passkey.login-options" | \
-  grep -v "api.passkey.login-verify")
+  grep -v "login.tsx" | \
+  grep -v "register.tsx" | \
+  grep -v "forgot-password.tsx" | \
+  grep -v "reset-password.tsx" | \
+  grep -v "auth.tsx")
 MISSING_AUTH_FILES=""
 
 for file in $ROUTE_FILES; do
