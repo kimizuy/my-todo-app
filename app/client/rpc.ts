@@ -26,19 +26,6 @@ export const rpcClient = hc<AppType>("/");
  */
 export const passkeyApi = {
   /**
-   * メールアドレスでパスキーが登録されているかチェック
-   */
-  checkPasskey: async (email: string) => {
-    const res = await rpcClient.rpc.passkey.check.$get({
-      query: { email },
-    });
-    if (!res.ok) {
-      throw new Error("パスキーチェックに失敗しました");
-    }
-    return res.json();
-  },
-
-  /**
    * パスキー登録オプションを取得
    */
   getRegisterOptions: async () => {
