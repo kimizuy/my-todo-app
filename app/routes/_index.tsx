@@ -251,7 +251,7 @@ export default function Home() {
         (task) => task.columnId !== "uncategorized",
       );
 
-      // 最終的な順序: 非未分類 + 今日やる + 今日やらない + 既存の未分類
+      // 未分類に戻すタスクを結合: 今日やる + 今日やらない + 既存の未分類
       const updatedUncategorizedTasks = [
         ...resetDoTodayTasks,
         ...resetDoNotTodayTasks,
