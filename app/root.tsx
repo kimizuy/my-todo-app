@@ -12,6 +12,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRevalidator,
   useRouteLoaderData,
 } from "react-router";
 import { createAuthService } from "~/features/auth/service";
@@ -100,6 +101,23 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const revalidator = useRevalidator();
+
+  useEffect(() => {
+    function handleVisibilityChange() {
+      // ページが非表示から表示に変わったときにデータを再取得
+      if (document.visibilityState === "visible") {
+        revalidator.revalidate();
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [revalidator]);
+
   return (
     <NuqsAdapter>
       <Outlet />
