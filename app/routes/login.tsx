@@ -88,7 +88,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   });
 
   // Cookie 設定
-  const cookie = setCookie("auth_token", token);
+  const authCookie = setCookie("auth_token", token);
 
   // パスキーの有無をチェック
   const userPasskey = await db
@@ -99,10 +99,13 @@ export async function action({ request, context }: Route.ActionArgs) {
     .get();
 
   // パスキーがない場合は登録を促すクエリパラメータ付きでリダイレクト
-  const redirectUrl = userPasskey ? "/" : "/?prompt_passkey=true";
+  // ログイン成功フラグも追加
+  const redirectUrl = userPasskey
+    ? "/?login_success=1"
+    : "/?prompt_passkey=true&login_success=1";
 
   return redirect(redirectUrl, {
-    headers: { "Set-Cookie": cookie },
+    headers: { "Set-Cookie": authCookie },
   });
 }
 
@@ -165,6 +168,8 @@ export default function Login() {
         });
 
         await passkeyApi.verifyLogin(authenticationResponse);
+        // sessionStorageにログイン成功フラグを設定
+        sessionStorage.setItem("justLoggedIn", "true");
         navigate("/");
       } catch (err) {
         // Conditional UIのエラーは静かに無視（ユーザーが選択しなかっただけ）
@@ -203,6 +208,8 @@ export default function Login() {
       await passkeyApi.verifyLogin(authenticationResponse);
 
       setStatusMessage("ログインに成功しました。リダイレクトしています...");
+      // sessionStorageにログイン成功フラグを設定
+      sessionStorage.setItem("justLoggedIn", "true");
       navigate("/");
     } catch (err) {
       setStatusMessage("");

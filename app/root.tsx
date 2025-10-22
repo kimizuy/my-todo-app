@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "~/shared/components/shadcn-ui/dropdown-menu";
 import { SkipLink } from "~/shared/components/shadcn-ui/skip-link";
+import { Toaster } from "~/shared/components/shadcn-ui/toaster";
 import { UserMenu } from "~/shared/components/user-menu";
 import { cn } from "~/shared/utils/cn";
 import { setCookie } from "~/shared/utils/cookies";
@@ -89,6 +90,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </header>
             <main className="flex-1 overflow-hidden p-4">{children}</main>
           </div>
+          <Toaster />
         </ThemeProvider>
         <ScrollRestoration />
         <Scripts />

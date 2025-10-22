@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { RotateCcw } from "lucide-react";
 import { parseAsBoolean, useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useSearchParams } from "react-router";
 import { usePasskeyRegistration } from "~/features/auth/passkey/registration";
 import { passkeys } from "~/features/auth/schema";
 import { requireEmailVerified } from "~/features/auth/service";
@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/shared/components/shadcn-ui/dialog";
+import { useToast } from "~/shared/hooks/use-toast";
 import type { Route } from "./+types/_index";
 
 export function meta(_: Route.MetaArgs) {
@@ -123,6 +124,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 export default function Home() {
   const loaderData = useLoaderData<typeof loader>();
   const { tasks, setTasks, fetcher } = useTasks();
+  const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [filterText, setFilterText] = useState<string>("");
   const [showPasskeyDialog, setShowPasskeyDialog] = useState(false);
   const [promptPasskey, setPromptPasskey] = useQueryState(
@@ -149,6 +152,41 @@ export default function Home() {
       setPromptPasskey(null);
     }
   }, [promptPasskey, loaderData.hasPasskey, setPromptPasskey]);
+
+  // ログイン成功時のフィードバック表示
+  useEffect(() => {
+    // sessionStorageからフラグを取得
+    const hasSessionFlag = sessionStorage.getItem("justLoggedIn") === "true";
+    // URLパラメータから取得
+    const hasUrlFlag = searchParams.get("login_success") === "1";
+
+    // いずれかの方法でログインした場合
+    if (hasSessionFlag || hasUrlFlag) {
+      // 少し遅延させてトースト表示
+      setTimeout(() => {
+        toast({
+          title: "ログイン成功",
+          description: "ログインしました",
+        });
+      }, 100);
+
+      // sessionStorageをクリア
+      if (hasSessionFlag) {
+        sessionStorage.removeItem("justLoggedIn");
+      }
+
+      // URLパラメータをクリア
+      if (hasUrlFlag) {
+        const timer = setTimeout(() => {
+          const newSearchParams = new URLSearchParams(searchParams);
+          newSearchParams.delete("login_success");
+          setSearchParams(newSearchParams, { replace: true });
+        }, 500);
+
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [toast, searchParams, setSearchParams]);
 
   const handleAddTaskFromForm = (content: string, columnId: ColumnId) => {
     // 最大のorder値を取得
