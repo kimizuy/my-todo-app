@@ -79,7 +79,7 @@ export function Item({ task, columnTitle, onDelete, onComplete }: Props) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex cursor-grab items-center justify-between gap-1 rounded border p-3",
+        "flex cursor-grab items-center justify-between gap-1 rounded border p-3 select-none",
         isDragging && "opacity-50",
       )}
       aria-label={`${task.content.replace(/<[^>]*>/g, "").slice(0, 50)}、${columnTitle}`}

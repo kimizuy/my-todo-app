@@ -49,7 +49,7 @@ export function Board({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 1, // タスクカード上のボタンをクリックしたときにドラッグを開始しないようにする
+        distance: 8, // スマホでのテキスト選択を防ぎ、ドラッグ操作をスムーズにする
       },
     }),
     useSensor(KeyboardSensor, {

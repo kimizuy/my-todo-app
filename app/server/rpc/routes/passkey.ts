@@ -2,7 +2,6 @@ import type {
   AuthenticationResponseJSON,
   RegistrationResponseJSON,
 } from "@simplewebauthn/server";
-import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import {
@@ -11,7 +10,6 @@ import {
   verifyPasskeyAuthentication,
   verifyPasskeyRegistration,
 } from "~/features/auth/passkey/server";
-import { passkeys, users } from "~/features/auth/schema";
 import { createAuthService, requireAuth } from "~/features/auth/service";
 import { setCookie } from "~/shared/utils/cookies";
 import type { Env } from "~/types/cloudflare";
@@ -105,46 +103,6 @@ export const passkeyRoutes = new Hono<{ Bindings: Env }>()
         },
         400,
       );
-    }
-  })
-  /**
-   * GET /rpc/passkey/check
-   * メールアドレスでパスキーが登録されているかチェック
-   */
-  .get("/check", async (c) => {
-    try {
-      const email = c.req.query("email");
-
-      if (!email) {
-        return c.json({ hasPasskey: false });
-      }
-
-      const db = drizzle(c.env.DB);
-
-      // ユーザーを検索
-      const user = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, email))
-        .get();
-
-      if (!user) {
-        return c.json({ hasPasskey: false });
-      }
-
-      // パスキーが登録されているかチェック
-      const userPasskey = await db
-        .select()
-        .from(passkeys)
-        .where(eq(passkeys.userId, user.id))
-        .limit(1)
-        .get();
-
-      return c.json({
-        hasPasskey: !!userPasskey,
-      });
-    } catch (_error) {
-      return c.json({ hasPasskey: false }, 500);
     }
   })
   /**

@@ -209,11 +209,14 @@ export default function Home() {
     setTasks((prev) => [newTask, ...prev]);
 
     // サーバーに送信
-    const formData = new FormData();
-    formData.append("intent", "create");
-    formData.append("content", content);
-    formData.append("columnId", columnId);
-    fetcher.submit(formData, { method: "post" });
+    fetcher.submit(
+      {
+        intent: "create",
+        content,
+        columnId,
+      },
+      { method: "post" },
+    );
   };
 
   const handleResetTasks = () => {
@@ -248,7 +251,7 @@ export default function Home() {
         (task) => task.columnId !== "uncategorized",
       );
 
-      // 最終的な順序: 非未分類 + 今日やる + 今日やらない + 既存の未分類
+      // 未分類に戻すタスクを結合: 今日やる + 今日やらない + 既存の未分類
       const updatedUncategorizedTasks = [
         ...resetDoTodayTasks,
         ...resetDoNotTodayTasks,
@@ -264,10 +267,13 @@ export default function Home() {
       const allTasks = [...nonUncategorizedTasks, ...tasksWithOrder];
 
       // サーバーに送信（batch-update）
-      const formData = new FormData();
-      formData.append("intent", "batch-update");
-      formData.append("tasks", JSON.stringify(allTasks));
-      fetcher.submit(formData, { method: "post" });
+      fetcher.submit(
+        {
+          intent: "batch-update",
+          tasks: JSON.stringify(allTasks),
+        },
+        { method: "post" },
+      );
 
       return allTasks;
     });
@@ -278,10 +284,13 @@ export default function Home() {
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
 
     // サーバーに送信
-    const formData = new FormData();
-    formData.append("intent", "delete");
-    formData.append("taskId", taskId);
-    fetcher.submit(formData, { method: "post" });
+    fetcher.submit(
+      {
+        intent: "delete",
+        taskId,
+      },
+      { method: "post" },
+    );
   };
 
   const handleCompleteTask = (taskId: string) => {
@@ -316,12 +325,15 @@ export default function Home() {
     });
 
     // サーバーに送信
-    const formData = new FormData();
-    formData.append("intent", "update");
-    formData.append("taskId", taskId);
-    formData.append("columnId", "done");
-    formData.append("order", newOrder.toString());
-    fetcher.submit(formData, { method: "post" });
+    fetcher.submit(
+      {
+        intent: "update",
+        taskId,
+        columnId: "done",
+        order: newOrder.toString(),
+      },
+      { method: "post" },
+    );
   };
 
   const handleArchiveAll = () => {
@@ -331,9 +343,12 @@ export default function Home() {
     );
 
     // サーバーに送信
-    const formData = new FormData();
-    formData.append("intent", "archive");
-    fetcher.submit(formData, { method: "post" });
+    fetcher.submit(
+      {
+        intent: "archive",
+      },
+      { method: "post" },
+    );
   };
 
   const handleTaskUpdate = (updatedTasks: Task[]) => {
@@ -341,10 +356,13 @@ export default function Home() {
     setTasks(updatedTasks);
 
     // サーバーに送信（batch-update）
-    const formData = new FormData();
-    formData.append("intent", "batch-update");
-    formData.append("tasks", JSON.stringify(updatedTasks));
-    fetcher.submit(formData, { method: "post" });
+    fetcher.submit(
+      {
+        intent: "batch-update",
+        tasks: JSON.stringify(updatedTasks),
+      },
+      { method: "post" },
+    );
   };
 
   const filteredTasks = !filterText.trim()
